@@ -6,6 +6,8 @@ import NavRoutes from './Components/NavRoutes';
 import Categories from './Components/Categories';
 import Footer from './Components/Footer';
 import TrendingProducts from './Components/TrandingProducts';
+import DailyDiscover from './Components/DailyDiscover';
+import CategorySection from './Components/CategorySection';
 
 
 
@@ -22,6 +24,8 @@ export default function Welcome({ auth }: PageProps<{ laravelVersion: string, ph
                 <HeroSection />
                 <Categories />
                 <TrendingProducts />
+                <DailyDiscover />
+                <CategorySection />
             </div>
             <Footer/>
         </AppLayout>

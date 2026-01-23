@@ -1,0 +1,255 @@
+import { Link } from "@inertiajs/react"
+
+
+const CategorySection = () => {
+
+    const categoryview = [
+        {
+            name: "Toys, Kids & Babies",
+            url: '/',
+            branch: [
+                {
+                    name: "Bath & Baby Care",
+                    url: '/'
+                },
+                {
+                    name: "Maaternity Care",
+                    url: '/'
+                },
+                {
+                    name: "kid's Furniture",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Home Appliances",
+            url: '/',
+            branch: [
+                {
+                    name: "Housekeeping",
+                    url: '/'
+                },
+                {
+                    name: "TV Accessories",
+                    url: '/'
+                },
+                {
+                    name: "Small Kitchen Appliances",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Men's Bags",
+            url: '/',
+            branch: [
+                {
+                    name: "Totes",
+                    url: '/'
+                },
+                {
+                    name: "Briefcases",
+                    url: '/'
+                },
+                {
+                    name: "Suit Carriers",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Beauty & Personal Care",
+            url: '/',
+            branch: [
+                {
+                    name: "Women's Hair Care",
+                    url: '/'
+                },
+                {
+                    name: "Feminine Care",
+                    url: '/'
+                },
+                {
+                    name: "SkinCare",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Food & Beverages",
+            url: '/',
+            branch: [
+                {
+                    name: "Snacks & Sweets",
+                    url: '/'
+                },
+                {
+                    name: "Meat & Seafood",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Jewellery & Accessories",
+            url: '/',
+            branch: [
+                {
+                    name: "Hats & Caps",
+                    url: '/'
+                },
+                {
+                    name: "Key Chains",
+                    url: '/'
+                },
+                {
+                    name: "Eyewear",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Men's Shoes",
+            url: '/',
+            branch: [
+                {
+                    name: "Formal Shoes",
+                    url: '/'
+                },
+                {
+                    name: "Sandals & Flip-Flops",
+                    url: '/'
+                },
+                {
+                    name: "Sneakers",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Men's Wear",
+            url: '/',
+            branch: [
+                {
+                    name: "Pants",
+                    url: '/'
+                },
+                {
+                    name: "Crossbody & Shoulder Bags",
+                    url: '/'
+                },
+                {
+                    name: "Shirts",
+                    url: '/'
+                },
+                {
+                    name: "Jackets & Coats",
+                    url: '/'
+                },
+                {
+                    name: "Men's Wallet",
+                    url: '/'
+                },
+                {
+                    name: "Backpacks",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Women Apparel",
+            url: '/',
+            branch: [
+                {
+                    name: "Tops",
+                    url: '/'
+                },
+                {
+                    name: "Dresses",
+                    url: '/'
+                },
+                {
+                    name: "Socks & Tights",
+                    url: '/'
+                },
+                {
+                    name: "Pants & Leggings",
+                    url: '/'
+                },
+            ]
+        },
+        {
+            name: "Home & Living",
+            url: '/',
+            branch: [
+                {
+                    name: "Home Decor",
+                    url: '/'
+                },
+                {
+                    name: "Tools, DIY & Outdoors",
+                    url: '/'
+                },
+                {
+                    name: "Kitchen & Dining",
+                    url: '/'
+                },
+            ]
+        },
+        {
+            name: "Travel & Luggage",
+            url: '/',
+            branch: [
+                {
+                    name: "Luggage",
+                    url: '/'
+                },
+                {
+                    name: "Travel Bags & Backpacks",
+                    url: '/'
+                },
+                {
+                    name: "Travel Accessories",
+                    url: '/'
+                }
+            ]
+        },
+        {
+            name: "Women's Bags",
+            url: '/',
+            branch: [
+                {
+                    name:  "Sling Bags",
+                    url: '/'
+                },
+                {
+                    name: "Clutches & Mini Bags",
+                    url: '/'
+                },
+                {
+                    name: "Handbags",
+                    url: '/'
+                }
+            ]
+        },
+    ]
+
+  return (
+    <div className="mt-16">
+        <div className="grid lg:grid-cols-4 sm:grid-cols-2 gap-5 ">
+        {
+            categoryview.map((cate, index) => (
+                <div key={index} className="flex flex-col gap-2 items-start">
+                    <Link href={cate.url} className="hover:text-gray-600 duration-200"><h1 className="text-lg font-semibold">{cate.name}</h1></Link>
+                    <div className="flex flex-wrap gap-4">{cate.branch.map((b, index) => (
+                        <Link href={b.url} key={index} className="hover:underline duration-200">{b.name}</Link>
+                    ))}</div>
+                </div>
+            ))
+        }
+        </div>
+    </div>
+  )
+}
+
+export default CategorySection;

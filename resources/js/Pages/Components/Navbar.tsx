@@ -1,6 +1,7 @@
 import { PropsWithChildren, useState, useRef, useEffect } from "react"
 import { Link } from "@inertiajs/react"
 import { useGSAP } from "@gsap/react"
+import React from "react"
 import gsap from "gsap"
 import {
   FiSearch,
@@ -16,8 +17,11 @@ import {
   FiPackage,
   FiLogOut,
   FiGrid,
-  FiChevronDown
+  FiChevronDown,
+  FiChevronRight,
+  FiShoppingCart,
 } from "react-icons/fi"
+import { Dialog, Transition, Disclosure } from "@headlessui/react"
 
 const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
@@ -161,7 +165,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Left Section - Logo & Mobile Menu */}
@@ -466,139 +470,279 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
         </div>
       </header>
 
-      {/* Mobile Menu Modal */}
-      {isMobileMenuOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/30 z-50 lg:hidden animate-in fade-in duration-300"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 flex max-w-full z-50 lg:hidden">
-            <div className="pointer-events-auto w-screen max-w-xs sm:max-w-md animate-in slide-in-from-left duration-300">
-              <div className="flex h-full flex-col bg-white shadow-xl">
-                {/* Header */}
-                <div className="px-6 py-4 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">S</span>
-                      </div>
-                      <span className="text-xl font-bold">ShopHub</span>
-                    </div>
-                    <button
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="p-2 rounded-md hover:bg-gray-100"
-                    >
-                      <FiX className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
+      {/* Mobile Menu Drawer using Headless UI */}
+      <Transition.Root show={isMobileMenuOpen} as={React.Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50 lg:hidden"
+          onClose={setIsMobileMenuOpen}
+        >
+          <Transition.Child
+            as={React.Fragment}
+            enter="ease-in-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in-out duration-300"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto py-6">
-                  <div className="space-y-2 px-4">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        {item.icon && <item.icon className="h-4 w-4" />}
-                        {item.name}
-                        {item.badge && (
-                          <span className="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-                            {item.badge}
-                          </span>
+          <div className="fixed inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="pointer-events-none fixed inset-y-0 left-0 flex max-w-full pr-10">
+                <Transition.Child
+                  as={React.Fragment}
+                  enter="transform transition ease-in-out duration-300"
+                  enterFrom="-translate-x-full"
+                  enterTo="translate-x-0"
+                  leave="transform transition ease-in-out duration-300"
+                  leaveFrom="translate-x-0"
+                  leaveTo="-translate-x-full"
+                >
+                  <Dialog.Panel className="pointer-events-auto w-screen max-w-xs sm:max-w-md">
+                    <div className="flex h-full flex-col bg-white shadow-xl">
+                      {/* Drawer Header */}
+                      <div className="px-6 py-4 border-b">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">S</span>
+                            </div>
+                            <Dialog.Title className="text-xl font-bold text-gray-900">
+                              ShopHub
+                            </Dialog.Title>
+                          </div>
+                          <button
+                            type="button"
+                            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <FiX className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Drawer Content */}
+                      <div className="flex-1 overflow-y-auto py-6">
+                        {/* User Info Section */}
+                        {user ? (
+                          <div className="px-6 mb-6">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg">
+                                {user.name.charAt(0)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-900 truncate">
+                                  {user.name}
+                                </p>
+                                <p className="text-sm text-gray-500 truncate">
+                                  {user.email}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {/* Main Navigation */}
+                        <nav className="space-y-1 px-4">
+                          {navigation.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                {item.icon && <item.icon className="h-5 w-5" />}
+                                {item.name}
+                              </div>
+                              {item.badge && (
+                                <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
+                        </nav>
+
+                        <div className="border-t my-6" />
+
+                        {/* Categories Section */}
+                        <div className="px-4">
+                          <Disclosure defaultOpen={false}>
+                            {({ open }) => (
+                              <>
+                                <Disclosure.Button className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors">
+                                  <div className="flex items-center gap-3">
+                                    <FiGrid className="h-5 w-5" />
+                                    Categories
+                                  </div>
+                                  <FiChevronRight
+                                    className={`h-5 w-5 transition-transform ${
+                                      open ? 'rotate-90' : ''
+                                    }`}
+                                  />
+                                </Disclosure.Button>
+                                <Disclosure.Panel className="mt-2 space-y-1 px-4">
+                                  {categories.map((category) => (
+                                    <Link
+                                      key={category.name}
+                                      href={category.href}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      className="block rounded-lg px-3 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                      {category.name}
+                                    </Link>
+                                  ))}
+                                </Disclosure.Panel>
+                              </>
+                            )}
+                          </Disclosure>
+                        </div>
+
+                        {/* Dashboard Section (if logged in) */}
+                        {user && (
+                          <>
+                            <div className="border-t my-6" />
+                            <div className="px-4">
+                              <h3 className="px-3 text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                Dashboard
+                              </h3>
+                              <nav className="space-y-1">
+                                <Link
+                                  href="/dashboard"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                >
+                                  <FiGrid className="h-5 w-5" />
+                                  Dashboard Home
+                                </Link>
+                                <Link
+                                  href="/dashboard/products"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                >
+                                  <FiPackage className="h-5 w-5" />
+                                  Products
+                                </Link>
+                                <Link
+                                  href="/dashboard/orders"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                >
+                                  <FiShoppingCart className="h-5 w-5" />
+                                  Orders
+                                </Link>
+                                <Link
+                                  href="/dashboard/customers"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                >
+                                  <FiUser className="h-5 w-5" />
+                                  Customers
+                                </Link>
+                                <Link
+                                  href="/dashboard/analytics"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                >
+                                  <FiSearch className="h-5 w-5" />
+                                  Analytics
+                                </Link>
+                              </nav>
+                            </div>
+                          </>
                         )}
-                      </Link>
-                    ))}
-                  </div>
 
-                  <div className="border-t my-6" />
-
-                  <div className="px-4">
-                    <h3 className="text-sm font-semibold text-gray-500 mb-2">Categories</h3>
-                    <div className="space-y-1">
-                      {categories.map((category) => (
-                        <Link
-                          key={category.name}
-                          href={category.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block px-3 py-2 text-sm rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="border-t my-6" />
-
-                  {user ? (
-                    <div className="px-4 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                          {user.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm">{user.name}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                        {/* Account Actions */}
+                        <div className="border-t my-6" />
+                        <div className="px-4">
+                          {user ? (
+                            <div className="space-y-1">
+                              <Link
+                                href="/profile"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                              >
+                                <FiUser className="h-5 w-5" />
+                                Profile Settings
+                              </Link>
+                              <Link
+                                href="/orders"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                              >
+                                <FiShoppingBag className="h-5 w-5" />
+                                My Orders
+                              </Link>
+                              <Link
+                                href="/wishlist"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                              >
+                                <FiHeart className="h-5 w-5" />
+                                Wishlist
+                                {wishlistItems > 0 && (
+                                  <span className="ml-auto inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                    {wishlistItems}
+                                  </span>
+                                )}
+                              </Link>
+                              <Link
+                                href="/logout"
+                                method="post"
+                                as="button"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                              >
+                                <FiLogOut className="h-5 w-5" />
+                                Log out
+                              </Link>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <Link
+                                href="/login"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700 transition-colors"
+                              >
+                                Sign In
+                              </Link>
+                              <Link
+                                href="/register"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                              >
+                                Create Account
+                              </Link>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <Link
-                          href="/profile"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          <FiUser className="h-4 w-4" />
-                          Profile
-                        </Link>
-                        <Link
-                          href="/orders"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          <FiPackage className="h-4 w-4" />
-                          Orders
-                        </Link>
-                        <Link
-                          href="/logout"
-                          method="post"
-                          as="button"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 rounded-md hover:bg-red-50 transition-colors w-full text-left"
-                        >
-                          <FiLogOut className="h-4 w-4" />
-                          Log out
-                        </Link>
+
+                      {/* Drawer Footer */}
+                      <div className="border-t px-6 py-4">
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <span>© {new Date().getFullYear()} ShopHub</span>
+                          <Link
+                            href="/terms"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="hover:text-gray-700"
+                          >
+                            Terms
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="px-4 space-y-3">
-                      <Link
-                        href="/login"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        Sign In
-                      </Link>
-                      <Link
-                        href="/register"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="block w-full text-center border border-gray-300 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        Create Account
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                  </Dialog.Panel>
+                </Transition.Child>
               </div>
             </div>
           </div>
-        </>
-      )}
+        </Dialog>
+      </Transition.Root>
     </>
   )
 }

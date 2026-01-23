@@ -16,7 +16,7 @@ interface Product {
   sold: number;
 }
 
-const TopSellingProducts: React.FC = () => {
+const DailyDiscover: React.FC = () => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
 
@@ -282,12 +282,9 @@ const TopSellingProducts: React.FC = () => {
     <div className="mt-16 px-4">
       {/* Header */}
       <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 border border-blue-200 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
-          <IoMdTrendingUp className="w-3 h-3" />
-          Top Picks
-        </div>
+
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-          Top Selling Products
+          Daily Discover
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
           Discover our most popular items that customers love. Limited stock available!
@@ -445,4 +442,4 @@ const TopSellingProducts: React.FC = () => {
   );
 };
 
-export default TopSellingProducts;
+export default DailyDiscover;
