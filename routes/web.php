@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductsController;
@@ -43,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
     Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
+    Route::get('/dashboard/messages', [MessagesController::class, 'index'])->name('dashboard.messages');
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 });
 
