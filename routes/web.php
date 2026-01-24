@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/stores', [StoreController::class, 'index'])->name('dashboard.store');
     Route::get('/dashboard/orders', [OrdersController::class, 'index'])->name('dashboard.orders');
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
+    Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
+    Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
+    Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 });
 
 
