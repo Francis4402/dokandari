@@ -171,7 +171,7 @@ const DashboardHome = () => {
                 <Link
                   key={stat.name}
                   href={stat.href}
-                  className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 hover:-translate-y-1 transform transition-transform"
+                  className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 hover:-translate-y-1 transform"
                 >
                   <div className="p-5">
                     <div className="flex items-center">

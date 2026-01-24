@@ -15,6 +15,7 @@
         "@vitejs/plugin-react": "^4.2.0",
         "autoprefixer": "^10.4.12",
         "axios": "^1.6.4",
+        "goober": "^2.1.18",
         "laravel-vite-plugin": "^1.0.0",
         "postcss": "^8.4.31",
         "react": "^18.2.0",
@@ -26,6 +27,7 @@
     "dependencies": {
         "@gsap/react": "^2.1.2",
         "gsap": "^3.14.2",
+        "react-hot-toast": "^2.6.0",
         "react-icons": "^5.5.0",
         "swiper": "^12.0.3"
     }

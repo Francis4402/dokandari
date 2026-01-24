@@ -8,7 +8,6 @@ import {
   FiPackage,
   FiShoppingCart,
   FiBarChart2,
-  FiSettings,
   FiMenu,
   FiX,
   FiChevronLeft,
@@ -86,12 +85,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       current: url.startsWith('/dashboard/payments')
     },
     {
-      name: 'Reviews',
-      href: '/dashboard/reviews',
-      icon: FiStar,
-      current: url.startsWith('/dashboard/reviews')
-    },
-    {
       name: 'Messages',
       href: '/dashboard/messages',
       icon: FiMessageSquare,
@@ -102,12 +95,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       href: '/dashboard/analytics',
       icon: FiBarChart2,
       current: url.startsWith('/dashboard/analytics')
-    },
-    {
-      name: 'Settings',
-      href: '/dashboard/settings',
-      icon: FiSettings,
-      current: url.startsWith('/dashboard/settings')
     },
   ];
 
@@ -146,7 +133,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">E-Shop Admin</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Dokandari</h1>
                     <button
                       type="button"
                       className="ml-auto rounded-md p-2.5 text-gray-700"
@@ -211,7 +198,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                 <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
                   <span className="text-white font-bold">ES</span>
                 </div>
-                <h1 className="ml-3 text-xl font-bold text-gray-900">E-Shop</h1>
+                <h1 className="ml-3 text-xl font-bold text-gray-900">Dokandari</h1>
               </Link>
             )}
             <button

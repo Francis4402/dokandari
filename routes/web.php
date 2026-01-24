@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoreController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,6 +33,11 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/products', [ProductsController::class, 'index'])->name('dashboard.products');
+    Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
+    Route::get('/dashboard/stores', [StoreController::class, 'index'])->name('dashboard.store');
+    Route::get('/dashboard/orders', [OrdersController::class, 'index'])->name('dashboard.orders');
+    Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
 });
 
 

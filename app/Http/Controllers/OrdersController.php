@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Products;
-use App\Http\Requests\StoreProductsRequest;
-use App\Http\Requests\UpdateProductsRequest;
-use Illuminate\Http\Request;
+use App\Models\Orders;
+use App\Http\Requests\StoreOrdersRequest;
+use App\Http\Requests\UpdateOrdersRequest;
 use Inertia\Inertia;
 
-class ProductsController extends Controller
+class OrdersController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Inertia::render('dashboard/products/index');
+        return Inertia::render('dashboard/orders/index');
     }
 
     /**
@@ -29,7 +28,7 @@ class ProductsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrdersRequest $request)
     {
         //
     }
@@ -37,7 +36,7 @@ class ProductsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Products $products)
+    public function show(Orders $orders)
     {
         //
     }
@@ -45,7 +44,7 @@ class ProductsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Products $products)
+    public function edit(Orders $orders)
     {
         //
     }
@@ -53,7 +52,7 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductsRequest $request, Products $products)
+    public function update(UpdateOrdersRequest $request, Orders $orders)
     {
         //
     }
@@ -61,7 +60,7 @@ class ProductsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Products $products)
+    public function destroy(Orders $orders)
     {
         //
     }
