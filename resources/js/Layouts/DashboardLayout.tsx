@@ -190,7 +190,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       </Transition.Root>
 
       {/* Static sidebar for desktop */}
-      <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}>
+      <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
           <div className="flex h-16 shrink-0 items-center justify-between">
             {!isCollapsed && (
@@ -251,7 +251,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       </div>
 
       {/* Main content */}
-      <div className={`lg:pl-${isCollapsed ? '20' : '64'}`}>
+      <div className={isCollapsed ? 'lg:pl-20' : 'lg:pl-64'}>
         {/* Top navigation bar */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
@@ -305,7 +305,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
         {/* Main content area */}
         <main className="py-6">
-          <div className="px-4 sm:px-6 lg:px-8">
+          {/* Container to center content and match form width */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Page header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
@@ -329,8 +330,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               </nav>
             </div>
 
-            {/* Page content */}
-            {children}
+            {/* Page content - Add a white background container for consistency */}
+            <div className="bg-white rounded-lg shadow-sm">
+              {children}
+            </div>
           </div>
         </main>
       </div>

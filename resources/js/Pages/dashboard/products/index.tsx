@@ -269,7 +269,7 @@ const Products = () => {
               </div>
 
               <Link
-                href="/dashboard/products/create"
+                href={route('dashboard.createproduct')}
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5"
               >
                 <FaPlus className="h-4 w-4 mr-2" />

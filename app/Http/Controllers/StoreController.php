@@ -22,7 +22,7 @@ class StoreController extends Controller
      */
     public function create()
     {
-        //
+       return Inertia::render('dashboard/forms/CreateStoreForm');
     }
 
     /**
