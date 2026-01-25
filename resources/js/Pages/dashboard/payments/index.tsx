@@ -19,6 +19,8 @@ import {
   FaShippingFast,
   FaWeightHanging
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
+
 
 interface Order {
   id: string;
@@ -66,15 +68,12 @@ interface Order {
   notes: string | null;
 }
 
-interface PageProps {
-  auth: {
-    user: any;
-  };
+interface ShippingProps extends PageProps {
   shippedOrders: Order[];
 }
 
-const Payments = ({ shippedOrders: initialOrders }: PageProps) => {
-  const [orders] = useState<Order[]>(initialOrders || []);
+const Payments: React.FC<ShippingProps> = ({ shippedOrders, auth }) => {
+  const [orders] = useState<Order[]>(shippedOrders || []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const getStatusColor = (status: Order['shipping']['status']) => {
@@ -134,7 +133,7 @@ const Payments = ({ shippedOrders: initialOrders }: PageProps) => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Shipping Management" />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50 p-4 md:p-6">
@@ -143,7 +142,7 @@ const Payments = ({ shippedOrders: initialOrders }: PageProps) => {
           <div className="mb-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Shipping Management</h1>
+                <h1 className="text-3xl font-bold text-gray-800">Payment Management</h1>
                 <p className="text-gray-600 mt-1">View and manage all shipped orders</p>
               </div>
 

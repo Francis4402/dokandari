@@ -30,6 +30,7 @@ import {
   FaStore,
   FaTimes
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 interface OrderItem {
   id: string;
@@ -67,7 +68,7 @@ interface Order {
   estimated_delivery: string;
 }
 
-const Orders = () => {
+const Orders = ({auth}: PageProps) => {
   // Dummy orders data
   const [orders, setOrders] = useState<Order[]>([
     {
@@ -418,7 +419,7 @@ const Orders = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Orders Management" />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">

@@ -23,7 +23,9 @@ import {
   FaCalendarAlt,
   FaEye,
   FaBuilding,
+  FaEllipsisH,
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 // Define interfaces
 interface User {
@@ -151,7 +153,7 @@ const fakeStores: Store[] = [
   }
 ];
 
-const Store = () => {
+const Store = ({auth}: PageProps) => {
   const [stores, setStores] = useState<Store[]>(fakeStores);
   const [searchTerm, setSearchTerm] = useState('');
   const [storeTypeFilter, setStoreTypeFilter] = useState('all');
@@ -160,6 +162,7 @@ const Store = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState<number | null>(null);
 
   // Calculate statistics
   const stats = {
@@ -241,6 +244,7 @@ const Store = () => {
   const handleDelete = (id: number) => {
     setStoreToDelete(id);
     setShowDeleteModal(true);
+    setShowMoreActions(null);
   };
 
   const confirmDelete = () => {
@@ -258,9 +262,9 @@ const Store = () => {
     }
   };
 
-
   const handleEditStore = (id: number) => {
     router.visit(`/dashboard/stores/${id}/edit`);
+    setShowMoreActions(null);
   };
 
   const handleViewProducts = (id: number) => {
@@ -271,90 +275,99 @@ const Store = () => {
     router.visit(`/dashboard/stores/${id}/analytics`);
   };
 
+  const formatCompactNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `$${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `$${(num / 1000).toFixed(1)}k`;
+    } else {
+      return `$${num}`;
+    }
+  };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Store Management" />
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                  <FaStore className="h-8 w-8 text-purple-600" />
-                  Store Management
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
+                  <FaStore className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
+                  <span className="truncate">Store Management</span>
                 </h1>
-                <p className="text-gray-600 mt-1">Manage all stores in your marketplace</p>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage all stores in your marketplace</p>
               </div>
 
               <Link
                 href={route('dashboard.createstore')}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all text-sm sm:text-base w-full md:w-auto flex-shrink-0"
               >
-                <FaPlus className="h-4 w-4 mr-2" />
+                <FaPlus className="h-4 w-4 mr-2 flex-shrink-0" />
                 Create New Store
               </Link>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Stores</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.totalStores}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Stores</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">{stats.totalStores}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <FaStore className="h-6 w-6 text-blue-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-blue-100 flex items-center justify-center ml-3 flex-shrink-0">
+                  <FaStore className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Products</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.totalProducts}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Products</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">{stats.totalProducts}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <FaShoppingCart className="h-6 w-6 text-green-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-green-100 flex items-center justify-center ml-3 flex-shrink-0">
+                  <FaShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">
-                    ${stats.totalRevenue.toLocaleString()}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Revenue</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">
+                    {formatCompactNumber(stats.totalRevenue)}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <FaDollarSign className="h-6 w-6 text-purple-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-purple-100 flex items-center justify-center ml-3 flex-shrink-0">
+                  <FaDollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-purple-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg. Rating</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.averageRating.toFixed(1)}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Avg. Rating</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">{stats.averageRating.toFixed(1)}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <FaStar className="h-6 w-6 text-orange-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-orange-100 flex items-center justify-center ml-3 flex-shrink-0">
+                  <FaStar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-orange-600" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
               {/* Search */}
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
@@ -363,7 +376,7 @@ const Store = () => {
                   placeholder="Search stores..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
 
@@ -373,7 +386,7 @@ const Store = () => {
                 <select
                   value={storeTypeFilter}
                   onChange={(e) => setStoreTypeFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white text-sm sm:text-base"
                 >
                   <option value="all">All Store Types</option>
                   {stats.storeTypes.map(type => (
@@ -388,7 +401,7 @@ const Store = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white text-sm sm:text-base"
                 >
                   <option value="newest">Newest First</option>
                   <option value="name-asc">Name A-Z</option>
@@ -405,16 +418,16 @@ const Store = () => {
               {/* Advanced Filters Toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
               >
-                <FaFilter className="h-4 w-4 mr-2" />
-                {showFilters ? 'Hide Filters' : 'More Filters'}
+                <FaFilter className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{showFilters ? 'Hide Filters' : 'More Filters'}</span>
               </button>
             </div>
 
             {/* Results Info */}
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 truncate">
                 Showing <span className="font-semibold">{filteredStores.length}</span> of <span className="font-semibold">{stats.totalStores}</span> stores
               </p>
               {(searchTerm || storeTypeFilter !== 'all') && (
@@ -423,7 +436,7 @@ const Store = () => {
                     setSearchTerm('');
                     setStoreTypeFilter('all');
                   }}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium flex-shrink-0 ml-2"
                 >
                   Clear Filters
                 </button>
@@ -432,30 +445,30 @@ const Store = () => {
           </div>
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Stores List */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b">
-                  <h2 className="text-xl font-bold text-gray-800">All Stores</h2>
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 pb-4 border-b gap-2">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">All Stores</h2>
                   <div className="text-sm text-gray-600 flex items-center gap-2">
-                    <FaStore className="h-4 w-4" />
-                    {filteredStores.length} stores
+                    <FaStore className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{filteredStores.length} stores</span>
                   </div>
                 </div>
 
                 {filteredStores.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FaStore className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Stores Found</h3>
-                    <p className="text-gray-600 mb-6">
+                  <div className="text-center py-8 sm:py-12">
+                    <FaStore className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No Stores Found</h3>
+                    <p className="text-gray-600 mb-6 text-sm sm:text-base">
                       {searchTerm ? `No results for "${searchTerm}"` : 'No stores available'}
                     </p>
                     <Link
                       href={route('dashboard.createstore')}
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                      className="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all text-sm sm:text-base"
                     >
-                      <FaPlus className="h-4 w-4 mr-2" />
+                      <FaPlus className="h-4 w-4 mr-2 flex-shrink-0" />
                       Create Your First Store
                     </Link>
                   </div>
@@ -464,15 +477,15 @@ const Store = () => {
                     {filteredStores.map(store => (
                       <div
                         key={store.id}
-                        className={`border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all cursor-pointer ${
+                        className={`border border-gray-200 rounded-xl p-3 sm:p-4 md:p-5 hover:shadow-lg transition-all cursor-pointer ${
                           selectedStore?.id === store.id ? 'ring-2 ring-purple-500 bg-purple-50' : ''
                         }`}
                         onClick={() => setSelectedStore(store)}
                       >
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-3 sm:gap-4">
                           {/* Store Logo */}
                           <div className="flex-shrink-0">
-                            <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-white shadow-md">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 border-white shadow-md">
                               <img
                                 src={store.logo || 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
                                 alt={store.name}
@@ -483,23 +496,64 @@ const Store = () => {
 
                           {/* Store Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div className="min-w-0">
-                                <h3 className="font-bold text-gray-800 text-lg truncate">{store.name}</h3>
-                                <div className="flex items-center flex-wrap gap-2 mt-2">
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStoreTypeColor(store.storetype)}`}>
-                                    <FaBuilding className="h-3 w-3 mr-1" />
-                                    {store.storetype}
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-gray-800 text-base sm:text-lg truncate">{store.name}</h3>
+                                <div className="flex items-center flex-wrap gap-1 sm:gap-2 mt-1 sm:mt-2">
+                                  <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${getStoreTypeColor(store.storetype)}`}>
+                                    <FaBuilding className="h-2 w-2 sm:h-3 sm:w-3 mr-1 flex-shrink-0" />
+                                    <span className="truncate">{store.storetype}</span>
                                   </span>
                                   {store.license && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                      <FaIdCard className="h-3 w-3 mr-1" />
-                                      {store.license}
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                      <FaIdCard className="h-2 w-2 sm:h-3 sm:w-3 mr-1 flex-shrink-0" />
+                                      <span className="truncate">{store.license}</span>
                                     </span>
                                   )}
                                 </div>
                               </div>
-                              <div className="flex space-x-1">
+
+                              {/* Mobile Action Menu */}
+                              <div className="relative sm:hidden">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMoreActions(showMoreActions === store.id ? null : store.id);
+                                  }}
+                                  className="p-1.5 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                                  title="More actions"
+                                >
+                                  <FaEllipsisH className="h-4 w-4" />
+                                </button>
+
+                                {showMoreActions === store.id && (
+                                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditStore(store.id);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                                    >
+                                      <FaEdit className="h-3 w-3" />
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(store.id);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                      <FaTrash className="h-3 w-3" />
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Desktop Actions */}
+                              <div className="hidden sm:flex space-x-1">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -524,50 +578,52 @@ const Store = () => {
                             </div>
 
                             {/* Store Stats */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                              <div className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4">
+                              <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center justify-center mb-1">
-                                  <FaBox className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600 font-medium">Products</span>
+                                  <FaBox className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 font-medium truncate">Products</span>
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{store.stats?.totalProducts || 0}</p>
+                                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{store.stats?.totalProducts || 0}</p>
                               </div>
-                              <div className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                              <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center justify-center mb-1">
-                                  <FaTags className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600 font-medium">Orders</span>
+                                  <FaTags className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 font-medium truncate">Orders</span>
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{store.stats?.totalOrders || 0}</p>
+                                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{store.stats?.totalOrders || 0}</p>
                               </div>
-                              <div className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                              <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center justify-center mb-1">
-                                  <FaDollarSign className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600 font-medium">Revenue</span>
+                                  <FaDollarSign className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 font-medium truncate">Revenue</span>
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">${(store.stats?.totalRevenue || 0).toLocaleString()}</p>
+                                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">
+                                  ${(store.stats?.totalRevenue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </p>
                               </div>
-                              <div className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                              <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center justify-center mb-1">
-                                  <FaStar className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600 font-medium">Rating</span>
+                                  <FaStar className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 font-medium truncate">Rating</span>
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{store.stats?.averageRating?.toFixed(1) || '0.0'}</p>
+                                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{store.stats?.averageRating?.toFixed(1) || '0.0'}</p>
                               </div>
                             </div>
 
                             {/* Store Owner and Created Date */}
-                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 gap-2">
                               {store.user && (
-                                <div className="flex items-center">
-                                  <FaUsers className="h-3 w-3 text-gray-400 mr-2" />
-                                  <span className="text-xs text-gray-600">
-                                    Owner: <span className="font-medium">{store.user.name}</span>
+                                <div className="flex items-center min-w-0">
+                                  <FaUsers className="h-3 w-3 text-gray-400 mr-2 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 truncate">
+                                    Owner: <span className="font-medium truncate">{store.user.name}</span>
                                   </span>
                                 </div>
                               )}
                               <div className="flex items-center text-xs text-gray-500">
-                                <FaCalendarAlt className="h-3 w-3 mr-1" />
-                                Created {new Date(store.created_at).toLocaleDateString()}
+                                <FaCalendarAlt className="h-3 w-3 mr-1 flex-shrink-0" />
+                                <span className="truncate">Created {new Date(store.created_at).toLocaleDateString()}</span>
                               </div>
                             </div>
                           </div>
@@ -582,174 +638,176 @@ const Store = () => {
             {/* Store Details Sidebar */}
             <div className="space-y-6">
               {selectedStore ? (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                      <FaStore className="h-5 w-5 text-purple-600" />
-                      Store Details
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 truncate">
+                      <FaStore className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                      <span className="truncate">Store Details</span>
                     </h3>
                     <button
                       onClick={() => setSelectedStore(null)}
-                      className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
                     >
-                      <FaTimes className="h-5 w-5" />
+                      <FaTimes className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   </div>
 
                   {/* Store Logo and Name */}
-                  <div className="text-center mb-6">
-                    <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg mx-auto mb-4">
+                  <div className="text-center mb-4 sm:mb-6">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border-2 sm:border-4 border-white shadow-lg mx-auto mb-3 sm:mb-4">
                       <img
                         src={selectedStore.logo || 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
                         alt={selectedStore.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <h4 className="text-2xl font-bold text-gray-800 mb-2">{selectedStore.name}</h4>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStoreTypeColor(selectedStore.storetype)}`}>
-                        {selectedStore.storetype}
+                    <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-2 truncate px-2">{selectedStore.name}</h4>
+                    <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                      <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium border ${getStoreTypeColor(selectedStore.storetype)}`}>
+                        <span className="truncate">{selectedStore.storetype}</span>
                       </span>
                       {selectedStore.license && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                          <FaIdCard className="h-3 w-3 mr-1" />
-                          Verified
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                          <FaIdCard className="h-2 w-2 sm:h-3 sm:w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">Verified</span>
                         </span>
                       )}
                     </div>
                   </div>
 
                   {/* Store Information */}
-                  <div className="space-y-5">
+                  <div className="space-y-4 sm:space-y-5">
                     <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <FaIdCard className="h-4 w-4" />
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                        <FaIdCard className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         License Information
                       </h5>
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="font-medium text-gray-800 text-center">{selectedStore.license || 'No license provided'}</p>
+                      <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="font-medium text-gray-800 text-center truncate">{selectedStore.license || 'No license provided'}</p>
                         <p className="text-xs text-gray-500 text-center mt-1">Business License</p>
                       </div>
                     </div>
 
                     <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <FaUsers className="h-4 w-4" />
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                        <FaUsers className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         Store Owner
                       </h5>
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="font-medium text-gray-800 text-center">{selectedStore.user?.name || 'N/A'}</p>
-                        <p className="text-xs text-gray-500 text-center mt-1">{selectedStore.user?.email || 'No email'}</p>
+                      <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="font-medium text-gray-800 text-center truncate">{selectedStore.user?.name || 'N/A'}</p>
+                        <p className="text-xs text-gray-500 text-center mt-1 truncate">{selectedStore.user?.email || 'No email'}</p>
                       </div>
                     </div>
 
                     <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <FaChartLine className="h-4 w-4" />
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                        <FaChartLine className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         Store Performance
                       </h5>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                          <p className="text-xs text-blue-600 font-medium">Total Products</p>
-                          <p className="text-xl font-bold text-gray-800 mt-1">{selectedStore.stats?.totalProducts || 0}</p>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div className="p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <p className="text-xs text-blue-600 font-medium truncate">Products</p>
+                          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mt-1 truncate">{selectedStore.stats?.totalProducts || 0}</p>
                         </div>
-                        <div className="p-3 bg-green-50 rounded-lg border border-green-100">
-                          <p className="text-xs text-green-600 font-medium">Total Orders</p>
-                          <p className="text-xl font-bold text-gray-800 mt-1">{selectedStore.stats?.totalOrders || 0}</p>
+                        <div className="p-2 sm:p-3 bg-green-50 rounded-lg border border-green-100">
+                          <p className="text-xs text-green-600 font-medium truncate">Orders</p>
+                          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mt-1 truncate">{selectedStore.stats?.totalOrders || 0}</p>
                         </div>
-                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                          <p className="text-xs text-purple-600 font-medium">Total Revenue</p>
-                          <p className="text-xl font-bold text-gray-800 mt-1">${(selectedStore.stats?.totalRevenue || 0).toLocaleString()}</p>
+                        <div className="p-2 sm:p-3 bg-purple-50 rounded-lg border border-purple-100">
+                          <p className="text-xs text-purple-600 font-medium truncate">Revenue</p>
+                          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mt-1 truncate">
+                            ${(selectedStore.stats?.totalRevenue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </p>
                         </div>
-                        <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
-                          <p className="text-xs text-orange-600 font-medium">Avg. Rating</p>
-                          <p className="text-xl font-bold text-gray-800 mt-1">{selectedStore.stats?.averageRating?.toFixed(1) || '0.0'}</p>
+                        <div className="p-2 sm:p-3 bg-orange-50 rounded-lg border border-orange-100">
+                          <p className="text-xs text-orange-600 font-medium truncate">Rating</p>
+                          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mt-1 truncate">{selectedStore.stats?.averageRating?.toFixed(1) || '0.0'}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Timeline */}
                     <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <FaCalendarAlt className="h-4 w-4" />
+                      <h5 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                        <FaCalendarAlt className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         Timeline
                       </h5>
-                      <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Created Date</span>
-                          <span className="font-medium text-gray-800">{new Date(selectedStore.created_at).toLocaleDateString()}</span>
+                      <div className="space-y-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-1">
+                          <span className="text-gray-600 truncate">Created Date</span>
+                          <span className="font-medium text-gray-800 truncate">{new Date(selectedStore.created_at).toLocaleDateString()}</span>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Last Updated</span>
-                          <span className="font-medium text-gray-800">{new Date(selectedStore.updated_at).toLocaleDateString()}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-1">
+                          <span className="text-gray-600 truncate">Last Updated</span>
+                          <span className="font-medium text-gray-800 truncate">{new Date(selectedStore.updated_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-3">
+                    <div className="pt-3 sm:pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <button
                           onClick={() => handleViewProducts(selectedStore.id)}
-                          className="inline-flex items-center justify-center px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+                          className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-xs sm:text-sm"
                         >
-                          <FaEye className="h-4 w-4 mr-2" />
-                          View Products
+                          <FaEye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                          <span className="truncate">View Products</span>
                         </button>
                         <button
                           onClick={() => handleViewAnalytics(selectedStore.id)}
-                          className="inline-flex items-center justify-center px-4 py-2.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium text-sm"
+                          className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium text-xs sm:text-sm"
                         >
-                          <FaChartLine className="h-4 w-4 mr-2" />
-                          Analytics
+                          <FaChartLine className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                          <span className="truncate">Analytics</span>
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg p-6 text-white">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                      <FaStore className="h-6 w-6" />
+                <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <FaStore className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold">Store Details</h3>
-                      <p className="text-sm opacity-90">Select a store to view details</p>
+                    <div className="min-w-0">
+                      <h3 className="text-base sm:text-lg font-bold truncate">Store Details</h3>
+                      <p className="text-xs sm:text-sm opacity-90 truncate">Select a store to view details</p>
                     </div>
                   </div>
-                  <p className="text-sm opacity-80 mb-6">
+                  <p className="text-xs sm:text-sm opacity-80 mb-4 sm:mb-6">
                     Click on any store from the list to view detailed information, performance metrics, and manage store settings.
                   </p>
-                  <div className="text-center py-4">
-                    <FaStore className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                  <div className="text-center py-3 sm:py-4">
+                    <FaStore className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 opacity-30" />
                     <p className="text-sm opacity-75">No store selected</p>
                   </div>
                 </div>
               )}
 
               {/* Store Types Distribution */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <FaChartLine className="h-5 w-5 text-purple-600" />
-                  Store Types Distribution
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
+                  <FaChartLine className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                  <span className="truncate">Store Types Distribution</span>
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {stats.storeTypes.map(type => {
                     const count = stores.filter(store => store.storetype === type).length;
                     const percentage = stats.totalStores > 0 ? (count / stats.totalStores) * 100 : 0;
                     return (
                       <div key={type} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${getStoreTypeGradient(type)}`}></div>
-                            <span className="font-medium text-gray-700">{type}</span>
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${getStoreTypeGradient(type)} flex-shrink-0`}></div>
+                            <span className="font-medium text-gray-700 truncate">{type}</span>
                           </div>
-                          <span className="text-gray-600">{count} stores</span>
+                          <span className="text-gray-600 flex-shrink-0 ml-2">{count} stores</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                           <div
-                            className={`h-2 rounded-full bg-gradient-to-r ${getStoreTypeGradient(type)}`}
+                            className={`h-1.5 sm:h-2 rounded-full bg-gradient-to-r ${getStoreTypeGradient(type)}`}
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -763,32 +821,34 @@ const Store = () => {
               </div>
 
               {/* Top Performing Stores */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <FaStar className="h-5 w-5 text-amber-500" />
-                  Top Performing Stores
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
+                  <FaStar className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 flex-shrink-0" />
+                  <span className="truncate">Top Performing Stores</span>
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {stores
                     .sort((a, b) => (b.stats?.totalRevenue || 0) - (a.stats?.totalRevenue || 0))
                     .slice(0, 3)
                     .map((store, index) => (
-                      <div key={store.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold">
+                      <div key={store.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center min-w-0">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mr-2 sm:mr-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs sm:text-sm flex-shrink-0">
                             {index + 1}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-medium text-gray-800 text-sm truncate">{store.name}</h4>
-                            <p className="text-xs text-gray-600">${(store.stats?.totalRevenue || 0).toLocaleString()} revenue</p>
+                            <h4 className="font-medium text-gray-800 text-xs sm:text-sm truncate">{store.name}</h4>
+                            <p className="text-xs text-gray-600 truncate">
+                              ${(store.stats?.totalRevenue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} revenue
+                            </p>
                           </div>
                         </div>
                         <button
                           onClick={() => setSelectedStore(store)}
-                          className="text-purple-600 hover:text-purple-700 text-xs font-medium flex items-center gap-1"
+                          className="text-purple-600 hover:text-purple-700 text-xs font-medium flex items-center gap-1 flex-shrink-0 ml-2"
                         >
                           <FaEye className="h-3 w-3" />
-                          View
+                          <span className="hidden xs:inline">View</span>
                         </button>
                       </div>
                     ))
@@ -799,18 +859,18 @@ const Store = () => {
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-8 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg p-8 text-white">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Need to onboard more stores?</h3>
-                <p className="opacity-90">Streamline your store management with our enterprise features</p>
+          <div className="mt-6 sm:mt-8 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg p-4 sm:p-6 md:p-8 text-white">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2 truncate">Need to onboard more stores?</h3>
+                <p className="opacity-90 text-sm sm:text-base truncate">Streamline your store management with our enterprise features</p>
               </div>
               <button
                 onClick={() => router.visit('/dashboard/store-management')}
-                className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-purple-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                className="mt-2 md:mt-0 inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-purple-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors text-sm sm:text-base w-full md:w-auto flex-shrink-0"
               >
-                Explore Features
-                <FaArrowRight className="h-4 w-4 ml-2" />
+                <span className="truncate">Explore Features</span>
+                <FaArrowRight className="h-4 w-4 ml-2 flex-shrink-0" />
               </button>
             </div>
           </div>
@@ -821,26 +881,26 @@ const Store = () => {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
-                <FaExclamationCircle className="h-6 w-6 text-red-600" />
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 mx-auto mb-3 sm:mb-4">
+                <FaExclamationCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
               </div>
 
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Delete Store</h3>
-              <p className="text-gray-600 text-center mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 text-center mb-2">Delete Store</h3>
+              <p className="text-gray-600 text-center mb-4 sm:mb-6 text-sm sm:text-base">
                 Are you sure you want to delete this store? All associated products and data will be permanently removed.
               </p>
 
-              <div className="flex justify-center space-x-3">
+              <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                  className="px-4 sm:px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-4 sm:px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base"
                 >
                   Delete Store
                 </button>

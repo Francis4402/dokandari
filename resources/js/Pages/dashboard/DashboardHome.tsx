@@ -2,9 +2,10 @@ import DashboardLayout from '@/Layouts/DashboardLayout'
 import { Head, Link } from '@inertiajs/react'
 import { FiDollarSign, FiPackage, FiShoppingCart, FiTrendingUp, FiUsers } from 'react-icons/fi'
 import { useState, useEffect } from 'react'
+import { PageProps } from '@/types'
 
 // Remove the props interface since we're using fake data
-const DashboardHome = () => {
+const DashboardHome = ({auth}: PageProps) => {
   // Fake data for stats
   const [stats, setStats] = useState({
     totalRevenue: 15420.75,
@@ -138,14 +139,9 @@ const DashboardHome = () => {
     }
   };
 
-  // Optional: Simulate loading data (if needed for future API calls)
-  useEffect(() => {
-    // In the future, you can replace this with actual API calls
-    // fetch('/api/dashboard/stats').then(res => res.json()).then(data => setStats(data))
-  }, [])
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
         <Head title='Dashboard'>
             <meta name="description" content="Multivendor Store Dashboard" />
             <meta name="keywords" content="dashboard, analytics, ecommerce" />

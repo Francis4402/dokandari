@@ -1,6 +1,6 @@
 // resources/js/Components/Dashboard/Layout.tsx
 import React, { useState, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Menu, Transition } from '@headlessui/react';
 import {
   FiHome,
   FiShoppingBag,
@@ -13,27 +13,32 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiLogOut,
-  FiUser,
   FiBell,
   FiSearch,
   FiGrid,
   FiTruck,
   FiCreditCard,
-  FiStar,
-  FiMessageSquare
+  FiMessageSquare,
+  FiUser,
+  FiSettings,
+  FiHelpCircle
 } from 'react-icons/fi';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
+import { User } from '@/types';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title?: string;
+  user: User;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Dashboard' }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Dashboard', user }) => {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { url } = usePage();
-  const { auth } = usePage().props as any;
+
+  const { post } = useForm();
 
   const navigation = [
     {
@@ -100,7 +105,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
   const handleLogout = (e: React.FormEvent) => {
     e.preventDefault();
-    // Use Inertia's form helper or direct post
+    post('/logout');
   };
 
   return (
@@ -169,17 +174,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                           ))}
                         </ul>
                       </li>
-                      <li className="mt-auto">
-                        <form onSubmit={handleLogout} method="POST">
-                          <button
-                            type="submit"
-                            className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-blue-600 w-full text-left"
-                          >
-                            <FiLogOut className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-blue-600" />
-                            Logout
-                          </button>
-                        </form>
-                      </li>
                     </ul>
                   </nav>
                 </div>
@@ -234,17 +228,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                   ))}
                 </ul>
               </li>
-              <li className="mt-auto">
-                <form onSubmit={handleLogout} method="POST">
-                  <button
-                    type="submit"
-                    className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-blue-600 w-full"
-                  >
-                    <FiLogOut className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-blue-600" />
-                    {!isCollapsed && <span>Logout</span>}
-                  </button>
-                </form>
-              </li>
+
             </ul>
           </nav>
         </div>
@@ -289,16 +273,98 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
               {/* Profile dropdown */}
               <div className="relative">
-                <Link href="/dashboard/profile" className="flex items-center gap-x-3 text-sm font-semibold leading-6 text-gray-900 hover:opacity-80">
-                  <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                    <FiUser className="h-5 w-5 text-white" />
-                  </div>
-                  <span className="hidden lg:block">
-                    <span className="sr-only">Your profile</span>
-                    <span>{auth?.user?.name || 'Admin User'}</span>
-                  </span>
-                </Link>
-              </div>
+                <Menu as="div" className="relative">
+                    <Menu.Button className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full transition-all duration-200 hover:ring-2 hover:ring-blue-300">
+                    <img
+                        src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        alt="User profile"
+                        className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white"
+                    />
+                    </Menu.Button>
+
+                    <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                    >
+                    <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-lg shadow-xl border border-gray-200 divide-y divide-gray-100 focus:outline-none z-50">
+                        {/* User Info */}
+                        <div className="px-4 py-3">
+                        <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        </div>
+
+                        {/* Menu Items */}
+                        <div className="py-1">
+                        <Menu.Item>
+                            {({ active }) => (
+                            <Link
+                                href="/profile"
+                                className={`${
+                                active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
+                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
+                            >
+                                <FiUser className="h-4 w-4 mr-3 text-gray-400" />
+                                Profile
+                            </Link>
+                            )}
+                        </Menu.Item>
+
+                        <Menu.Item>
+                            {({ active }) => (
+                            <Link
+                                href="/settings"
+                                className={`${
+                                active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
+                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
+                            >
+                                <FiSettings className="h-4 w-4 mr-3 text-gray-400" />
+                                Settings
+                            </Link>
+                            )}
+                        </Menu.Item>
+
+                        <Menu.Item>
+                            {({ active }) => (
+                            <Link
+                                href="/help"
+                                className={`${
+                                active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
+                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
+                            >
+                                <FiHelpCircle className="h-4 w-4 mr-3 text-gray-400" />
+                                Help & Support
+                            </Link>
+                            )}
+                        </Menu.Item>
+                        </div>
+
+                        {/* Logout */}
+                        <div className="py-1">
+                        <Menu.Item>
+                            {({ active }) => (
+                            <form method="POST" onClick={handleLogout}>
+                                <button
+                                type="submit"
+                                className={`${
+                                    active ? 'bg-red-50 text-red-700' : 'text-red-600'
+                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors text-left`}
+                                >
+                                <FiLogOut className="h-4 w-4 mr-3" />
+                                Sign out
+                                </button>
+                            </form>
+                            )}
+                        </Menu.Item>
+                        </div>
+                    </Menu.Items>
+                    </Transition>
+                </Menu>
+                </div>
             </div>
           </div>
         </div>

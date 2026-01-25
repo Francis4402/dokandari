@@ -16,6 +16,7 @@ import {
   FaImage,
   FaArrowRight
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 interface Product {
   id: string;
@@ -35,7 +36,7 @@ interface Product {
   updated_at: string;
 }
 
-const Products = () => {
+const Products = ({auth}: PageProps) => {
   // Dummy products data matching your schema
   const [products, setProducts] = useState<Product[]>([
     {
@@ -255,7 +256,7 @@ const Products = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Products Management" />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">

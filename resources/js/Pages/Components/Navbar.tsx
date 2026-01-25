@@ -511,7 +511,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                               <span className="text-white font-bold text-sm">S</span>
                             </div>
                             <Dialog.Title className="text-xl font-bold text-gray-900">
-                              ShopHub
+                              DokanDari
                             </Dialog.Title>
                           </div>
                           <button

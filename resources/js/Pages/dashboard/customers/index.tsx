@@ -3,9 +3,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, Link } from '@inertiajs/react';
 import {
   FaUsers,
-  FaTrash,
   FaPlus,
-  FaUser,
   FaEnvelope,
   FaPhone,
   FaMapMarkerAlt,
@@ -16,6 +14,7 @@ import {
   FaExclamationCircle,
   FaTimes
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 interface Customer {
   id: string;
@@ -44,11 +43,15 @@ interface Customer {
   };
 }
 
-interface PageProps {
+
+interface PageTypes {
   customers: Customer[];
+    auth: {
+        user: any;
+    };
 }
 
-const Customers = ({ customers: initialCustomers }: PageProps) => {
+const Customers: React.FC<PageTypes> = ({ customers: initialCustomers, auth }) => {
   const [customers] = useState<Customer[]>(initialCustomers || []);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -82,7 +85,7 @@ const Customers = ({ customers: initialCustomers }: PageProps) => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Customers Management" />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">

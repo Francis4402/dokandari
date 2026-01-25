@@ -1,4 +1,5 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
+import { PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -14,24 +15,18 @@ import {
   FaLink,
   FaStore,
   FaPercent,
-  FaCheck,
   FaArrowLeft,
   FaEye,
   FaPlus,
   FaInfoCircle,
-  FaExclamationTriangle,
   FaCheckCircle,
-  FaTimesCircle,
   FaShoppingCart,
-  FaChartLine,
   FaArrowRight,
   FaChevronDown
 } from 'react-icons/fa';
 import {
-  HiOutlineChevronUpDown,
   HiCheck,
   HiOutlineExclamationCircle,
-  HiOutlineInformationCircle,
   HiOutlineCheckCircle,
   HiOutlineXCircle
 } from 'react-icons/hi2';
@@ -74,7 +69,7 @@ interface FormErrors {
   images?: string;
 }
 
-export default function CreateProductForm() {
+export default function CreateProductForm({auth}: PageProps) {
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showSalePrice, setShowSalePrice] = useState(false);
@@ -225,7 +220,7 @@ export default function CreateProductForm() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
 
         <Head title='Product Form'>
             <meta name="description" content="Multivendor Store" />

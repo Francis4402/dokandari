@@ -15,6 +15,7 @@ import {
   FaCheck,
   FaExclamationCircle
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 interface Category {
   id: string;
@@ -32,7 +33,7 @@ interface Product {
   inStock: boolean;
 }
 
-const Categories = () => {
+const Categories = ({auth}: PageProps) => {
   // Dummy categories data
   const [categories, setCategories] = useState<Category[]>([
     { id: '1', categories: 'Electronics', product_count: 45, created_at: '2024-01-15', updated_at: '2024-01-15' },
@@ -181,7 +182,7 @@ const Categories = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Categories Management" />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">

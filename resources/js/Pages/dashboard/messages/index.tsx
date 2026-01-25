@@ -21,6 +21,7 @@ import {
   FaRegCircle,
   FaTimes
 } from 'react-icons/fa';
+import { PageProps } from '@/types';
 
 interface Message {
   id: string;
@@ -61,15 +62,11 @@ interface User {
   status: 'online' | 'away' | 'offline';
 }
 
-interface PageProps {
-  auth: {
-    user: any;
-  };
-}
+
 
 type MessageTab = 'inbox' | 'unread' | 'starred' | 'archived';
 
-const Messages = () => {
+const Messages = ({auth}: PageProps) => {
   const [activeTab, setActiveTab] = useState<MessageTab>('inbox');
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -290,7 +287,7 @@ const Messages = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={auth.user}>
       <Head title="Messages" />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">

@@ -1,3 +1,5 @@
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { PageProps } from '@/types';
 import React, { useState, useRef } from 'react';
 import {
   FaStore,
@@ -61,7 +63,7 @@ const STORE_TYPES = [
   'Other'
 ];
 
-export default function CreateStoreForm() {
+export default function CreateStoreForm({auth}: PageProps) {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const licenseInputRef = useRef<HTMLInputElement>(null);
 
@@ -257,7 +259,7 @@ export default function CreateStoreForm() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+    <DashboardLayout user={auth.user}>
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map(t => (
@@ -713,6 +715,6 @@ export default function CreateStoreForm() {
           </div>
         </form>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
