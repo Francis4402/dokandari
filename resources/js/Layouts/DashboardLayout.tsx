@@ -138,7 +138,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">Dokandari</h1>
+                    <Link href='/'>
+                        <h1 className="text-xl font-bold text-gray-900">Dokandari</h1>
+                    </Link>
                     <button
                       type="button"
                       className="ml-auto rounded-md p-2.5 text-gray-700"
