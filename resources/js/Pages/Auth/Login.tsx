@@ -15,7 +15,8 @@ import {
   FaShieldAlt,
   FaRocket
 } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
+
 
 
 export default function Login({ status, canResetPassword }: { status?: string, canResetPassword: boolean }) {
@@ -38,10 +39,10 @@ export default function Login({ status, canResetPassword }: { status?: string, c
         e.preventDefault();
         post(route('login'), {
             onSuccess: () => {
-                toast.success('Login Succesfull')
+                toast.success('Login Successful')
             },
             onError: () => {
-                toast.success('Login Failed')
+                toast.error('Login Failed')
             }
         });
     };

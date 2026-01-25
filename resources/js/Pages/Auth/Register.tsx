@@ -8,8 +8,6 @@ import {
   FaExclamationCircle,
   FaSpinner,
   FaArrowRight,
-  FaFacebookF,
-  FaGoogle,
   FaShieldAlt,
   FaRocket,
   FaUser,
@@ -17,7 +15,8 @@ import {
   FaCamera,
   FaTimes
 } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
+
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
