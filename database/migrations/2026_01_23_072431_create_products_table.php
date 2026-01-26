@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Products;
+use App\Models\Store;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid(Products::class)->cascadeOnDelete();
+            $table->uuid('store_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('images');
             $table->string('slug')->nullable();

@@ -1,5 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { PageProps } from '@/types';
+import { Head, useForm } from '@inertiajs/react';
 import React, { useState, useRef } from 'react';
 import {
   FaStore,
@@ -15,34 +16,13 @@ import {
   FaBuilding,
   FaCertificate,
   FaCheck,
-  FaPlus
+  FaPlus,
+  FaKey
 } from 'react-icons/fa';
 import {
-  HiOutlineCheckCircle,
-  HiOutlineXCircle,
-  HiOutlineExclamationCircle,
-  HiOutlineInformationCircle
+  HiOutlineExclamationCircle
 } from 'react-icons/hi2';
-
-interface Toast {
-  id: number;
-  message: string;
-  type: 'success' | 'error' | 'info';
-}
-
-interface StoreFormData {
-  name: string;
-  logo: File | null;
-  storetype: string;
-  license: File | null;
-}
-
-interface FormErrors {
-  name?: string;
-  storetype?: string;
-  logo?: string;
-  license?: string;
-}
+import { toast } from 'sonner';
 
 // Store types based on common business models
 const STORE_TYPES = [
@@ -65,225 +45,137 @@ const STORE_TYPES = [
 
 export default function CreateStoreForm({auth}: PageProps) {
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const licenseInputRef = useRef<HTMLInputElement>(null);
-
-  const [processing, setProcessing] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [licensePreview, setLicensePreview] = useState<string | null>(null);
   const [showStoreTypeDropdown, setShowStoreTypeDropdown] = useState(false);
 
-  const [data, setData] = useState<StoreFormData>({
+  const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
-    logo: null,
+
+    logo: null as File | null,
     storetype: '',
-    license: null
+    license_number: '' // Changed from file to string
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const validateFile = (file: File): string | null => {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
 
-  const addToast = (message: string, type: Toast['type'] = 'info') => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+    if (!validTypes.includes(file.type)) {
+      return 'Please upload a valid image (JPEG, PNG, GIF, WebP)';
+    }
+    if (file.size > maxSize) {
+      return 'Image must be less than 5MB';
+    }
+    return null;
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!data.name.trim()) {
-      newErrors.name = 'Store name is required';
-    } else if (data.name.length < 3) {
-      newErrors.name = 'Store name must be at least 3 characters';
-    } else if (data.name.length > 100) {
-      newErrors.name = 'Store name must be less than 100 characters';
-    }
-
-    if (!data.storetype) {
-      newErrors.storetype = 'Store type is required';
-    }
-
-    // Logo is optional but validate if provided
-    if (data.logo) {
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!validTypes.includes(data.logo.type)) {
-        newErrors.logo = 'Please upload a valid image (JPEG, PNG, GIF, WebP)';
-      } else if (data.logo.size > maxSize) {
-        newErrors.logo = 'Image must be less than 5MB';
-      }
-    }
-
-    // License is optional but validate if provided
-    if (data.license) {
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-      const maxSize = 10 * 1024 * 1024; // 10MB
-
-      if (!validTypes.includes(data.license.type)) {
-        newErrors.license = 'Please upload a valid file (JPEG, PNG, PDF)';
-      } else if (data.license.size > maxSize) {
-        newErrors.license = 'File must be less than 10MB';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: 'logo' | 'license'
-  ) => {
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = type === 'logo'
-      ? ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-      : ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-
-    const maxSize = type === 'logo' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
-
-    if (!validTypes.includes(file.type)) {
-      addToast(`Invalid file type. Please upload ${type === 'logo' ? 'an image' : 'an image or PDF'}.`, 'error');
+    const error = validateFile(file);
+    if (error) {
+      toast.error(error);
       return;
     }
 
-    if (file.size > maxSize) {
-      addToast(`File is too large. Maximum size is ${type === 'logo' ? '5MB' : '10MB'}.`, 'error');
-      return;
-    }
-
-    setData(prev => ({ ...prev, [type]: file }));
-
-    if (type === 'logo') {
-      const preview = URL.createObjectURL(file);
-      setLogoPreview(preview);
-      addToast('Logo uploaded successfully!');
-    } else {
-      if (file.type === 'application/pdf') {
-        setLicensePreview(null); // No preview for PDF
-      } else {
-        const preview = URL.createObjectURL(file);
-        setLicensePreview(preview);
-      }
-      addToast('License document uploaded successfully!');
-    }
+    setData('logo', file);
+    const preview = URL.createObjectURL(file);
+    setLogoPreview(preview);
+    toast.success('Logo uploaded successfully!');
   };
 
-  const removeFile = (type: 'logo' | 'license') => {
-    if (type === 'logo') {
-      if (logoPreview) URL.revokeObjectURL(logoPreview);
-      setLogoPreview(null);
-    } else {
-      if (licensePreview) URL.revokeObjectURL(licensePreview);
-      setLicensePreview(null);
-    }
-
-    setData(prev => ({ ...prev, [type]: null }));
-    setErrors(prev => ({ ...prev, [type]: undefined }));
-    addToast(`${type === 'logo' ? 'Logo' : 'License'} removed.`);
+  const removeLogo = () => {
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(null);
+    setData('logo', null);
+    toast.info('Logo removed.');
   };
 
-  const handleDataChange = <K extends keyof StoreFormData>(
-    key: K,
-    value: StoreFormData[K]
-  ) => {
-    setData(prev => ({ ...prev, [key]: value }));
-    // Clear error for this field when user starts typing
-    if (errors[key as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [key]: undefined }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      addToast('Please fix the errors in the form.', 'error');
+    // Frontend validation
+    if (!data.name.trim()) {
+      toast.error('Store name is required');
+      return;
+    }
+    if (data.name.length < 3) {
+      toast.error('Store name must be at least 3 characters');
+      return;
+    }
+    if (data.name.length > 100) {
+      toast.error('Store name must be less than 100 characters');
+      return;
+    }
+    if (!data.storetype) {
+      toast.error('Store type is required');
       return;
     }
 
-    setProcessing(true);
-    addToast('Creating your store...', 'info');
-
-    try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('name', data.name);
-      formData.append('storetype', data.storetype);
-      if (data.logo) formData.append('logo', data.logo);
-      if (data.license) formData.append('license', data.license);
-
-      // Simulate API call (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Success
-      addToast('Store created successfully! Redirecting...', 'success');
-
-      // Reset form
-      setData({
-        name: '',
-        logo: null,
-        storetype: '',
-        license: null
-      });
-
-      if (logoPreview) URL.revokeObjectURL(logoPreview);
-      if (licensePreview) URL.revokeObjectURL(licensePreview);
-      setLogoPreview(null);
-      setLicensePreview(null);
-      setErrors({});
-      setShowStoreTypeDropdown(false);
-
-      // Simulate redirect (replace with actual navigation)
-      setTimeout(() => {
-        window.location.href = '/dashboard/products';
-      }, 2000);
-
-    } catch (error) {
-      addToast('Failed to create store. Please try again.', 'error');
-      console.error('Store creation error:', error);
-    } finally {
-      setProcessing(false);
+    // Validate license number if provided (optional)
+    if (data.license_number && data.license_number.length < 5) {
+      toast.error('License number must be at least 5 characters if provided');
+      return;
     }
+
+    // Validate logo if provided
+    if (data.logo) {
+      const error = validateFile(data.logo);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+    }
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('storetype', data.storetype);
+    formData.append('license_number', data.license_number);
+    if (data.logo) formData.append('logo', data.logo);
+
+    post('/dashboard/stores/store', {
+      data: formData,
+      onSuccess: () => {
+        toast.success('Store created successfully!');
+
+        // Reset form
+        reset();
+        if (logoPreview) URL.revokeObjectURL(logoPreview);
+        setLogoPreview(null);
+        setShowStoreTypeDropdown(false);
+
+        // Set default values
+        setData({
+          name: '',
+          logo: null,
+          storetype: '',
+          license_number: ''
+        });
+      },
+      onError: () => {
+        toast.error('Failed to create store. Please check the form for errors.');
+      }
+    });
   };
 
-  // Clean up object URLs on unmount
+  // Clean up object URL on unmount
   React.useEffect(() => {
     return () => {
       if (logoPreview) URL.revokeObjectURL(logoPreview);
-      if (licensePreview) URL.revokeObjectURL(licensePreview);
     };
   }, []);
 
   return (
     <DashboardLayout user={auth.user}>
-      {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map(t => (
-          <div
-            key={t.id}
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-white border ${
-              t.type === 'success' ? 'border-green-200' :
-              t.type === 'error' ? 'border-red-200' :
-              'border-blue-200'
-            }`}
-          >
-            {t.type === 'success' ? (
-              <HiOutlineCheckCircle className="h-5 w-5 text-green-500" />
-            ) : t.type === 'error' ? (
-              <HiOutlineXCircle className="h-5 w-5 text-red-500" />
-            ) : (
-              <HiOutlineInformationCircle className="h-5 w-5 text-blue-500" />
-            )}
-            <span className="text-sm text-gray-700">{t.message}</span>
-          </div>
-        ))}
-      </div>
+      <Head title='Create Store'>
+        <meta name="description" content="Create your online store to start selling products" />
+        <meta name="keywords" content="store, ecommerce, create store, online business" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto p-5">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -327,7 +219,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                   <input
                     type="text"
                     value={data.name}
-                    onChange={(e) => handleDataChange('name', e.target.value)}
+                    onChange={(e) => setData('name', e.target.value)}
                     placeholder="e.g., My Awesome Store"
                     className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     disabled={processing}
@@ -370,7 +262,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                           key={type}
                           type="button"
                           onClick={() => {
-                            handleDataChange('storetype', type);
+                            setData('storetype', type);
                             setShowStoreTypeDropdown(false);
                           }}
                           className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
@@ -410,7 +302,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                 ref={logoInputRef}
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleFileUpload(e, 'logo')}
+                onChange={handleLogoUpload}
                 className="hidden"
                 disabled={processing}
               />
@@ -448,7 +340,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              removeFile('logo');
+                              removeLogo();
                             }}
                             className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                             disabled={processing}
@@ -500,7 +392,7 @@ export default function CreateStoreForm({auth}: PageProps) {
             </div>
           </div>
 
-          {/* Business License Card */}
+          {/* Business License Card - Changed to text input */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-2 mb-6 pb-4 border-b">
               <FaCertificate className="h-5 w-5 text-green-600" />
@@ -508,109 +400,64 @@ export default function CreateStoreForm({auth}: PageProps) {
               <span className="ml-2 text-xs text-gray-500">(Optional)</span>
             </div>
 
-            <div>
-              <input
-                ref={licenseInputRef}
-                type="file"
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileUpload(e, 'license')}
-                className="hidden"
-                disabled={processing}
-              />
-
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                {/* License Upload Area */}
-                <div className="flex-1">
-                  <div
-                    onClick={() => licenseInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                      !data.license
-                        ? 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                        : 'border-gray-200'
-                    } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {!data.license ? (
-                      <div className="space-y-4">
-                        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-green-100 to-blue-100 flex items-center justify-center">
-                          <FaFileAlt className="h-10 w-10 text-green-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">Upload Business License</p>
-                          <p className="text-xs text-gray-500 mt-1">For verification purposes (JPG, PNG, PDF, Max 10MB)</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="relative group">
-                          {licensePreview ? (
-                            <img
-                              src={licensePreview}
-                              alt="License preview"
-                              className="w-40 h-40 object-contain mx-auto rounded-lg border"
-                            />
-                          ) : (
-                            <div className="w-40 h-40 mx-auto rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-center justify-center">
-                              <FaFileAlt className="h-16 w-16 text-gray-400" />
-                              <span className="text-xs text-gray-600 mt-2">PDF Document</span>
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFile('license');
-                            }}
-                            className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                            disabled={processing}
-                          >
-                            <FaTimes className="h-3 w-3" />
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-600">Click to change file</p>
-                      </div>
-                    )}
-                  </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                  <FaKey className="h-4 w-4" />
+                  License Number
+                </label>
+                <div className="relative">
+                  <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={data.license_number}
+                    onChange={(e) => setData('license_number', e.target.value)}
+                    placeholder="e.g., LIC-12345-ABCDE"
+                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={processing}
+                  />
                 </div>
-
-                {/* License Information */}
-                <div className="flex-1">
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
-                    <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                      <FaInfoCircle className="h-4 w-4 text-green-600" />
-                      Why Upload a License?
-                    </h3>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Builds trust with customers
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Required for certain product categories
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Enables special business features
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Helps with payment processing
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Your information is securely stored
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                {errors.license_number && (
+                  <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.license_number}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <FaInfoCircle className="h-3 w-3" />
+                  Enter your official business license number
+                </p>
               </div>
 
-              {errors.license && (
-                <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                  <HiOutlineExclamationCircle className="h-4 w-4" />
-                  {errors.license}
-                </p>
-              )}
+              {/* License Information */}
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
+                <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
+                  <FaInfoCircle className="h-4 w-4 text-green-600" />
+                  Why Provide License Number?
+                </h3>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Builds trust with customers
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Required for certain product categories
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Enables special business features
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Helps with payment processing
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Your information is securely stored
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -662,9 +509,9 @@ export default function CreateStoreForm({auth}: PageProps) {
                     <h4 className="text-sm font-medium text-gray-700">Verification</h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className={`h-2 w-2 rounded-full ${data.license ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                    <span className={`text-sm font-medium ${data.license ? 'text-green-600' : 'text-yellow-600'}`}>
-                      {data.license ? 'Verified' : 'Pending'}
+                    <div className={`h-2 w-2 rounded-full ${data.license_number ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    <span className={`text-sm font-medium ${data.license_number ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {data.license_number ? 'Licensed' : 'Unlicensed'}
                     </span>
                   </div>
                 </div>

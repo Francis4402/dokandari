@@ -19,7 +19,10 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        return Inertia::render('dashboard/products/index');
+        $products = Products::where('user_id', auth()->id())->get();
+        return Inertia::render('dashboard/products/index', [
+            'products' => $products
+        ]);
     }
 
     /**
@@ -27,7 +30,10 @@ class ProductsController extends Controller
      */
     public function create()
     {
-        return Inertia::render('dashboard/forms/CreateProductForm');
+        $store = Store::where('user_id', auth()->id())->first();
+        return Inertia::render('dashboard/forms/CreateProductForm', [
+            'store' => $store,
+        ]);
     }
 
     /**

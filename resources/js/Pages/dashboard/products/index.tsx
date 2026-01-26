@@ -16,171 +16,23 @@ import {
   FaImage,
   FaArrowRight
 } from 'react-icons/fa';
-import { PageProps } from '@/types';
+import { Product } from '@/types';
 
-interface Product {
-  id: string;
-  user_id: string;
-  store_id: string;
-  name: string;
-  images: string;
-  slug: string;
-  category: string;
-  quantity: number;
-  regular_price: string;
-  sale_price: string | null;
-  description: string;
-  inStock: boolean;
-  rating: number;
-  created_at: string;
-  updated_at: string;
+interface dashboarProductProps {
+    auth: {
+        user: any
+    },
+    products: Product[]
 }
 
-const Products = ({auth}: PageProps) => {
-  // Dummy products data matching your schema
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Premium Wireless Headphones',
-      images: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
-      slug: 'premium-wireless-headphones',
-      category: 'Electronics',
-      quantity: 45,
-      regular_price: '199.99',
-      sale_price: '149.99',
-      description: 'High-quality wireless headphones with noise cancellation and 30-hour battery life.',
-      inStock: true,
-      rating: 4.5,
-      created_at: '2024-01-15T10:30:00Z',
-      updated_at: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Organic Coffee Beans',
-      images: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop',
-      slug: 'organic-coffee-beans',
-      category: 'Food & Beverage',
-      quantity: 120,
-      regular_price: '24.99',
-      sale_price: null,
-      description: 'Premium organic coffee beans sourced from sustainable farms.',
-      inStock: true,
-      rating: 4.8,
-      created_at: '2024-01-14T14:20:00Z',
-      updated_at: '2024-01-14T14:20:00Z'
-    },
-    {
-      id: '3',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Yoga Mat Premium',
-      images: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=400&fit=crop',
-      slug: 'yoga-mat-premium',
-      category: 'Fitness',
-      quantity: 25,
-      regular_price: '59.99',
-      sale_price: '49.99',
-      description: 'Non-slip yoga mat with extra cushioning for comfortable practice.',
-      inStock: true,
-      rating: 4.3,
-      created_at: '2024-01-13T09:15:00Z',
-      updated_at: '2024-01-13T09:15:00Z'
-    },
-    {
-      id: '4',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Smart Watch Pro',
-      images: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
-      slug: 'smart-watch-pro',
-      category: 'Electronics',
-      quantity: 0,
-      regular_price: '299.99',
-      sale_price: '279.99',
-      description: 'Advanced smart watch with heart rate monitoring and GPS.',
-      inStock: false,
-      rating: 4.7,
-      created_at: '2024-01-12T16:45:00Z',
-      updated_at: '2024-01-12T16:45:00Z'
-    },
-    {
-      id: '5',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Leather Backpack',
-      images: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
-      slug: 'leather-backpack',
-      category: 'Fashion',
-      quantity: 15,
-      regular_price: '129.99',
-      sale_price: '99.99',
-      description: 'Genuine leather backpack with laptop compartment and multiple pockets.',
-      inStock: true,
-      rating: 4.6,
-      created_at: '2024-01-11T11:20:00Z',
-      updated_at: '2024-01-11T11:20:00Z'
-    },
-    {
-      id: '6',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Bluetooth Speaker',
-      images: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop',
-      slug: 'bluetooth-speaker',
-      category: 'Electronics',
-      quantity: 60,
-      regular_price: '89.99',
-      sale_price: '79.99',
-      description: 'Portable Bluetooth speaker with 360° sound and waterproof design.',
-      inStock: true,
-      rating: 4.4,
-      created_at: '2024-01-10T13:30:00Z',
-      updated_at: '2024-01-10T13:30:00Z'
-    },
-    {
-      id: '7',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Essential Oil Diffuser',
-      images: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=400&fit=crop',
-      slug: 'essential-oil-diffuser',
-      category: 'Home & Living',
-      quantity: 35,
-      regular_price: '39.99',
-      sale_price: '34.99',
-      description: 'Ultrasonic essential oil diffuser with color changing LED lights.',
-      inStock: true,
-      rating: 4.2,
-      created_at: '2024-01-09T08:45:00Z',
-      updated_at: '2024-01-09T08:45:00Z'
-    },
-    {
-      id: '8',
-      user_id: 'user-001',
-      store_id: 'store-001',
-      name: 'Running Shoes',
-      images: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
-      slug: 'running-shoes',
-      category: 'Sports',
-      quantity: 8,
-      regular_price: '129.99',
-      sale_price: '119.99',
-      description: 'Lightweight running shoes with superior cushioning and support.',
-      inStock: true,
-      rating: 4.9,
-      created_at: '2024-01-08T10:15:00Z',
-      updated_at: '2024-01-08T10:15:00Z'
-    }
-  ]);
+const Products = ({auth, products}: dashboarProductProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [stockFilter, setStockFilter] = useState('all');
+
+  console.log(products);
 
   // Calculate statistics
   const stats = {
@@ -236,9 +88,7 @@ const Products = ({auth}: PageProps) => {
     });
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(product => product.id !== id));
-    }
+
   };
 
   const calculateDiscount = (regularPrice: string, salePrice: string | null) => {
