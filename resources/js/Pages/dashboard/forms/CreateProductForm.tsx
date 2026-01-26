@@ -1,6 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { PageProps } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import {
   FaFileAlt,
@@ -30,14 +30,9 @@ import {
   HiOutlineCheckCircle,
   HiOutlineXCircle
 } from 'react-icons/hi2';
+import { toast } from 'sonner';
 
 const CATEGORIES = ['Electronics', 'Fashion', 'Home & Garden', 'Beauty & Personal Care', 'Sports & Outdoors', 'Books & Media'];
-
-interface Toast {
-  id: number;
-  message: string;
-  type: 'success' | 'error';
-}
 
 interface Store {
   id: string;
@@ -67,6 +62,7 @@ interface FormErrors {
   quantity?: string;
   inStock?: string;
   images?: string;
+  [key: string]: string | undefined; // For backend errors
 }
 
 export default function CreateProductForm({auth}: PageProps) {
@@ -75,7 +71,6 @@ export default function CreateProductForm({auth}: PageProps) {
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [store] = useState<Store>({ id: '1', name: 'My Demo Store' });
   const [data, setData] = useState<ProductFormData>({
     name: '',
@@ -90,12 +85,6 @@ export default function CreateProductForm({auth}: PageProps) {
     store_id: '1'
   });
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const addToast = (message: string, type: 'success' | 'error' = 'success') => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
-  };
 
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
@@ -124,7 +113,7 @@ export default function CreateProductForm({auth}: PageProps) {
       setData(prev => ({ ...prev, images: files }));
       const previews = files.map(file => URL.createObjectURL(file));
       setImagePreviews(previews);
-      addToast(`${files.length} image(s) uploaded!`);
+      toast.success(`${files.length} image(s) uploaded!`);
     }
   };
 
@@ -134,11 +123,13 @@ export default function CreateProductForm({auth}: PageProps) {
     URL.revokeObjectURL(imagePreviews[index]);
     setData(prev => ({ ...prev, images: newImages }));
     setImagePreviews(newPreviews);
-    addToast('Image removed!');
+    toast.info('Image removed!');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: FormErrors = {};
+
+    // Frontend validation
     if (!data.name.trim()) newErrors.name = 'Product name is required';
     if (!data.category) newErrors.category = 'Category is required';
     if (!data.regular_price.trim()) newErrors.regular_price = 'Regular price is required';
@@ -157,44 +148,83 @@ export default function CreateProductForm({auth}: PageProps) {
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
-      addToast('Please fill all required fields correctly', 'error');
+      toast.error('Please fill all required fields correctly');
       return;
     }
 
     // Validate sale price is lower than regular price
     if (data.sale_price && parseFloat(data.sale_price) >= parseFloat(data.regular_price)) {
       setErrors({ sale_price: 'Sale price must be lower than regular price' });
-      addToast('Sale price must be lower than regular price', 'error');
+      toast.error('Sale price must be lower than regular price');
       return;
     }
 
     setProcessing(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setProcessing(false);
-      addToast('Product created successfully!');
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('slug', data.slug);
+    formData.append('category', data.category);
+    formData.append('quantity', data.quantity);
+    formData.append('regular_price', data.regular_price);
+    formData.append('sale_price', data.sale_price);
+    formData.append('description', data.description);
+    formData.append('inStock', data.inStock.toString());
+    formData.append('store_id', data.store_id);
 
-      // Reset form
-      setData({
-        name: '',
-        images: [],
-        slug: '',
-        category: '',
-        quantity: '1',
-        regular_price: '',
-        sale_price: '',
-        description: '',
-        inStock: true,
-        store_id: '1'
+    // Append images
+    data.images.forEach((image, index) => {
+      formData.append(`images[${index}]`, image);
+    });
+
+    try {
+      // Make POST request using Inertia
+      await router.post('/dashboard/products/store', formData, {
+        onSuccess: () => {
+          toast.success('Product created successfully!');
+
+          // Reset form
+          setData({
+            name: '',
+            images: [],
+            slug: '',
+            category: '',
+            quantity: '1',
+            regular_price: '',
+            sale_price: '',
+            description: '',
+            inStock: true,
+            store_id: '1'
+          });
+
+          setShowSalePrice(false);
+          imagePreviews.forEach(p => URL.revokeObjectURL(p));
+          setImagePreviews([]);
+          setErrors({});
+          setShowCategoryDropdown(false);
+        },
+        onError: (errors) => {
+          // Handle backend validation errors
+          setErrors(errors as FormErrors);
+
+          // Show error toast with first error message
+          const firstError = Object.values(errors)[0];
+          if (firstError) {
+            toast.error(firstError);
+          } else {
+            toast.error('Failed to create product. Please try again.');
+          }
+        },
+        onFinish: () => {
+          setProcessing(false);
+        }
       });
-
-      setShowSalePrice(false);
-      imagePreviews.forEach(p => URL.revokeObjectURL(p));
-      setImagePreviews([]);
-      setErrors({});
-      setShowCategoryDropdown(false);
-    }, 1500);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+      setProcessing(false);
+    }
   };
 
   const handleDataChange = <K extends keyof ProductFormData>(
@@ -221,31 +251,11 @@ export default function CreateProductForm({auth}: PageProps) {
 
   return (
     <DashboardLayout user={auth.user}>
-
-        <Head title='Product Form'>
-            <meta name="description" content="Multivendor Store" />
-            <meta name="keywords" content={`shop, products, buy online, shopping`} />
-            <meta name="robots" content="index, follow" />
-        </Head>
-
-      {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map(t => (
-          <div
-            key={t.id}
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-white border ${
-              t.type === 'success' ? 'border-green-200' : 'border-red-200'
-            }`}
-          >
-            {t.type === 'success' ? (
-              <HiOutlineCheckCircle className="h-5 w-5 text-green-500" />
-            ) : (
-              <HiOutlineXCircle className="h-5 w-5 text-red-500" />
-            )}
-            <span className="text-sm text-gray-700">{t.message}</span>
-          </div>
-        ))}
-      </div>
+      <Head title='Create Product'>
+        <meta name="description" content="Create a new product for your store" />
+        <meta name="keywords" content="shop, products, create product, ecommerce" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -315,7 +325,7 @@ export default function CreateProductForm({auth}: PageProps) {
                       type="text"
                       value={data.name}
                       onChange={(e) => handleDataChange('name', e.target.value)}
-                      placeholder="Premium Wireless Headphones"
+                      placeholder="Your Product Name"
                       className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -353,7 +363,7 @@ export default function CreateProductForm({auth}: PageProps) {
                           .replace(/--+/g, '-')
                           .trim();
                         handleDataChange('slug', slug);
-                        addToast('Slug generated!');
+                        toast.success('Slug generated!');
                       }}
                       disabled={!data.name}
                       className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
