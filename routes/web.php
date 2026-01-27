@@ -47,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/messages', [MessagesController::class, 'index'])->name('dashboard.messages');
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 
+    Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
+
     Route::get('/dashboard/products/productform', [ProductsController::class, 'create'])->name('dashboard.createproduct');
     Route::get('/dashboard/stores/storeform', [StoreController::class, 'create'])->name('dashboard.createstore');
 

@@ -38,6 +38,14 @@ class CategoriesController extends Controller
         $categories = new Categories();
         $categories->categories = $validated['categories'];
 
+        if ($request->file('image')) {
+            $file = $request->file('image');
+            @unlink(public_path('category_images' . $categories->image));
+            $filename = date('YmdHi').$file->getClientOriginalName();
+            $file->move(public_path('category_images'), $filename);
+            $categories['image'] = $filename;
+        }
+
         $categories->save();
     }
 
@@ -68,8 +76,14 @@ class CategoriesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Categories $categories)
+    public function destroy($id)
     {
-        //
+        $category = Categories::find($id);
+
+        if($category->image) {
+            @unlink(public_path('category_images'.$category->image));
+        }
+
+        $category->delete();
     }
 }
