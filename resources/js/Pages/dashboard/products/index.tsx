@@ -16,16 +16,19 @@ import {
   FaImage,
   FaArrowRight
 } from 'react-icons/fa';
-import { Product } from '@/types';
+import { Product, storeType } from '@/types';
+import { toast } from 'sonner';
+
 
 interface dashboarProductProps {
     auth: {
         user: any
     },
     products: Product[]
+    store: storeType
 }
 
-const Products = ({auth, products}: dashboarProductProps) => {
+const Products = ({auth, products, store}: dashboarProductProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -91,6 +94,10 @@ const Products = ({auth, products}: dashboarProductProps) => {
 
   };
 
+  const handleToast = () => {
+    toast.error('Please Create Store First!');
+  }
+
   const calculateDiscount = (regularPrice: string, salePrice: string | null) => {
     if (!salePrice) return 0;
     const regular = parseFloat(regularPrice);
@@ -119,13 +126,24 @@ const Products = ({auth, products}: dashboarProductProps) => {
                 <p className="text-gray-600 mt-1">Manage your inventory and products</p>
               </div>
 
-              <Link
-                href={route('dashboard.createproduct')}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5"
-              >
-                <FaPlus className="h-4 w-4 mr-2" />
-                Add New Product
-              </Link>
+              <div>
+                {
+                    store ? (
+                        <Link
+                            href={route('dashboard.createproduct')}
+                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5"
+                        >
+                            <FaPlus className="h-4 w-4 mr-2" />
+                            Add New Product
+                        </Link>
+                    ) : (
+                        <button onClick={handleToast} className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5">
+                            <FaPlus className="h-4 w-4 mr-2" />
+                            Add New Product
+                        </button>
+                    )
+                }
+              </div>
             </div>
           </div>
 

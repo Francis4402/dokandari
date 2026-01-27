@@ -50,7 +50,6 @@ export default function CreateStoreForm({auth}: PageProps) {
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
-
     logo: null as File | null,
     storetype: '',
     license_number: '' // Changed from file to string

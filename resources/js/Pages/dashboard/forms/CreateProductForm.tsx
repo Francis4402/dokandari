@@ -27,8 +27,6 @@ import {
 import {
   HiCheck,
   HiOutlineExclamationCircle,
-  HiOutlineCheckCircle,
-  HiOutlineXCircle
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
 
@@ -48,7 +46,6 @@ export default function CreateProductForm({auth, store}: productFormType) {
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  console.log(store);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
@@ -65,6 +62,7 @@ export default function CreateProductForm({auth, store}: productFormType) {
 
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
+
 
   useEffect(() => {
     if (data.name && !data.slug) {

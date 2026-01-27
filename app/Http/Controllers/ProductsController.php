@@ -20,8 +20,10 @@ class ProductsController extends Controller
     public function index()
     {
         $products = Products::where('user_id', auth()->id())->get();
+        $store = Store::where('user_id', auth()->id())->first();
         return Inertia::render('dashboard/products/index', [
-            'products' => $products
+            'products' => $products,
+            'store' => $store
         ]);
     }
 

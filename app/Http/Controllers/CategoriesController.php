@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Categories;
 use App\Http\Requests\StoreCategoriesRequest;
 use App\Http\Requests\UpdateCategoriesRequest;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CategoriesController extends Controller
@@ -28,9 +29,16 @@ class CategoriesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCategoriesRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'categories' => 'required|string|max:255',
+        ]);
+
+        $categories = new Categories();
+        $categories->categories = $validated['categories'];
+
+        $categories->save();
     }
 
     /**
