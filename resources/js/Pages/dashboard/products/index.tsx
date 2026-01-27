@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
   FaEye,
   FaEdit,
@@ -14,7 +14,9 @@ import {
   FaChartLine,
   FaTag,
   FaImage,
-  FaArrowRight
+  FaArrowRight,
+  FaExclamationCircle,
+  FaTimes
 } from 'react-icons/fa';
 import { Product, storeType } from '@/types';
 import { toast } from 'sonner';
@@ -30,12 +32,14 @@ interface dashboarProductProps {
 
 const Products = ({auth, products, store}: dashboarProductProps) => {
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [stockFilter, setStockFilter] = useState('all');
 
-  console.log(products);
+
 
   // Calculate statistics
   const stats = {
@@ -90,8 +94,31 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
       }
     });
 
-  const handleDelete = (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setProductToDelete(id);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = () => {
+    if (productToDelete) {
+      router.delete(route('dashboard.deleteproduct', productToDelete), {
+        onSuccess: () => {
+          toast.success('Product deleted successfully!');
+          setShowDeleteModal(false);
+          setProductToDelete(null);
+        },
+        onError: () => {
+          toast.error('Failed to delete product.');
+          setShowDeleteModal(false);
+          setProductToDelete(null);
+        }
+      });
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   };
 
   const handleToast = () => {
@@ -295,7 +322,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                 {searchTerm ? `No results for "${searchTerm}"` : 'No products match your filters'}
               </p>
               <Link
-                href="/dashboard/products/create"
+                href={route('dashboard.createproduct')}
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all"
               >
                 <FaPlus className="h-4 w-4 mr-2" />
@@ -304,94 +331,162 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map(product => {
-                const discount = calculateDiscount(product.regular_price, product.sale_price);
-                const stockStatus = getStockStatus(product.quantity, product.inStock);
+                {filteredProducts.map(product => {
+                    const discount = calculateDiscount(product.regular_price, product.sale_price);
+                    const stockStatus = getStockStatus(product.quantity, product.inStock);
 
-                return (
-                  <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    {/* Product Image */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={product.images}
-                        alt={product.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                      {discount > 0 && (
-                        <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
-                          -{discount}%
+                    // Parse images array from JSON string
+                    let images = [];
+                    try {
+                    images = product.images ? JSON.parse(product.images) : [];
+                    } catch (e) {
+                    images = product.images ? [product.images] : []; // Fallback for single image
+                    }
+
+                    const mainImage = images.length > 0 ? images[0] : null;
+
+                    return (
+                    <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                        {/* Product Image */}
+                        <div className="relative h-48 overflow-hidden">
+                        <img
+                            src={mainImage ? `/product_images/${mainImage}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Product'}
+                            alt={product.name}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                        {discount > 0 && (
+                            <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                            -{discount}%
+                            </div>
+                        )}
+                        <div className="absolute bottom-3 left-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${stockStatus.color}`}>
+                            {stockStatus.label}
+                            </span>
                         </div>
-                      )}
-                      <div className="absolute bottom-3 left-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${stockStatus.color}`}>
-                          {stockStatus.label}
-                        </span>
-                      </div>
+
+                        {/* Show image count if multiple images */}
+                        {images.length > 1 && (
+                            <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                            +{images.length - 1}
+                            </div>
+                        )}
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {product.category}
+                            </span>
+                            <div className="flex items-center">
+                            <FaImage className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-xs text-gray-500">{product.quantity} in stock</span>
+                            </div>
+                        </div>
+
+                        <h3 className="font-bold text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
+
+                        {/* Price */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                            {product.sale_price ? (
+                                <>
+                                <span className="text-lg font-bold text-gray-800">${product.sale_price}</span>
+                                <span className="text-sm text-gray-500 line-through ml-2">${product.regular_price}</span>
+                                </>
+                            ) : (
+                                <span className="text-lg font-bold text-gray-800">${product.regular_price}</span>
+                            )}
+                            </div>
+                            <div className="flex items-center">
+                            <span className="text-yellow-500">★</span>
+                            <span className="text-sm font-medium text-gray-700 ml-1">{product.rating}</span>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex space-x-2">
+                            <Link
+                                href={`/dashboard/products/${product.id}`}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                            >
+                            <FaEye className="h-3 w-3 mr-1" />
+                                View
+                            </Link>
+                            <Link
+                                href={`/dashboard/products/${product.id}/edit`}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                            >
+                            <FaEdit className="h-3 w-3 mr-1" />
+                            Edit
+                            </Link>
+                            <button
+                                onClick={() => handleDeleteClick(product.id)}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                            >
+                            <FaTrash className="h-3 w-3 mr-1" />
+                                Delete
+                            </button>
+                        </div>
+                        </div>
                     </div>
-
-                    {/* Product Info */}
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          {product.category}
-                        </span>
-                        <div className="flex items-center">
-                          <FaImage className="h-3 w-3 text-gray-400 mr-1" />
-                          <span className="text-xs text-gray-500">{product.quantity} in stock</span>
-                        </div>
-                      </div>
-
-                      <h3 className="font-bold text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-
-                      {/* Price */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          {product.sale_price ? (
-                            <>
-                              <span className="text-lg font-bold text-gray-800">${product.sale_price}</span>
-                              <span className="text-sm text-gray-500 line-through ml-2">${product.regular_price}</span>
-                            </>
-                          ) : (
-                            <span className="text-lg font-bold text-gray-800">${product.regular_price}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-yellow-500">★</span>
-                          <span className="text-sm font-medium text-gray-700 ml-1">{product.rating}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/products/${product.id}`}
-                          className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                        >
-                          <FaEye className="h-3 w-3 mr-1" />
-                          View
-                        </Link>
-                        <Link
-                          href={`/dashboard/products/${product.id}/edit`}
-                          className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-                        >
-                          <FaEdit className="h-3 w-3 mr-1" />
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
-                        >
-                          <FaTrash className="h-3 w-3 mr-1" />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                })}
             </div>
           )}
+
+          {showDeleteModal && productToDelete && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                        <FaExclamationCircle className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                        <h3 className="text-lg font-bold text-gray-800">Delete Product</h3>
+                        <p className="text-sm text-gray-600">Confirm deletion</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={cancelDelete}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                    >
+                        <FaTimes className="h-5 w-5" />
+                    </button>
+                    </div>
+
+                    <div className="my-6 p-4 bg-red-50 rounded-lg border border-red-100">
+                    <p className="text-red-700 text-center">
+                        Are you sure you want to delete?
+                    </p>
+                    <p className="text-sm text-red-600 text-center mt-2">
+                        This product will be permanently removed from your store.
+                    </p>
+                    </div>
+
+                    <div className="flex justify-end space-x-3">
+                    <button
+                        onClick={cancelDelete}
+                        className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={confirmDelete}
+                        className="px-4 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm flex items-center"
+                    >
+                        <FaTrash className="h-4 w-4 mr-2" />
+                        Delete Product
+                    </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+        )}
 
           {/* Quick Stats */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -52,31 +52,12 @@ export default function CreateStoreForm({auth}: PageProps) {
     name: '',
     logo: null as File | null,
     storetype: '',
-    license_number: '' // Changed from file to string
+    license_number: ''
   });
-
-  const validateFile = (file: File): string | null => {
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!validTypes.includes(file.type)) {
-      return 'Please upload a valid image (JPEG, PNG, GIF, WebP)';
-    }
-    if (file.size > maxSize) {
-      return 'Image must be less than 5MB';
-    }
-    return null;
-  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const error = validateFile(file);
-    if (error) {
-      toast.error(error);
-      return;
-    }
 
     setData('logo', file);
     const preview = URL.createObjectURL(file);
@@ -118,15 +99,6 @@ export default function CreateStoreForm({auth}: PageProps) {
       return;
     }
 
-    // Validate logo if provided
-    if (data.logo) {
-      const error = validateFile(data.logo);
-      if (error) {
-        toast.error(error);
-        return;
-      }
-    }
-
     // Create FormData for file upload
     const formData = new FormData();
     formData.append('name', data.name);
@@ -134,7 +106,7 @@ export default function CreateStoreForm({auth}: PageProps) {
     formData.append('license_number', data.license_number);
     if (data.logo) formData.append('logo', data.logo);
 
-    post('/dashboard/stores/store', {
+    post(route('dashboard.createstore'), {
       data: formData,
       onSuccess: () => {
         toast.success('Store created successfully!');
@@ -324,7 +296,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Upload Store Logo</p>
-                          <p className="text-xs text-gray-500 mt-1">Recommended: 300x300px, Max 5MB</p>
+                          <p className="text-xs text-gray-500 mt-1">Any image format accepted</p>
                         </div>
                       </div>
                     ) : (
@@ -358,7 +330,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
                     <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
                       <FaInfoCircle className="h-4 w-4 text-blue-600" />
-                      Logo Requirements
+                      Logo Tips
                     </h3>
                     <ul className="text-xs text-gray-600 space-y-1">
                       <li className="flex items-center gap-2">
@@ -375,7 +347,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                        Formats: JPG, PNG, GIF, WebP
+                        All image formats accepted
                       </li>
                     </ul>
                   </div>

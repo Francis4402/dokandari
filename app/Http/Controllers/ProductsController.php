@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Products;
 use App\Http\Requests\UpdateProductsRequest;
+use App\Models\Categories;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -21,9 +22,10 @@ class ProductsController extends Controller
     {
         $products = Products::where('user_id', auth()->id())->get();
         $store = Store::where('user_id', auth()->id())->first();
+
         return Inertia::render('dashboard/products/index', [
             'products' => $products,
-            'store' => $store
+            'store' => $store,
         ]);
     }
 
@@ -33,8 +35,10 @@ class ProductsController extends Controller
     public function create()
     {
         $store = Store::where('user_id', auth()->id())->first();
+        $categories = Categories::all();
         return Inertia::render('dashboard/forms/CreateProductForm', [
             'store' => $store,
+            'categories' => $categories
         ]);
     }
 
@@ -88,7 +92,6 @@ class ProductsController extends Controller
                 // Generate unique filename
                 $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
 
-                // Always use Intervention for consistency
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($file->getRealPath());
 
@@ -96,8 +99,7 @@ class ProductsController extends Controller
                 $img->scale(width: 800);
                 $img->save($path . '/' . $filename, quality: 85);
 
-                // Store just the filename (not the full path) - FIXED HERE
-                $images[] = $filename; // ← Changed from 'product_images/' . $filename
+                $images[] = $filename;
             }
 
             $product->images = json_encode($images);
@@ -144,7 +146,7 @@ class ProductsController extends Controller
 
             if (is_array($images)) {
                 foreach ($images as $imagePath) {
-                    // Remove any prefixes to get just the filename
+
                     $filename = basename($imagePath);
                     $fullPath = public_path('product_images/' . $filename);
 

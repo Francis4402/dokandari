@@ -1,6 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { storeType } from '@/types';
-import { Head, router, useForm } from '@inertiajs/react';
+import { categoryType, storeType } from '@/types';
+import { Head, useForm } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import {
   FaFileAlt,
@@ -30,39 +30,72 @@ import {
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
 
-const CATEGORIES = ['Electronics', 'Fashion', 'Home & Garden', 'Beauty & Personal Care', 'Sports & Outdoors', 'Books & Media'];
-
 
 interface productFormType {
     auth: {
         user: any;
     };
     store: storeType;
+    categories: categoryType[];
 }
 
-export default function CreateProductForm({auth, store}: productFormType) {
+export default function CreateProductForm({auth, store, categories}: productFormType) {
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-
+  const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
     images: [],
     slug: '',
     category: '',
+    subcategory: '',
     quantity: '1',
     regular_price: '',
     sale_price: '',
     description: '',
     inStock: true,
+    rating: '0',
     store_id: store.id || ''
   });
 
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
+  // Parse subcategories from the selected category
+  const parseSubcategories = (subcategoryString: string | null): string[] => {
+    if (!subcategoryString) return [];
+    try {
+      return JSON.parse(subcategoryString);
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // Update available subcategories when category changes
+  useEffect(() => {
+    if (data.category) {
+      const selectedCat = categories.find(cat => cat.categories === data.category);
+      if (selectedCat && selectedCat.subcategory) {
+        const subcategories = parseSubcategories(selectedCat.subcategory);
+        setAvailableSubcategories(subcategories);
+
+        // Reset subcategory if it's not in the new available subcategories
+        if (data.subcategory && !subcategories.includes(data.subcategory)) {
+          setData('subcategory', '');
+        }
+      } else {
+        setAvailableSubcategories([]);
+        setData('subcategory', '');
+      }
+    } else {
+      setAvailableSubcategories([]);
+      setData('subcategory', '');
+    }
+  }, [data.category, categories]);
 
   useEffect(() => {
     if (data.name && !data.slug) {
@@ -110,11 +143,13 @@ export default function CreateProductForm({auth, store}: productFormType) {
     formData.append('name', data.name);
     formData.append('slug', data.slug);
     formData.append('category', data.category);
+    formData.append('subcategory', data.subcategory);
     formData.append('quantity', data.quantity);
     formData.append('regular_price', data.regular_price);
     formData.append('sale_price', data.sale_price);
     formData.append('description', data.description);
     formData.append('inStock', data.inStock.toString());
+    formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
 
     // Append images
@@ -122,7 +157,7 @@ export default function CreateProductForm({auth, store}: productFormType) {
       formData.append(`images[${index}]`, image);
     });
 
-    post('/dashboard/products/store', {
+    post(route('products.store'), {
       data: formData,
       onSuccess: () => {
         toast.success('Product created successfully!');
@@ -133,13 +168,22 @@ export default function CreateProductForm({auth, store}: productFormType) {
         imagePreviews.forEach(p => URL.revokeObjectURL(p));
         setImagePreviews([]);
         setShowCategoryDropdown(false);
+        setShowSubcategoryDropdown(false);
+        setAvailableSubcategories([]);
 
-        // Set default values back
+
         setData({
           ...data,
-          quantity: '1',
-          inStock: true,
-          store_id: '1',
+            name: '',
+            slug: '',
+            category: '',
+            subcategory: '',
+            quantity: '1',
+            regular_price: '',
+            sale_price: '',
+            description: '',
+            inStock: true,
+            store_id: store.id || '',
           images: []
         });
       },
@@ -297,10 +341,10 @@ export default function CreateProductForm({auth, store}: productFormType) {
                     )}
                   </div>
 
-                  {/* Category */}
+                  {/* Main Category */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category <span className="text-red-500">*</span>
+                      Main Category <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <button
@@ -309,7 +353,7 @@ export default function CreateProductForm({auth, store}: productFormType) {
                         className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
                       >
                         <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
-                          {data.category || 'Select category'}
+                          {data.category || 'Select main category'}
                         </span>
                         <FaChevronDown
                           className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
@@ -317,20 +361,19 @@ export default function CreateProductForm({auth, store}: productFormType) {
                       </button>
                       {showCategoryDropdown && (
                         <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                          {CATEGORIES.map(cat => (
+                          {categories.map(cat => (
                             <button
-                              key={cat}
+                              key={cat.id}
                               type="button"
                               onClick={() => {
-                                setData('category', cat);
+                                setData('category', cat.categories);
                                 setShowCategoryDropdown(false);
                               }}
                               className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                data.category === cat ? 'bg-purple-50 text-purple-700' : ''
+                                data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
                               }`}
                             >
-                              {cat}
-                              {data.category === cat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                              {cat.categories}
                             </button>
                           ))}
                         </div>
@@ -342,6 +385,76 @@ export default function CreateProductForm({auth, store}: productFormType) {
                         {errors.category}
                       </p>
                     )}
+                  </div>
+
+                  {/* Sub Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sub Category
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
+                        disabled={!data.category}
+                        className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                          !data.category
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
+                          {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
+                        </span>
+                        {data.category && (
+                          <FaChevronDown
+                            className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                          />
+                        )}
+                      </button>
+
+                      {data.category && showSubcategoryDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          {availableSubcategories.length > 0 ? (
+                            availableSubcategories.map((subcat, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => {
+                                  setData('subcategory', subcat);
+                                  setShowSubcategoryDropdown(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
+                                  data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                }`}
+                              >
+                                {subcat}
+                                {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                              No subcategories available for this category
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {errors.subcategory && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.subcategory}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <FaInfoCircle className="h-3 w-3" />
+                      {data.category
+                        ? availableSubcategories.length > 0
+                          ? `${availableSubcategories.length} subcategories available`
+                          : 'No subcategories available'
+                        : 'Select a main category first'
+                      }
+                    </p>
                   </div>
 
                   {/* Quantity */}
@@ -631,6 +744,20 @@ export default function CreateProductForm({auth, store}: productFormType) {
                         {data.name || 'Product Name'}
                       </h3>
 
+                      {/* Category display */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {data.category && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {data.category}
+                          </span>
+                        )}
+                        {data.subcategory && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                            {data.subcategory}
+                          </span>
+                        )}
+                      </div>
+
                       {/* Price Display */}
                       <div className="mt-2">
                         {data.sale_price ? (
@@ -654,13 +781,13 @@ export default function CreateProductForm({auth, store}: productFormType) {
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {data.category ? data.category : 'Category'}
-                        </span>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           data.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {data.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Qty: {data.quantity || 0}
                         </span>
                       </div>
 
@@ -677,17 +804,22 @@ export default function CreateProductForm({auth, store}: productFormType) {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600 flex items-center gap-2">
-                          <FaHashtag className="h-3 w-3" />
-                          Quantity Available
-                        </span>
-                        <span className="font-medium text-gray-800">{data.quantity || 0}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
                           <FaStore className="h-3 w-3" />
                           Store
                         </span>
                         <span className="font-medium text-gray-800">{store.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaBox className="h-3 w-3" />
+                          Categories
+                        </span>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-800">{data.category || 'None'}</div>
+                          {data.subcategory && (
+                            <div className="text-xs text-gray-500">{data.subcategory}</div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -731,6 +863,10 @@ export default function CreateProductForm({auth, store}: productFormType) {
                     <p className="flex items-center gap-2">
                       <FaImage className="h-3 w-3" />
                       <span>High-quality images increase conversion by up to 30%</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaTag className="h-3 w-3" />
+                      <span>Subcategory helps customers find your product faster</span>
                     </p>
                   </div>
                 </div>

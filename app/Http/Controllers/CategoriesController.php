@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categories;
-use App\Http\Requests\StoreCategoriesRequest;
 use App\Http\Requests\UpdateCategoriesRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class CategoriesController extends Controller
 {
@@ -15,7 +16,11 @@ class CategoriesController extends Controller
      */
     public function index()
     {
-        return Inertia::render('dashboard/categories/index');
+        $categories = Categories::all();
+
+        return Inertia::render('dashboard/categories/index', [
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -33,17 +38,28 @@ class CategoriesController extends Controller
     {
         $validated = $request->validate([
             'categories' => 'required|string|max:255',
+            'subcategories' => 'nullable|array',
+            'subcategories.*' => 'string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
         ]);
 
         $categories = new Categories();
+
         $categories->categories = $validated['categories'];
+        $categories->subcategory = json_encode($validated['subcategories'] ?? []);
 
         if ($request->file('image')) {
-            $file = $request->file('image');
-            @unlink(public_path('category_images' . $categories->image));
-            $filename = date('YmdHi').$file->getClientOriginalName();
-            $file->move(public_path('category_images'), $filename);
-            $categories['image'] = $filename;
+            $image = $request->file('image');
+
+            $filename = time() . '_' . $image->getClientOriginalName();
+            $path = public_path('category_images/' . $filename);
+
+            $manager = new ImageManager(new Driver());
+            $img = $manager->read($image->getPathname());
+            $img->scaleDown(width: 800);
+            $img->save($path, quality: 85);
+
+            $categories->image = $filename;
         }
 
         $categories->save();
@@ -78,10 +94,10 @@ class CategoriesController extends Controller
      */
     public function destroy($id)
     {
-        $category = Categories::find($id);
+        $category = Categories::where('id', $id)->first();
 
         if($category->image) {
-            @unlink(public_path('category_images'.$category->image));
+            @unlink(public_path('category_images/'.$category->image));
         }
 
         $category->delete();

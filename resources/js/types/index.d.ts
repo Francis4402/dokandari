@@ -15,6 +15,15 @@ export interface storeType {
     license: string;
 }
 
+export interface categoryType {
+    id: string;
+    categories: string;
+    subcategory: string;
+    image: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Product {
   id: string;
   user_id: string;

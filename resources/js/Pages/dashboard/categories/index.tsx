@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import {
-  FaEdit,
   FaTrash,
   FaPlus,
   FaSearch,
@@ -12,80 +11,65 @@ import {
   FaChartBar,
   FaBoxes,
   FaTimes,
-  FaCheck,
   FaExclamationCircle,
   FaUpload,
-  FaImage
+  FaMinus,
 } from 'react-icons/fa';
-import { PageProps } from '@/types';
+import { categoryType, PageProps } from '@/types';
 import { toast } from 'sonner';
-
-interface Category {
-  id: string;
-  categories: string;
-  image: string;
-  product_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  inStock: boolean;
-}
 
 interface FormData {
   categories: string;
+  subcategories: string[];
   image: File | null;
 }
 
-const Categories = ({ auth, categories: initialCategories }: PageProps<{ categories: Category[] }>) => {
-  // Get categories from props (passed from Laravel)
-  const [categories, setCategories] = useState<Category[]>(initialCategories || []);
-
-  const [products, setProducts] = useState<Product[]>([
-    { id: '1', name: 'Wireless Headphones', category: 'Electronics', price: 199.99, inStock: true },
-    { id: '2', name: 'Smart Watch', category: 'Electronics', price: 299.99, inStock: true },
-    { id: '3', name: 'Bluetooth Speaker', category: 'Electronics', price: 89.99, inStock: true },
-    { id: '4', name: 'Leather Jacket', category: 'Fashion', price: 149.99, inStock: true },
-    { id: '5', name: 'Running Shoes', category: 'Fashion', price: 119.99, inStock: false },
-    { id: '6', name: 'Throw Pillow', category: 'Home & Living', price: 29.99, inStock: true },
-    { id: '7', name: 'Coffee Table', category: 'Home & Living', price: 199.99, inStock: true },
-    { id: '8', name: 'Yoga Mat', category: 'Sports & Outdoors', price: 49.99, inStock: true },
-    { id: '9', name: 'Face Cream', category: 'Beauty & Personal Care', price: 34.99, inStock: true },
-    { id: '10', name: 'Novel', category: 'Books & Stationery', price: 19.99, inStock: true },
-  ]);
-
+const Categories = ({ auth, categories: initialCategories }: PageProps<{ categories: categoryType[] }>) => {
+  const categories = initialCategories || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name-asc');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<categoryType | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Use Inertia's useForm hook
   const { data, setData, post, processing, errors, reset, clearErrors } = useForm<FormData>({
     categories: '',
+    subcategories: [''],
     image: null,
   });
 
-  // Image preview state
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Calculate statistics
-  const stats = {
-    totalCategories: categories.length,
-    totalProducts: categories.reduce((sum, cat) => sum + (cat.product_count || 0), 0),
-    averageProducts: categories.length > 0 ? Math.round(categories.reduce((sum, cat) => sum + (cat.product_count || 0), 0) / categories.length) : 0,
-    mostProducts: categories.length > 0 ? Math.max(...categories.map(cat => cat.product_count || 0)) : 0,
-    leastProducts: categories.length > 0 ? Math.min(...categories.map(cat => cat.product_count || 0)) : 0,
-    popularCategories: categories.sort((a, b) => (b.product_count || 0) - (a.product_count || 0)).slice(0, 3),
+  const addSubcategoryField = () => {
+    setData('subcategories', [...data.subcategories, '']);
   };
 
-  // Filter and sort categories
+  const removeSubcategoryField = (index: number) => {
+    const newSubcategories = [...data.subcategories];
+    newSubcategories.splice(index, 1);
+    setData('subcategories', newSubcategories.length > 0 ? newSubcategories : ['']);
+  };
+
+  const updateSubcategory = (index: number, value: string) => {
+    const newSubcategories = [...data.subcategories];
+    newSubcategories[index] = value;
+    setData('subcategories', newSubcategories);
+  };
+
+  const stats = {
+    totalCategories: categories.length,
+  };
+
+  const parseSubcategories = (subcategoryString: string | null): string[] => {
+    if (!subcategoryString) return [];
+    try {
+      return JSON.parse(subcategoryString);
+    } catch (e) {
+      return [];
+    }
+  };
+
   const filteredCategories = categories
     .filter(category =>
       category.categories.toLowerCase().includes(searchTerm.toLowerCase())
@@ -96,10 +80,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
           return a.categories.localeCompare(b.categories);
         case 'name-desc':
           return b.categories.localeCompare(a.categories);
-        case 'products-high':
-          return (b.product_count || 0) - (a.product_count || 0);
-        case 'products-low':
-          return (a.product_count || 0) - (b.product_count || 0);
         case 'newest':
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
@@ -109,29 +89,19 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
       }
     });
 
-  // Get category color based on product count
-  const getCategoryColor = (productCount: number) => {
-    if (productCount >= 30) return 'from-purple-500 to-pink-500';
-    if (productCount >= 20) return 'from-blue-500 to-purple-500';
-    if (productCount >= 10) return 'from-green-500 to-teal-500';
-    return 'from-orange-500 to-red-500';
+  const getCategoryColor = () => {
+    return 'from-blue-500 to-purple-500';
   };
 
-  // Get category size based on product count
-  const getCategorySize = (productCount: number) => {
-    if (productCount >= 30) return 'text-2xl';
-    if (productCount >= 20) return 'text-xl';
-    if (productCount >= 10) return 'text-lg';
+  const getCategorySize = () => {
     return 'text-base';
   };
 
-  // Handle image upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setData('image', file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -140,23 +110,60 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     }
   };
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Use Inertia to post to Laravel backend
+    // Validate required fields
+    if (!data.categories.trim()) {
+      toast.error('Category name is required');
+      return;
+    }
+
+    // Filter out empty subcategories
+    const filteredSubcategories = data.subcategories.filter(subcat => subcat.trim() !== '');
+
+    // Prepare form data for submission
+    const formData = new FormData();
+    formData.append('categories', data.categories.trim());
+
+    // Only append subcategories if there are any
+    if (filteredSubcategories.length > 0) {
+      formData.append('subcategories', JSON.stringify(filteredSubcategories));
+    } else {
+      formData.append('subcategories', '[]'); // Empty array as JSON
+    }
+
+    if (data.image) {
+      formData.append('image', data.image);
+    }
+
     post(route('dashboard.storecategory'), {
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
       onSuccess: () => {
         setShowAddModal(false);
         reset();
-        toast.success('Category added successfully!');
         setImagePreview(null);
         clearErrors();
+        toast.success('Category added successfully!');
       },
       onError: (errors) => {
         console.error('Form errors:', errors);
-        toast.error('Please fix the errors in the form.');
+        let errorMessage = 'Failed to add category. Please check the form.';
+
+        if (errors.categories) {
+          errorMessage = errors.categories;
+        } else if (errors.image) {
+          errorMessage = errors.image;
+        } else if (errors.subcategories) {
+          errorMessage = errors.subcategories;
+        }
+
+        toast.error(errorMessage);
       },
+      preserveScroll: true,
     });
   };
 
@@ -167,22 +174,22 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
 
   const confirmDelete = () => {
     if (categoryToDelete) {
-      // Delete via Inertia
-      post(route('dashboard.deletecategory', categoryToDelete), {
+      router.delete(route('dashboard.deletecategory', categoryToDelete), {
         onSuccess: () => {
           setShowDeleteModal(false);
           setCategoryToDelete(null);
+          toast.success('Category deleted successfully!');
         },
+        onError: () => {
+          toast.error('Failed to delete category.');
+          setShowDeleteModal(false);
+          setCategoryToDelete(null);
+        },
+        preserveScroll: true,
       });
     }
   };
 
-  // Get products for selected category
-  const getCategoryProducts = (categoryName: string) => {
-    return products.filter(product => product.category === categoryName);
-  };
-
-  // Reset form when modal closes
   const resetForm = () => {
     reset();
     setImagePreview(null);
@@ -214,7 +221,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
             </div>
           </div>
 
-          {/* Stats Cards */}
+          {/* Stats Cards - Simplified */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
@@ -228,14 +235,17 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
               </div>
             </div>
 
+            {/* Placeholder stats cards */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Products</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.totalProducts}</p>
+                  <p className="text-sm font-medium text-gray-600">Subcategories</p>
+                  <p className="text-3xl font-bold text-gray-800 mt-1">
+                    {categories.reduce((total, cat) => total + parseSubcategories(cat.subcategory).length, 0)}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <FaBoxes className="h-6 w-6 text-green-600" />
+                  <FaTag className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
@@ -243,8 +253,10 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg. Products/Category</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.averageProducts}</p>
+                  <p className="text-sm font-medium text-gray-600">Recent Activity</p>
+                  <p className="text-3xl font-bold text-gray-800 mt-1">
+                    {categories.length > 0 ? new Date(categories[0].created_at).getDate() : '0'}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <FaChartBar className="h-6 w-6 text-purple-600" />
@@ -255,11 +267,13 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Most Products</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.mostProducts}</p>
+                  <p className="text-sm font-medium text-gray-600">Organized</p>
+                  <p className="text-3xl font-bold text-gray-800 mt-1">
+                    {categories.length > 0 ? categories.length : '0'}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <FaTag className="h-6 w-6 text-orange-600" />
+                  <FaBoxes className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </div>
@@ -288,8 +302,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 >
                   <option value="name-asc">Name A-Z</option>
                   <option value="name-desc">Name Z-A</option>
-                  <option value="products-high">Most Products</option>
-                  <option value="products-low">Fewest Products</option>
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                 </select>
@@ -344,7 +356,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                       <div key={category.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-start space-x-3">
-                            {/* Category Image */}
                             {category.image && (
                               <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                 <img
@@ -364,9 +375,23 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                               >
                                 {category.categories}
                               </h3>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {category.product_count || 0} products
-                              </p>
+                              {parseSubcategories(category.subcategory).length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {parseSubcategories(category.subcategory).slice(0, 2).map((subcat, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full"
+                                    >
+                                      {subcat}
+                                    </span>
+                                  ))}
+                                  {parseSubcategories(category.subcategory).length > 2 && (
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                      +{parseSubcategories(category.subcategory).length - 2} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex space-x-2">
@@ -421,12 +446,27 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                       </div>
                     )}
 
-                    <div className={`text-center py-4 rounded-lg bg-gradient-to-r ${getCategoryColor(selectedCategory.product_count || 0)} text-white mb-4`}>
-                      <h4 className={`font-bold ${getCategorySize(selectedCategory.product_count || 0)}`}>
+                    <div className={`text-center py-4 rounded-lg bg-gradient-to-r ${getCategoryColor()} text-white mb-4`}>
+                      <h4 className={`font-bold ${getCategorySize()}`}>
                         {selectedCategory.categories}
                       </h4>
-                      <p className="text-sm opacity-90 mt-1">{selectedCategory.product_count || 0} products</p>
                     </div>
+
+                    {parseSubcategories(selectedCategory.subcategory).length > 0 && (
+                      <div className="mb-6">
+                        <h5 className="text-sm font-medium text-gray-700 mb-3">Subcategories:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {parseSubcategories(selectedCategory.subcategory).map((subcat, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-200"
+                            >
+                              {subcat}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
@@ -453,29 +493,34 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 </div>
               )}
 
-              {/* Popular Categories */}
+              {/* Recent Categories (replaced Popular Categories) */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Popular Categories</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Categories</h3>
                 <div className="space-y-4">
-                  {stats.popularCategories.map((category, index) => (
-                    <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getCategoryColor(category.product_count || 0)} text-white font-bold`}>
-                          {index + 1}
+                  {categories
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .slice(0, 3)
+                    .map((category, index) => (
+                      <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-gradient-to-r ${getCategoryColor()} text-white font-bold`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-800">{category.categories}</h4>
+                            <p className="text-xs text-gray-600">
+                              {new Date(category.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-gray-800">{category.categories}</h4>
-                          <p className="text-xs text-gray-600">{category.product_count || 0} products</p>
-                        </div>
+                        <button
+                          onClick={() => setSelectedCategory(category)}
+                          className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                        >
+                          View
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setSelectedCategory(category)}
-                        className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-                      >
-                        View
-                      </button>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
@@ -486,7 +531,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
       {/* Add Category Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-y-auto max-h-[90vh]">
             <form onSubmit={handleSubmit}>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -501,7 +546,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 </div>
 
                 {/* Category Name */}
-                <div className="mb-4">
+                <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Name *
                   </label>
@@ -510,7 +555,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                     value={data.categories}
                     onChange={(e) => setData('categories', e.target.value)}
                     placeholder="Enter category name"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                       errors.categories ? 'border-red-500' : 'border-gray-300'
                     }`}
                     autoFocus
@@ -521,10 +566,60 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   )}
                 </div>
 
-                {/* Image Upload */}
+                {/* Subcategories Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Subcategories
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addSubcategoryField}
+                      className="inline-flex items-center px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                    >
+                      <FaPlus className="h-3 w-3 mr-1" />
+                      Add Subcategory
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.subcategories.map((subcategory, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={subcategory}
+                            onChange={(e) => updateSubcategory(index, e.target.value)}
+                            placeholder={`Subcategory ${index + 1}`}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        {data.subcategories.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeSubcategoryField(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Remove subcategory"
+                          >
+                            <FaMinus className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {errors.subcategories && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subcategories}</p>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">
+                    Add subcategories for better product organization
+                  </p>
+                </div>
+
+                {/* Image Upload - REMOVED SIZE LIMIT MESSAGE */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category Image
+                    Category Image (Optional)
                   </label>
 
                   {imagePreview ? (
@@ -554,7 +649,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                           <FaUpload className="h-6 w-6 text-gray-400" />
                         </div>
                         <p className="text-gray-600 mb-2">Click to upload image</p>
-                        <p className="text-sm text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, GIF</p>
                         <label className="cursor-pointer">
                           <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                             Choose File
@@ -575,11 +670,11 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   )}
                 </div>
 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-4 border-t">
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                    className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium"
                   >
                     Cancel
                   </button>
@@ -615,7 +710,10 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
 
               <div className="flex justify-center space-x-3">
                 <button
-                  onClick={() => setShowDeleteModal(false)}
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setCategoryToDelete(null);
+                  }}
                   className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                 >
                   Cancel
