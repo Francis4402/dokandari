@@ -8,8 +8,7 @@ const NavRoutes = () => {
     { id: "discover products", name: "Discover", icon: "🔍", url: "/products" },
     { id: "stores", name: "Stores", icon: "🏪", url: "/stores" },
     { id: "track order", name: "Track", icon: "📦", url: "/track-order" },
-    { id: "help", name: "Help", icon: "❓", url: "/help" },
-    { id: "contact us", name: "Contact", icon: "📞", url: "/contact" },
+    { id: "contact us", name: "Contact", icon: "📞", url: "/contactus" },
   ];
 
   return (

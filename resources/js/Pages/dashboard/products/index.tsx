@@ -111,9 +111,11 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
           toast.error('Failed to delete product.');
           setShowDeleteModal(false);
           setProductToDelete(null);
-        }
+        },
+        preserveScroll: true,
       });
     }
+
   };
 
   const cancelDelete = () => {

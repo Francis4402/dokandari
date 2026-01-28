@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessagesController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\TrackOrderController;
+use App\Models\Categories;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,11 +30,13 @@ use Inertia\Inertia;
 */
 
 Route::get('/', function () {
+    $categories = Categories::all();
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'categories' => $categories,
     ]);
 });
 
@@ -61,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
+Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
+Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');
+Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

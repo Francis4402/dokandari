@@ -56,7 +56,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
   const wishlistItems = 5
   const notifications = 2
 
-  // Handle click outside to close search
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

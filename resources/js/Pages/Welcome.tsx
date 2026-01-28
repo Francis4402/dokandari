@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { PageProps } from '@/types';
+import { categoryType, PageProps } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import HeroSection from './Components/HeroSection';
 import NavRoutes from './Components/NavRoutes';
@@ -12,7 +12,7 @@ import OfferedProducts from './Components/OfferedProducts';
 
 
 
-export default function Welcome({ auth }: PageProps<{ laravelVersion: string, phpVersion: string }>) {
+export default function Welcome({ auth, categories }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType }>) {
     return (
         <AppLayout user={auth.user}>
             <Head title='Dokandari'>
@@ -23,7 +23,7 @@ export default function Welcome({ auth }: PageProps<{ laravelVersion: string, ph
             <div className='container mx-auto px-5 md:px-0'>
                 <NavRoutes />
                 <HeroSection />
-                <Categories />
+                <Categories categorie={categories} />
                 {/* <OfferedProducts /> */}
                 <TrendingProducts />
                 <DailyDiscover />

@@ -3,6 +3,7 @@ import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import { useRef, useState } from "react";
+import { categoryType } from '@/types';
 
 const categories = [
   { name: 'Global finds', image: '/category/cate1.webp', url: '/' },
@@ -19,11 +20,13 @@ const categories = [
   { name: 'Toys', image: '/category/cate12.webp', url: '/' },
 ];
 
-const Categories = () => {
+const Categories = ({categorie}: {categorie: any}) => {
+
+    console.log(categorie)
+
   const swiperRef = useRef<any>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Responsive breakpoints for Swiper
   const breakpoints = {
     320: {
       slidesPerView: 2.5,
@@ -102,10 +105,10 @@ const Categories = () => {
           onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
           className="categories-swiper"
         >
-          {categories.map((cat, index) => (
+          {categorie.map((cat: categoryType, index: number) => (
             <SwiperSlide key={index} className="!w-auto">
               <a
-                href={cat.url}
+                href={'/'}
                 className="group block w-full"
                 onClick={(e) => {
                   // Optional: Add any additional click handling here
@@ -116,8 +119,8 @@ const Categories = () => {
                   <div className="relative mb-3 md:mb-5">
                     <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 p-2 md:p-3">
                       <img
-                        src={cat.image}
-                        alt={cat.name}
+                        src={`category_images/${cat.image}`}
+                        alt={cat.categories}
                         className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300 select-none"
                         loading="lazy"
                         draggable="false"
@@ -129,7 +132,7 @@ const Categories = () => {
 
                   {/* Category Name */}
                   <span className="text-xs md:text-sm font-medium text-gray-900 text-center px-1 md:px-2 line-clamp-2 mb-1 md:mb-2 group-hover:text-blue-600 transition-colors duration-200 select-none">
-                    {cat.name}
+                    {cat.categories}
                   </span>
 
                   {/* Decorative Line */}

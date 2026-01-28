@@ -23,6 +23,10 @@ class StoreController extends Controller
         ]);
     }
 
+    public function storeroute() {
+        return Inertia::render('stores/index');
+    }
+
     /**
      * Show the form for creating a new resource.
      */

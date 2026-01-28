@@ -93,13 +93,13 @@ export default function CreateStoreForm({auth}: PageProps) {
       return;
     }
 
-    // Validate license number if provided (optional)
+
     if (data.license_number && data.license_number.length < 5) {
       toast.error('License number must be at least 5 characters if provided');
       return;
     }
 
-    // Create FormData for file upload
+
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('storetype', data.storetype);
@@ -131,7 +131,7 @@ export default function CreateStoreForm({auth}: PageProps) {
     });
   };
 
-  // Clean up object URL on unmount
+
   React.useEffect(() => {
     return () => {
       if (logoPreview) URL.revokeObjectURL(logoPreview);

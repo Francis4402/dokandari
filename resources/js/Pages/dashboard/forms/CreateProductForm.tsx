@@ -1,6 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { categoryType, storeType } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import {
   FaFileAlt,
@@ -75,7 +75,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     }
   };
 
-  // Update available subcategories when category changes
+
   useEffect(() => {
     if (data.category) {
       const selectedCat = categories.find(cat => cat.categories === data.category);
@@ -83,7 +83,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
         const subcategories = parseSubcategories(selectedCat.subcategory);
         setAvailableSubcategories(subcategories);
 
-        // Reset subcategory if it's not in the new available subcategories
+
         if (data.subcategory && !subcategories.includes(data.subcategory)) {
           setData('subcategory', '');
         }
@@ -161,7 +161,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
       data: formData,
       onSuccess: () => {
         toast.success('Product created successfully!');
-
+        router.visit(route('dashboard.products'));
         // Reset form
         reset();
         setShowSalePrice(false);
@@ -198,7 +198,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     field: keyof typeof data
   ) => {
     const value = e.target.value;
-    // Allow empty string or valid numbers
+
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setData(field, value as any);
     }
@@ -226,13 +226,13 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 Add a new product to {store.name}
               </p>
             </div>
-            <button
-              onClick={() => window.history.back()}
+            <Link
+              href={route('dashboard.products')}
               className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FaArrowLeft className="h-4 w-4 mr-2" />
               Back to Products
-            </button>
+            </Link>
           </div>
         </div>
 
