@@ -1,3 +1,10 @@
+export interface ProductFilters {
+    category: string;
+    product_type: string;
+    search: string;
+    sort_by: string;
+}
+
 export interface User {
     id: number;
     name: string;
@@ -36,7 +43,7 @@ export interface Product {
   regular_price: string;
   sale_price: string;
   description: string;
-    product_type: string;
+    product_type: 'top-selling' | 'trending' | 'featured' | 'regular';
   inStock: boolean;
   rating: number;
     review_count: string;

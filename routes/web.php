@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
+Route::get('/products', [ProductsController::class, 'products'])->name('products.index');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

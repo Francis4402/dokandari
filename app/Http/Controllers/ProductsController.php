@@ -159,4 +159,12 @@ class ProductsController extends Controller
 
         $product->delete();
     }
+
+    public function products(Request $request) {
+        $products = Products::orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('products/index', [
+            'products' => $products,
+        ]);
+    }
 }
