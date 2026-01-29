@@ -9,26 +9,13 @@ import { FaShoppingCart, FaStar } from 'react-icons/fa';
 import { CiImageOn } from "react-icons/ci";
 import { FiZap } from 'react-icons/fi';
 import { BiHeart } from 'react-icons/bi';
+import { Product } from '@/types';
 
-interface Product {
-  id: string;
-  images: string; // This is a JSON string
-  regular_price: string;
-  sale_price: string;
-  rating: string | number;
-  name: string;
-  // Other fields you might need
-  category?: string;
-  description?: string;
-  inStock?: boolean | number;
-  quantity?: number;
-}
 
 const OfferedProducts = ({product}: {product: Product[]}) => {
   const [parsedProducts, setParsedProducts] = useState<Product[]>([]);
 
 
-  // Parse the images when component mounts
   useEffect(() => {
     if (product && product.length > 0) {
       const parsed = product.map(item => ({

@@ -34,7 +34,7 @@ export interface Product {
   category: string;
   quantity: number;
   regular_price: string;
-  sale_price: string | null;
+  sale_price: string;
   description: string;
   inStock: boolean;
   rating: number;

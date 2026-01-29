@@ -1,148 +1,16 @@
+import { Product } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
-import { IoMdTrendingUp } from "react-icons/io";
 
-interface Product {
-  image: string;
-  regularprice: string;
-  price: string;
-  review: number;
-  title: string;
-  sells: string;
-  category: string;
-  stock: number;
-  sold: number;
+interface DailyDiscoverProps {
+  discoverProduct: Product[];
 }
 
-const DailyDiscover: React.FC = () => {
+const DailyDiscover = ({ discoverProduct }: DailyDiscoverProps) => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [wishlist, setWishlist] = useState<number[]>([]);
-
-  const products: Product[] = [
-    {
-      image: '/offeredproduct/thumb-product-1-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 5,
-      title: 'Almond Peanut Butter - Premium Quality',
-      sells: "Best Seller",
-      category: 'Groceries',
-      stock: 50,
-      sold: 45
-    },
-    {
-      image: '/offeredproduct/thumb-product-2-1.webp',
-      regularprice: '80',
-      price: '76',
-      review: 2,
-      title: 'Preserve Porata - Traditional Recipe',
-      sells: "Best Seller",
-      category: 'Food',
-      stock: 100,
-      sold: 85
-    },
-    {
-      image: '/offeredproduct/thumb-product-3-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Ladies Hand Bag - Designer Edition',
-      sells: "Best Seller",
-      category: 'Fashion',
-      stock: 30,
-      sold: 28
-    },
-    {
-      image: '/offeredproduct/thumb-product-4-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 5,
-      title: 'Soup Cup Set - Heat Resistant',
-      sells: "Best Seller",
-      category: 'Kitchen',
-      stock: 75,
-      sold: 70
-    },
-    {
-      image: '/offeredproduct/thumb-product-5-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 3,
-      title: 'Ladies Leather Shoe - Comfort Fit',
-      sells: "New",
-      category: 'Footwear',
-      stock: 40,
-      sold: 32
-    },
-    {
-      image: '/offeredproduct/thumb-product-6-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Lentine Protein Mix - Organic',
-      sells: "Best Seller",
-      category: 'Health',
-      stock: 60,
-      sold: 58
-    },
-    {
-      image: '/offeredproduct/thumb-product-7-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Women Long Pant - Premium Cotton',
-      sells: "Popular",
-      category: 'Fashion',
-      stock: 45,
-      sold: 40
-    },
-    {
-      image: '/offeredproduct/thumb-product-8-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'USB Cable - Fast Charging',
-      sells: "Best Seller",
-      category: 'Electronics',
-      stock: 120,
-      sold: 110
-    },
-    {
-      image: '/offeredproduct/thumb-product-9-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Wireless Earbuds - Premium Sound',
-      sells: "Best Seller",
-      category: 'Electronics',
-      stock: 35,
-      sold: 33
-    },
-    {
-      image: '/offeredproduct/thumb-product-10-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Smart Watch - Fitness Tracker',
-      sells: "Hot Deal",
-      category: 'Electronics',
-      stock: 25,
-      sold: 23
-    },
-    {
-      image: '/offeredproduct/thumb-product-12-1.webp',
-      regularprice: '130',
-      price: '76',
-      review: 4,
-      title: 'Bluetooth Speaker - Portable',
-      sells: "Best Seller",
-      category: 'Electronics',
-      stock: 55,
-      sold: 50
-    }
-  ];
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
   useGSAP(() => {
     const cards = cardsRef.current.filter(Boolean);
@@ -167,15 +35,16 @@ const DailyDiscover: React.FC = () => {
   const calculateDiscount = (regularPrice: string, salePrice: string): string => {
     const regular = parseFloat(regularPrice);
     const sale = parseFloat(salePrice);
+    if (isNaN(regular) || isNaN(sale) || regular <= 0) return "0%";
     const discount = Math.round(((regular - sale) / regular) * 100);
     return `${discount}%`;
   };
 
-  const toggleWishlist = (index: number) => {
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev =>
-      prev.includes(index)
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
     );
   };
 
@@ -239,36 +108,65 @@ const DailyDiscover: React.FC = () => {
     }
   };
 
-  const renderStars = (rating: number) => {
+  const renderStars = (rating: number | string | undefined) => {
+    // Convert to number and handle invalid values
+    let numericRating = 0;
+
+    if (typeof rating === 'number') {
+      numericRating = rating;
+    } else if (typeof rating === 'string') {
+      numericRating = parseFloat(rating);
+    }
+
+    // Ensure rating is between 0 and 5
+    numericRating = Math.min(Math.max(isNaN(numericRating) ? 0 : numericRating, 0), 5);
+
+    const roundedRating = Math.round(numericRating * 2) / 2; // Round to nearest 0.5
+
     return (
       <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          i < rating ? (
-            <FaStar key={i} className="w-3 h-3 text-yellow-400" />
-          ) : (
-            <FaRegStar key={i} className="w-3 h-3 text-gray-300" />
-          )
-        ))}
-        <span className="text-xs text-gray-500 ml-1">({rating}.0)</span>
+        {[...Array(5)].map((_, i) => {
+          const starValue = i + 1;
+          return (
+            <span key={i}>
+              {starValue <= roundedRating ? (
+                <FaStar className="w-3 h-3 text-yellow-400" />
+              ) : starValue - 0.5 === roundedRating ? (
+                <div className="relative">
+                  <FaRegStar className="w-3 h-3 text-gray-300" />
+                  <div className="absolute top-0 left-0 overflow-hidden" style={{ width: '50%' }}>
+                    <FaStar className="w-3 h-3 text-yellow-400" />
+                  </div>
+                </div>
+              ) : (
+                <FaRegStar className="w-3 h-3 text-gray-300" />
+              )}
+            </span>
+          );
+        })}
+        <span className="text-xs text-gray-500 ml-1">
+          ({numericRating.toFixed(1)})
+        </span>
       </div>
     );
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Best Seller':
-        return 'bg-red-500 hover:bg-red-600';
-      case 'Trending':
-        return 'bg-orange-500 hover:bg-orange-600';
-      case 'New':
-        return 'bg-green-500 hover:bg-green-600';
-      case 'Popular':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'Hot Deal':
-        return 'bg-pink-500 hover:bg-pink-600';
-      default:
-        return 'bg-blue-600 hover:bg-blue-700';
+  const getStatusColor = (category: string) => {
+    if (!category) return 'bg-blue-600 hover:bg-blue-700';
+
+    const lowerCategory = category.toLowerCase();
+    if (lowerCategory.includes('best') || lowerCategory.includes('seller')) {
+      return 'bg-red-500 hover:bg-red-600';
+    } else if (lowerCategory.includes('trend')) {
+      return 'bg-orange-500 hover:bg-orange-600';
+    } else if (lowerCategory.includes('new')) {
+      return 'bg-green-500 hover:bg-green-600';
+    } else if (lowerCategory.includes('popular')) {
+      return 'bg-blue-500 hover:bg-blue-600';
+    } else if (lowerCategory.includes('hot') || lowerCategory.includes('deal')) {
+      return 'bg-pink-500 hover:bg-pink-600';
     }
+    return 'bg-blue-600 hover:bg-blue-700';
   };
 
   const getProgressColor = (percentage: number) => {
@@ -278,11 +176,58 @@ const DailyDiscover: React.FC = () => {
     return 'bg-green-500';
   };
 
+  const formatPrice = (price: string): string => {
+    if (!price) return '৳0';
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice)) return '৳0';
+    return `৳${numPrice.toLocaleString('en-BD')}`;
+  };
+
+  // Mock stock for sold items calculation
+  const getSoldCount = (quantity: number) => {
+    if (typeof quantity !== 'number' || isNaN(quantity)) return 0;
+    if (quantity === 0) return 100;
+    if (quantity < 10) return 50;
+    if (quantity < 50) return 30;
+    return 10;
+  };
+
+  // Mock total stock
+  const getTotalStock = (quantity: number) => {
+    if (typeof quantity !== 'number' || isNaN(quantity)) return 0;
+    return Math.max(quantity + getSoldCount(quantity), 100);
+  };
+
+  const getImageSrc = (images: string) => {
+    if (!images) return '/placeholder-image.jpg';
+
+    try {
+      // Try to parse as JSON array
+      const parsedImages = JSON.parse(images);
+      if (Array.isArray(parsedImages) && parsedImages.length > 0 && parsedImages[0]) {
+        return parsedImages[0];
+      }
+    } catch (error) {
+      // If JSON parsing fails, assume it's a single image URL
+      if (images.trim().startsWith('http') || images.trim().startsWith('/')) {
+        return images.trim();
+      }
+    }
+    return '/placeholder-image.jpg';
+  };
+
+  // Calculate save amount safely
+  const calculateSaveAmount = (regularPrice: string, salePrice: string): number => {
+    const regular = parseFloat(regularPrice || '0');
+    const sale = parseFloat(salePrice || '0');
+    if (isNaN(regular) || isNaN(sale)) return 0;
+    return Math.max(regular - sale, 0);
+  };
+
   return (
     <div className="mt-16 px-4">
       {/* Header */}
       <div className="text-center mb-12">
-
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
           Daily Discover
         </h2>
@@ -292,50 +237,63 @@ const DailyDiscover: React.FC = () => {
         <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
       </div>
 
-      {/* Products Grid - Fixed height for all cards */}
+      {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-        {products.map((product, index) => {
-          const discount = calculateDiscount(product.regularprice, product.price);
-          const stockPercentage = (product.sold / product.stock) * 100;
-          const saveAmount = parseInt(product.regularprice) - parseInt(product.price);
-          const isInWishlist = wishlist.includes(index);
+        {discoverProduct.map((product, index) => {
+          if (!product) return null;
+
+          const discount = calculateDiscount(product.regular_price, product.sale_price);
+          const soldCount = getSoldCount(product.quantity);
+          const totalStock = getTotalStock(product.quantity);
+          const stockPercentage = totalStock > 0 ? (soldCount / totalStock) * 100 : 0;
+          const saveAmount = calculateSaveAmount(product.regular_price, product.sale_price);
+          const isInWishlist = wishlist.includes(product.id);
+          const imageSrc = getImageSrc(product.images);
 
           return (
             <div
-              key={index}
+              key={product.id}
               ref={(el) => cardsRef.current[index] = el}
               className="relative transform opacity-0 cursor-pointer h-full flex flex-col"
               onMouseEnter={() => handleCardEnter(index)}
               onMouseLeave={() => handleCardLeave(index)}
             >
-              {/* Card with fixed height - using flex-col to make all cards same height */}
+              {/* Card */}
               <div className="overflow-hidden border border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-300 group bg-white shadow-sm hover:shadow-xl flex flex-col h-full">
 
-                {/* Image Container with Fixed Aspect Ratio */}
+                {/* Image Container */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
                   <div className="aspect-square p-6">
                     <img
-                      src={product.image}
-                      alt={product.title}
+                      src={`/product_images/${imageSrc}`}
+                      alt={product.name || 'Product image'}
                       className="w-full h-full object-contain transition-transform duration-300"
                       draggable="false"
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder-image.jpg';
+                      }}
                     />
                   </div>
 
-                  {/* Sells Status Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${getStatusColor(product.sells)}`}>
-                      {product.sells}
-                    </span>
-                  </div>
+                  {/* Category Badge */}
+                  {product.category && (
+                    <div className="absolute top-3 left-3">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${getStatusColor(product.category)}`}>
+                        {product.category}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Discount Percentage */}
-                  <div className="absolute top-3 right-3">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
-                      -{discount}
-                    </span>
-                  </div>
+                  {parseFloat(product.sale_price || '0') < parseFloat(product.regular_price || '0') && (
+                    <div className="absolute top-3 right-3">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
+                        -{discount}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Quick View Overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -352,8 +310,12 @@ const DailyDiscover: React.FC = () => {
                   {/* Action Buttons */}
                   <div className="absolute bottom-3 right-3 flex flex-col gap-2">
                     <button
-                      onClick={() => toggleWishlist(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(product.id);
+                      }}
                       className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
+                      aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       {isInWishlist ? (
                         <FaHeart className="w-4 h-4 text-red-500" />
@@ -362,63 +324,85 @@ const DailyDiscover: React.FC = () => {
                       )}
                     </button>
                     <button
+                      onClick={(e) => e.stopPropagation()}
                       className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
+                      aria-label="Add to cart"
                     >
                       <FaShoppingCart className="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
                 </div>
 
-                {/* Content Section - Flex-grow to fill remaining space */}
+                {/* Content Section */}
                 <div className="p-4 flex-grow flex flex-col">
                   <div className="flex-shrink-0 mb-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mb-2">
-                      {product.category}
-                    </span>
                     <h3 className="text-base font-semibold leading-tight text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[48px]">
-                      {product.title}
+                      {product.name || 'Unnamed Product'}
                     </h3>
+                    {product.category && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mt-2">
+                        {product.category}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Rating - Fixed height */}
+                  {/* Rating */}
                   <div className="mb-3 flex-shrink-0">
-                    {renderStars(product.review)}
+                    {renderStars(product.rating)}
                   </div>
 
-                  {/* Stock Progress - Fixed height */}
+                  {/* Stock Progress */}
                   <div className="space-y-2 mb-4 flex-shrink-0">
                     <div className="flex justify-between text-xs">
-                      <span className="text-gray-500">Sold: {product.sold}/{product.stock}</span>
-                      <span className="font-medium text-gray-700">{Math.round(stockPercentage)}% sold</span>
+                      <span className="text-gray-500">
+                        Sold: {soldCount}/{totalStock}
+                      </span>
+                      <span className="font-medium text-gray-700">
+                        {totalStock > 0 ? `${Math.round(stockPercentage)}% sold` : 'New'}
+                      </span>
                     </div>
-                    <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`absolute top-0 left-0 h-full rounded-full transition-all duration-300 ${getProgressColor(stockPercentage)}`}
-                        style={{ width: `${stockPercentage}%` }}
-                      />
-                    </div>
+                    {totalStock > 0 && (
+                      <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-300 ${getProgressColor(stockPercentage)}`}
+                          style={{ width: `${Math.min(stockPercentage, 100)}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Price Section - Fixed at bottom */}
+                  {/* Price Section */}
                   <div className="mt-auto">
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-blue-600">
-                          ৳{product.price}
+                          {formatPrice(product.sale_price)}
                         </span>
-                        <span className="text-sm text-gray-500 line-through">
-                          ৳{product.regularprice}
-                        </span>
+                        {parseFloat(product.sale_price || '0') < parseFloat(product.regular_price || '0') && (
+                          <span className="text-sm text-gray-500 line-through">
+                            {formatPrice(product.regular_price)}
+                          </span>
+                        )}
                       </div>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                        Save ৳{saveAmount}
-                      </span>
+                      {saveAmount > 0 && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                          Save {formatPrice(saveAmount.toString())}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Add to Cart Button - Fixed at bottom */}
-                    <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 hover:border-blue-400 text-gray-700 hover:text-blue-700 rounded-lg font-medium transition-colors group-hover:border-blue-400 group-hover:text-blue-700 flex-shrink-0">
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0 ${
+                        product.inStock && product.quantity > 0
+                          ? 'border border-gray-300 hover:border-blue-400 text-gray-700 hover:text-blue-700 group-hover:border-blue-400 group-hover:text-blue-700 hover:bg-blue-50'
+                          : 'border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                      disabled={!product.inStock || product.quantity <= 0}
+                    >
                       <FaShoppingCart className="w-4 h-4" />
-                      Add to Cart
+                      {product.inStock && product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </button>
                   </div>
                 </div>
@@ -430,12 +414,12 @@ const DailyDiscover: React.FC = () => {
 
       {/* View All Button */}
       <div className="text-center mt-12">
-        <button className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+        <button className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-300 hover:shadow-lg">
           View All Products
           <FaArrowRight className="w-4 h-4" />
         </button>
         <p className="text-sm text-gray-500 mt-4">
-          Showing {products.length} of 100+ top selling products
+          Showing {discoverProduct.length} of 100+ top selling products
         </p>
       </div>
     </div>

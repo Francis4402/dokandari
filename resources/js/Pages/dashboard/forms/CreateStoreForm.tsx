@@ -1,6 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { PageProps } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import React, { useState, useRef } from 'react';
 import {
   FaStore,
@@ -106,11 +106,11 @@ export default function CreateStoreForm({auth}: PageProps) {
     formData.append('license_number', data.license_number);
     if (data.logo) formData.append('logo', data.logo);
 
-    post(route('dashboard.createstore'), {
+    post(route('stores.store'), {
       data: formData,
       onSuccess: () => {
         toast.success('Store created successfully!');
-
+        router.visit(route('dashboard.store'));
         // Reset form
         reset();
         if (logoPreview) URL.revokeObjectURL(logoPreview);
