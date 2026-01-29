@@ -24,8 +24,11 @@ return new class extends Migration
             $table->string('regular_price');
             $table->string('sale_price')->nullable();
             $table->mediumText('description');
-            $table->boolean('inStock')->default(false);
+            $table->enum('product_type', ['top-selling', 'trending', 'featured', 'regular'])
+                  ->default('regular');
+            $table->boolean('inStock')->default(true);
             $table->decimal('rating')->default(0);
+            $table->string('review_count')->default(0);
             $table->timestamps();
         });
     }

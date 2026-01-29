@@ -36,8 +36,10 @@ export interface Product {
   regular_price: string;
   sale_price: string;
   description: string;
+    product_type: string;
   inStock: boolean;
   rating: number;
+    review_count: string;
   created_at: string;
   updated_at: string;
 }

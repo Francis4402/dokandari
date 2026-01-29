@@ -9,10 +9,25 @@ import TrendingProducts from './Components/TrandingProducts';
 import DailyDiscover from './Components/DailyDiscover';
 import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
+import TopSellingProduct from './Components/TopSellingProduct';
 
 
 
 export default function Welcome({ auth, categories, products }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[] }>) {
+
+    const topSellingProduct = products.filter(product =>
+        product.product_type?.toLowerCase() === 'top-selling'
+    );
+
+    const dailyDiscoverProduct = products.filter(product =>
+        product.product_type?.toLowerCase() === 'regular'
+    );
+
+    const featuredProducts = products.filter(product =>
+        product.product_type?.toLowerCase() === 'featured'
+    );
+
+
     return (
         <AppLayout user={auth.user}>
             <Head title='Dokandari'>
@@ -24,9 +39,22 @@ export default function Welcome({ auth, categories, products }: PageProps<{ lara
                 <NavRoutes />
                 <HeroSection />
                 <Categories categorie={categories} />
-                <OfferedProducts product={products} />
+
+                {
+                    featuredProducts.length > 0 && (
+                        <OfferedProducts product={featuredProducts} />
+                    )
+                }
+
                 <TrendingProducts trandingproduct = {products} />
-                <DailyDiscover discoverProduct = {products} />
+
+                {
+                    topSellingProduct.length > 0 && (
+                        <TopSellingProduct products = {topSellingProduct} />
+                    )
+                }
+
+                <DailyDiscover discoverProduct = {dailyDiscoverProduct} />
                 <CategorySection />
             </div>
             <Footer/>

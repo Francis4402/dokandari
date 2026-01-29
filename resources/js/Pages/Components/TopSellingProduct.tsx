@@ -4,11 +4,11 @@ import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
 
-interface dailyDiscoverProduct {
-  discoverProduct: Product[];
+interface TopSellingProductProps {
+  products: Product[];
 }
 
-const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
+const TopSellingProduct = ({ products }: TopSellingProductProps) => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
@@ -30,7 +30,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
         ease: "back.out(1.4)"
       }
     );
-  }, [discoverProduct]);
+  }, [products]);
 
   // No fake calculations - just use the actual quantity from products
 
@@ -178,17 +178,17 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
       {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-          Daily Discover
+          Top Selling Products
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Explore our handpicked selection of products just for you
+          Get the best products that our customers love the most. Shop now and enjoy great deals!
         </p>
         <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
       </div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-        {discoverProduct.map((product, index) => {
+        {products.map((product, index) => {
           if (!product) return null;
 
           const discount = calculateDiscount(product.regular_price, product.sale_price || '0');
@@ -355,11 +355,11 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
           <FaArrowRight className="w-4 h-4" />
         </button>
         <p className="text-sm text-gray-500 mt-4">
-          Showing {discoverProduct.length} daily discover products
+          Showing {products.length} top selling products
         </p>
       </div>
     </div>
   );
 };
 
-export default DailyDiscover;
+export default TopSellingProduct;
