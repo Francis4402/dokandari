@@ -758,8 +758,6 @@ const TrackOrderPage = ({auth}: PageProps) => {
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
               <Link href="/" className="hover:text-amber-600 transition-colors">Home</Link>
               <FaArrowLeft className="h-4 w-4" />
-              <Link href="/orders" className="hover:text-amber-600 transition-colors">My Orders</Link>
-              <FaArrowLeft className="h-4 w-4" />
               <span className="text-gray-900 font-medium">Track Order</span>
             </div>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
