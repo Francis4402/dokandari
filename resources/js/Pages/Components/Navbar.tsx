@@ -185,7 +185,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                   <img src="Logo.png" alt='i' />
                 </div>
                 <span className="hidden md:inline text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                  Dokandari
+                  HaatPoint
                 </span>
               </Link>
 
@@ -511,7 +511,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                               <img src="Logo.png" alt="i" />
                             </div>
                             <Dialog.Title className="text-xl font-bold text-gray-900">
-                              DokanDari
+                              HaatPoint
                             </Dialog.Title>
                           </div>
                           <button
@@ -725,7 +725,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                       {/* Drawer Footer */}
                       <div className="border-t px-6 py-4">
                         <div className="flex items-center justify-between text-sm text-gray-500">
-                          <span>© {new Date().getFullYear()} Dokandari</span>
+                          <span>© {new Date().getFullYear()} HaatPoint</span>
                           <Link
                             href="/terms"
                             onClick={() => setIsMobileMenuOpen(false)}

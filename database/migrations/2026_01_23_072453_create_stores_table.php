@@ -16,8 +16,11 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->string('name')->unique();
             $table->string('logo')->nullable();
+            $table->text('address');
             $table->string('storetype');
             $table->string('license')->nullable();
+            $table->decimal('rating')->default(0);
+            $table->string('review_count')->default(0);
             $table->timestamps();
         });
     }

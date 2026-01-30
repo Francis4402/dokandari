@@ -20,6 +20,11 @@ export interface storeType {
     logo: string;
     storetype: string;
     license: string;
+    address: string;
+    rating: number;
+    review_count: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface categoryType {

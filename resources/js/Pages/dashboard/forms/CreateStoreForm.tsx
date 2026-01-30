@@ -52,6 +52,7 @@ export default function CreateStoreForm({auth}: PageProps) {
     name: '',
     logo: null as File | null,
     storetype: '',
+    address: '',
     license_number: ''
   });
 
@@ -104,6 +105,7 @@ export default function CreateStoreForm({auth}: PageProps) {
     formData.append('name', data.name);
     formData.append('storetype', data.storetype);
     formData.append('license_number', data.license_number);
+    formData.append('address', data.address);
     if (data.logo) formData.append('logo', data.logo);
 
     post(route('stores.store'), {
@@ -119,10 +121,11 @@ export default function CreateStoreForm({auth}: PageProps) {
 
         // Set default values
         setData({
-          name: '',
-          logo: null,
-          storetype: '',
-          license_number: ''
+            name: '',
+            logo: null,
+            storetype: '',
+            address: '',
+            license_number: ''
         });
       },
       onError: () => {
@@ -205,6 +208,34 @@ export default function CreateStoreForm({auth}: PageProps) {
                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Choose a unique name that represents your brand
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                  <FaTag className="h-4 w-4" />
+                  Address <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <FaStore className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={data.address}
+                    onChange={(e) => setData('address', e.target.value)}
+                    placeholder="Address of your store"
+                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={processing}
+                  />
+                </div>
+                {errors.address && (
+                  <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.address}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <FaInfoCircle className="h-3 w-3" />
+                  Enter the full address of your store
                 </p>
               </div>
 

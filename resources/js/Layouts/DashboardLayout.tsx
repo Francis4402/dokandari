@@ -139,7 +139,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center justify-between">
                     <Link href='/'>
-                        <h1 className="text-xl font-bold text-gray-900">Dokandari</h1>
+                        <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
                     </Link>
                     <button
                       type="button"
@@ -194,7 +194,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                 <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
                   <span className="text-white font-bold">ES</span>
                 </div>
-                <h1 className="ml-3 text-xl font-bold text-gray-900">Dokandari</h1>
+                <h1 className="ml-3 text-xl font-bold text-gray-900">HaatPoint</h1>
               </Link>
             )}
             <button

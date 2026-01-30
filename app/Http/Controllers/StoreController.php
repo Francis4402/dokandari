@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Models\Products;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -44,34 +46,63 @@ class StoreController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
-            'storetype' => 'required|string|max:255',
-            'license' => 'string|max:10'
+            'name' => 'required|string|unique:stores,name',
+            'storetype' => 'required|string',
+            'license' => 'nullable|string',
+            'address' => 'required|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp'
         ]);
 
-        $store = new Store();
+        DB::beginTransaction();
 
-        $store->user_id = auth()->id();
-        $store->name = $validated['name'];
-        $store->storetype = $validated['storetype'];
-        $store->license = $validated['license'] ?? null;
+        try {
+            // Create store first
+            $store = Store::create([
+                'user_id' => auth()->id(),
+                'name' => $validated['name'],
+                'storetype' => $validated['storetype'],
+                'license' => $validated['license'] ?? null,
+                'address' => $validated['address'],
+                'logo' => null
+            ]);
 
-        if ($request->file('logo')) {
-            $logo = $request->file('logo');
+            // Handle logo if provided
+            if ($request->hasFile('logo')) {
+                $logo = $request->file('logo');
 
-            $filename = time() . '_' . $logo->getClientOriginalName();
-            $path = public_path('store_images/' . $filename);
+                // Store in temp location first
+                $tempPath = $logo->storeAs('temp', 'store_' . $store->id . '_' . time(), 'public');
 
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($logo->getPathname());
-            $img->scaleDown(width: 800);
-            $img->save($path, quality: 85);
+                // Process image
+                $manager = new ImageManager(new Driver());
+                $img = $manager->read(storage_path('app/public/' . $tempPath));
+                $img->scaleDown(width: 800);
 
-            $store->logo = $filename;
+                // Save to final location
+                $filename = 'store_' . $store->id . '_' . time() . '.webp';
+                $finalPath = public_path('store_images/' . $filename);
+                $img->save($finalPath, quality: 85);
+
+                // Update store
+                $store->update(['logo' => $filename]);
+
+                // Clean up temp file
+                Storage::disk('public')->delete($tempPath);
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Clean up any uploaded files
+            if (isset($finalPath) && file_exists($finalPath)) {
+                @unlink($finalPath);
+            }
+            if (isset($tempPath)) {
+                Storage::disk('public')->delete($tempPath);
+            }
         }
-
-        $store->save();
     }
 
     /**
@@ -121,7 +152,6 @@ class StoreController extends Controller
                             }
                         }
                     } else {
-
                         if (file_exists(public_path('product_images/' . $product->images))) {
                             @unlink(public_path('product_images/' . $product->images));
                     }

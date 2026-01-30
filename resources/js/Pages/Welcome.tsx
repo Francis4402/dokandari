@@ -30,7 +30,7 @@ export default function Welcome({ auth, categories, products }: PageProps<{ lara
 
     return (
         <AppLayout user={auth.user}>
-            <Head title='Dokandari'>
+            <Head title='HaatPoint'>
                 <meta name="description" content="Multivendor Store" />
                 <meta name="keywords" content={`shop, products, buy online, shopping`} />
                 <meta name="robots" content="index, follow" />
