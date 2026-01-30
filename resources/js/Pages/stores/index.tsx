@@ -14,57 +14,39 @@ import {
   FaEye,
   FaHeart,
   FaTimes,
-  FaBars,
   FaChevronRight,
-  FaShoppingBag
 } from "react-icons/fa";
-import {
-  MdStorefront,
-  MdLocationOn,
-  MdStar,
-  MdSearch,
-  MdFilterList,
-  MdCheckCircle,
-  MdInventory,
-  MdTrendingUp,
-  MdKeyboardArrowDown,
-  MdRemoveRedEye,
-  MdFavorite,
-  MdClose,
-  MdMenu,
-  MdChevronRight,
-  MdShoppingBag
-} from "react-icons/md"; // Alternative icons from Material Design
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
+import { storeType } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface StoreData {
-  id: number;
-  user_id: number;
-  name: string;
-  storetype: string;
-  license: string | null;
-  description: string;
-  logo: string;
-  cover_image: string;
-  address: string;
-  city: string;
-  phone: string;
-  email: string;
-  rating: number;
-  total_reviews: number;
-  total_products: number;
-  total_sales: number;
-  is_verified: boolean;
-  created_at: string;
+// Extended interface with all required properties
+interface ExtendedStoreType extends storeType {
+  cover_image?: string;
+  description?: string;
+  rating?: number;
+  total_products?: number;
+  total_sales?: number;
+  total_reviews?: number;
+  is_verified?: boolean;
+  address?: string;
+  city?: string;
+  created_at?: string;
 }
 
-const StoreListPage = ({auth}: PageProps) => {
+interface StoreListPageProps {
+    auth: {
+        user: any
+    },
+    stores: ExtendedStoreType[]
+}
+
+const StoreListPage = ({auth, stores}: StoreListPageProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
@@ -74,136 +56,13 @@ const StoreListPage = ({auth}: PageProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const storesRef = useRef<HTMLDivElement>(null);
 
-  // Mock stores data
-  const stores: StoreData[] = [
-    {
-      id: 1,
-      user_id: 1,
-      name: "TechHub Electronics",
-      storetype: "Electronics",
-      license: "LIC-2024-001234",
-      description: "Your trusted destination for premium electronics and gadgets with latest technology products.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=TechHub",
-      cover_image: "/sliderimage/slider-1.webp",
-      address: "123 Technology Street, Block A",
-      city: "Dhaka",
-      phone: "+880 1234-567890",
-      email: "contact@techhub.com",
-      rating: 4.8,
-      total_reviews: 1247,
-      total_products: 156,
-      total_sales: 5420,
-      is_verified: true,
-      created_at: "2023-01-15"
-    },
-    {
-      id: 2,
-      user_id: 2,
-      name: "Fashion Haven",
-      storetype: "Fashion",
-      license: "LIC-2024-002345",
-      description: "Discover the latest trends in fashion with our curated collection of clothing and accessories.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=Fashion",
-      cover_image: "/sliderimage/slider-2.webp",
-      address: "456 Fashion Avenue",
-      city: "Dhaka",
-      phone: "+880 1234-567891",
-      email: "hello@fashionhaven.com",
-      rating: 4.6,
-      total_reviews: 892,
-      total_products: 234,
-      total_sales: 3210,
-      is_verified: true,
-      created_at: "2023-03-20"
-    },
-    {
-      id: 3,
-      user_id: 3,
-      name: "Home & Living Store",
-      storetype: "Home & Garden",
-      license: null,
-      description: "Transform your living space with our premium furniture and home decor items.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=Home",
-      cover_image: "/sliderimage/slider-3.webp",
-      address: "789 Decor Lane",
-      city: "Chittagong",
-      phone: "+880 1234-567892",
-      email: "info@homeliving.com",
-      rating: 4.7,
-      total_reviews: 654,
-      total_products: 98,
-      total_sales: 2156,
-      is_verified: false,
-      created_at: "2023-05-10"
-    },
-    {
-      id: 4,
-      user_id: 4,
-      name: "Fresh Groceries",
-      storetype: "Groceries",
-      license: "LIC-2024-003456",
-      description: "Fresh and organic groceries delivered to your doorstep daily.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=Fresh",
-      cover_image: "/sliderimage/slider-1.webp",
-      address: "321 Market Road",
-      city: "Sylhet",
-      phone: "+880 1234-567893",
-      email: "support@freshgroceries.com",
-      rating: 4.9,
-      total_reviews: 1567,
-      total_products: 423,
-      total_sales: 8934,
-      is_verified: true,
-      created_at: "2023-02-28"
-    },
-    {
-      id: 5,
-      user_id: 5,
-      name: "Sports Zone",
-      storetype: "Sports",
-      license: "LIC-2024-004567",
-      description: "All your sports and fitness equipment in one place.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=Sports",
-      cover_image: "/sliderimage/slider-2.webp",
-      address: "555 Stadium Street",
-      city: "Dhaka",
-      phone: "+880 1234-567894",
-      email: "contact@sportszone.com",
-      rating: 4.5,
-      total_reviews: 432,
-      total_products: 187,
-      total_sales: 1876,
-      is_verified: true,
-      created_at: "2023-04-15"
-    },
-    {
-      id: 6,
-      user_id: 6,
-      name: "Beauty Bliss",
-      storetype: "Beauty",
-      license: "LIC-2024-005678",
-      description: "Premium beauty and skincare products for your radiant look.",
-      logo: "https://api.dicebear.com/7.x/initials/svg?seed=Beauty",
-      cover_image: "/sliderimage/slider-3.webp",
-      address: "777 Beauty Boulevard",
-      city: "Chittagong",
-      phone: "+880 1234-567895",
-      email: "hello@beautybliss.com",
-      rating: 4.8,
-      total_reviews: 978,
-      total_products: 312,
-      total_sales: 4521,
-      is_verified: true,
-      created_at: "2023-06-01"
-    }
-  ];
 
   const storeTypes = Array.from(new Set(stores.map(s => s.storetype)));
   const cities = Array.from(new Set(stores.map(s => s.city)));
 
   const filteredStores = stores.filter(store => {
     const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         store.description.toLowerCase().includes(searchQuery.toLowerCase());
+                         (store.description && store.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = selectedType === "all" || store.storetype === selectedType;
     const matchesCity = selectedCity === "all" || store.city === selectedCity;
     return matchesSearch && matchesType && matchesCity;
@@ -213,16 +72,16 @@ const StoreListPage = ({auth}: PageProps) => {
   const sortedStores = [...filteredStores].sort((a, b) => {
     switch (sortBy) {
       case "rating":
-        return b.rating - a.rating;
+        return (b.rating || 0) - (a.rating || 0);
       case "products":
-        return b.total_products - a.total_products;
+        return (b.total_products || 0) - (a.total_products || 0);
       case "sales":
-        return b.total_sales - a.total_sales;
+        return (b.total_sales || 0) - (a.total_sales || 0);
       case "newest":
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
       case "featured":
       default:
-        return b.is_verified ? 1 : -1;
+        return (b.is_verified ? 1 : 0) - (a.is_verified ? 1 : 0);
     }
   });
 
@@ -266,6 +125,7 @@ const StoreListPage = ({auth}: PageProps) => {
         <h3 className="font-semibold text-lg mb-4">Store Type</h3>
         <div className="space-y-2">
           <div
+            key="all-stores"
             className={`p-3 rounded-lg cursor-pointer transition-colors ${
               selectedType === "all" ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
             }`}
@@ -291,6 +151,7 @@ const StoreListPage = ({auth}: PageProps) => {
         <h3 className="font-semibold text-lg mb-4">Location</h3>
         <div className="space-y-2">
           <div
+            key="all-cities"
             className={`p-3 rounded-lg cursor-pointer transition-colors ${
               selectedCity === "all" ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
             }`}
@@ -298,23 +159,13 @@ const StoreListPage = ({auth}: PageProps) => {
           >
             All Cities
           </div>
-          {cities.map((city) => (
-            <div
-              key={city}
-              className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedCity === city ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
-              }`}
-              onClick={() => setSelectedCity(city)}
-            >
-              {city}
-            </div>
-          ))}
+
         </div>
       </div>
     </div>
   );
 
-  const StoreCard = ({ store }: { store: StoreData }) => {
+  const StoreCard = ({ store }: { store: ExtendedStoreType }) => {
     const cardRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
@@ -337,6 +188,10 @@ const StoreListPage = ({auth}: PageProps) => {
       }
     };
 
+    // Safe rating value
+    const safeRating = store.rating || 0;
+    const ratingDisplay = safeRating.toFixed(1);
+
     return (
       <div
         ref={cardRef}
@@ -348,26 +203,32 @@ const StoreListPage = ({auth}: PageProps) => {
           {/* Cover Image */}
           <div className="relative h-40 overflow-hidden">
             <img
-              src={store.cover_image}
+              src={store.cover_image || "/default-cover.jpg"}
               alt={store.name}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                e.currentTarget.src = "/default-cover.jpg";
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
             {/* Store Logo */}
             <div className="absolute -bottom-10 left-6">
               <div className="relative">
-                <div className="h-20 w-20 rounded-full border-4 border-white shadow-lg overflow-hidden">
-                  <img
-                    src={store.logo}
-                    alt={store.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {!store.logo && (
-                    <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xl font-bold">
-                      {store.name.charAt(0)}
-                    </div>
-                  )}
+                <div className="h-20 w-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
+                  {store.logo ? (
+                    <img
+                      src={`store_images/${store.logo}`}
+                      alt={store.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
+                    {store.name.charAt(0)}
+                  </div>
                 </div>
                 {store.is_verified && (
                   <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
@@ -397,7 +258,7 @@ const StoreListPage = ({auth}: PageProps) => {
               <div className="flex items-center gap-2 mb-2">
                 <span className="inline-flex items-center px-2 py-1 text-xs border border-gray-300 rounded-md">
                   <FaStore className="h-3 w-3 mr-1" />
-                  {store.storetype}
+                  {store.storetype || "General Store"}
                 </span>
                 {store.is_verified && (
                   <span className="inline-flex items-center px-2 py-1 text-xs bg-blue-500 text-white rounded-md">
@@ -412,22 +273,24 @@ const StoreListPage = ({auth}: PageProps) => {
                     <FaStar
                       key={i}
                       className={`h-3.5 w-3.5 ${
-                        i < Math.floor(store.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
+                        i < Math.floor(safeRating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-gray-900">{store.rating}</span>
-                <span className="text-sm text-gray-500">({store.total_reviews})</span>
+                <span className="text-sm font-semibold text-gray-900">{ratingDisplay}</span>
+                <span className="text-sm text-gray-500">({store.total_reviews || 0})</span>
               </div>
 
               <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                {store.description}
+                {store.description || "No description available"}
               </p>
 
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                 <FaMapMarkerAlt className="h-4 w-4 flex-shrink-0" />
-                <span className="line-clamp-1">{store.address}, {store.city}</span>
+                <span className="line-clamp-1">
+                  {store.address || "Address not specified"}, {store.city || "N/A"}
+                </span>
               </div>
             </div>
 
@@ -437,21 +300,21 @@ const StoreListPage = ({auth}: PageProps) => {
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaBox className="h-3.5 w-3.5 text-blue-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_products}</span>
+                    <span className="text-lg font-bold text-gray-900">{store.total_products || 0}</span>
                   </div>
                   <span className="text-xs text-gray-600">Products</span>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaChartLine className="h-3.5 w-3.5 text-green-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_sales}</span>
+                    <span className="text-lg font-bold text-gray-900">{store.total_sales || 0}</span>
                   </div>
                   <span className="text-xs text-gray-600">Sales</span>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaStar className="h-3.5 w-3.5 text-amber-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_reviews}</span>
+                    <span className="text-lg font-bold text-gray-900">{store.total_reviews || 0}</span>
                   </div>
                   <span className="text-xs text-gray-600">Reviews</span>
                 </div>
@@ -459,10 +322,13 @@ const StoreListPage = ({auth}: PageProps) => {
             </div>
 
             {/* Visit Button */}
-            <button className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center">
+            <Link
+              href={`/stores/${store.id}`}
+              className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
+            >
               <FaEye className="h-4 w-4 mr-2" />
               Visit Store
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -24,7 +24,10 @@ class StoreController extends Controller
     }
 
     public function storeroute() {
-        return Inertia::render('stores/index');
+        $stores = Store::all();
+        return Inertia::render('stores/index', [
+            'stores' => $stores
+        ]);
     }
 
     /**
@@ -95,26 +98,40 @@ class StoreController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        $store = Store::where('id', $id)->first();
+        $store = Store::findOrFail($id);
 
-        if($store->logo) {
-            @unlink(public_path('store_images/'.$store->logo));
+
+        if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
+            @unlink(public_path('store_images/' . $store->logo));
         }
+
 
         $products = Products::where('store_id', $store->id)->get();
 
         foreach ($products as $product) {
+
             if ($product->images) {
-                @unlink(public_path('product_images/'.$product->images));
+                $images = json_decode($product->images, true);
+                    if (is_array($images)) {
+                        foreach ($images as $image) {
+                            if ($image && file_exists(public_path('product_images/' . $image))) {
+                                @unlink(public_path('product_images/' . $image));
+                            }
+                        }
+                    } else {
+
+                        if (file_exists(public_path('product_images/' . $product->images))) {
+                            @unlink(public_path('product_images/' . $product->images));
+                    }
+                }
             }
+
+
+            $product->delete();
         }
 
-        Products::where('store_id', $store->id)->delete();
 
         $store->delete();
     }
