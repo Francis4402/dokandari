@@ -27,6 +27,10 @@ export default function Welcome({ auth, categories, products }: PageProps<{ lara
         product.product_type?.toLowerCase() === 'featured'
     );
 
+    const trandingProducts = products.filter(product =>
+        product.product_type?.toLowerCase() === 'trending'
+    );
+
 
     return (
         <AppLayout user={auth.user}>
@@ -46,7 +50,11 @@ export default function Welcome({ auth, categories, products }: PageProps<{ lara
                     )
                 }
 
-                <TrendingProducts trandingproduct = {products} />
+                {
+                    trandingProducts.length > 0 && (
+                        <TrendingProducts trandingproduct = {trandingProducts} />
+                    )
+                }
 
                 {
                     topSellingProduct.length > 0 && (

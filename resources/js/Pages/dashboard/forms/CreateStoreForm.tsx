@@ -17,11 +17,16 @@ import {
   FaCertificate,
   FaCheck,
   FaPlus,
-  FaKey
+  FaKey,
+  FaIdCard,
+  FaUser,
+  FaMobile,
+  FaMobileAlt
 } from 'react-icons/fa';
 import {
   HiOutlineExclamationCircle
 } from 'react-icons/hi2';
+import { FaAddressBook } from "react-icons/fa6";
 import { toast } from 'sonner';
 
 // Store types based on common business models
@@ -53,7 +58,9 @@ export default function CreateStoreForm({auth}: PageProps) {
     logo: null as File | null,
     storetype: '',
     address: '',
-    license_number: ''
+    license_number: '',
+    national_id: '',
+    mobile: ''
   });
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +113,8 @@ export default function CreateStoreForm({auth}: PageProps) {
     formData.append('storetype', data.storetype);
     formData.append('license_number', data.license_number);
     formData.append('address', data.address);
+    formData.append('national_id', data.national_id);
+    formData.append('mobile', data.mobile);
     if (data.logo) formData.append('logo', data.logo);
 
     post(route('stores.store'), {
@@ -125,7 +134,9 @@ export default function CreateStoreForm({auth}: PageProps) {
             logo: null,
             storetype: '',
             address: '',
-            license_number: ''
+            license_number: '',
+            national_id: '',
+            mobile: ''
         });
       },
       onError: () => {
@@ -213,11 +224,11 @@ export default function CreateStoreForm({auth}: PageProps) {
 
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaTag className="h-4 w-4" />
+                  <FaAddressBook className="h-4 w-4" />
                   Address <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <FaStore className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaBuilding className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
                     type="text"
                     value={data.address}
@@ -236,6 +247,34 @@ export default function CreateStoreForm({auth}: PageProps) {
                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Enter the full address of your store
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                  <FaMobile className="h-4 w-4" />
+                  Mobile <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <FaMobileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={data.mobile}
+                    onChange={(e) => setData('mobile', e.target.value)}
+                    placeholder="Enter your mobile number"
+                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={processing}
+                  />
+                </div>
+                {errors.mobile && (
+                  <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.mobile}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <FaInfoCircle className="h-3 w-3" />
+                  Enter your mobile number
                 </p>
               </div>
 
@@ -429,7 +468,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                   <FaInfoCircle className="h-3 w-3" />
                   Enter your official business license number
                 </p>
-              </div>
+            </div>
 
               {/* License Information */}
               <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
@@ -459,6 +498,82 @@ export default function CreateStoreForm({auth}: PageProps) {
                     Your information is securely stored
                   </li>
                 </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+              <FaIdCard className="h-5 w-5 text-red-600" />
+              <h2 className="text-xl font-bold text-gray-800">National ID Verification</h2>
+              <span className="ml-2 text-xs text-red-500">(Required)</span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                  <FaUser className="h-4 w-4" />
+                  National ID Number <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <FaIdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={data.national_id}
+                    onChange={(e) => setData('national_id', e.target.value)}
+                    placeholder="e.g., 1234567890123"
+                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={processing}
+                  />
+                </div>
+                {errors.national_id && (
+                  <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.national_id}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <FaInfoCircle className="h-3 w-3" />
+                  Enter your government-issued National ID number
+                </p>
+              </div>
+
+              {/* National ID Information */}
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-100">
+                <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
+                  <FaInfoCircle className="h-4 w-4 text-red-600" />
+                  Why We Need Your National ID?
+                </h3>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Identity verification for store ownership
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Required by government regulations for businesses
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Prevents fraudulent store creation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Secure payment processing compliance
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Your data is encrypted and protected
+                  </li>
+                </ul>
+                <div className="mt-3 pt-3 border-t border-red-200">
+                  <div className="flex items-start gap-2">
+                    <FaExclamationTriangle className="h-3 w-3 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-orange-700">
+                      This information is required for store verification and will be used solely for identity verification purposes.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

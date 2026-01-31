@@ -25,16 +25,17 @@ import {
   FaBuilding,
   FaEllipsisH,
 } from 'react-icons/fa';
-import { storeType, User } from '@/types';
+import { Product, storeType, User } from '@/types';
 
 interface storeDashboardProps {
     auth: {
         user: User;
     },
     stores: storeType[];
+    products: Product[];
 }
 
-const Store = ({ auth, stores }: storeDashboardProps) => {
+const Store = ({ auth, stores, products }: storeDashboardProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [storeTypeFilter, setStoreTypeFilter] = useState('all');
@@ -219,7 +220,7 @@ const Store = ({ auth, stores }: storeDashboardProps) => {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Products</p>
-                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">{stats.totalProducts}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1 truncate">{products.length}</p>
                 </div>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-green-100 flex items-center justify-center ml-3 flex-shrink-0">
                   <FaShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />
@@ -478,7 +479,7 @@ const Store = ({ auth, stores }: storeDashboardProps) => {
                                     <FaBox className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
                                     <span className="text-xs text-gray-600 font-medium truncate">Products</span>
                                   </div>
-                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{storeStats.totalProducts || 0}</p>
+                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{products.length}</p>
                                 </div>
                                 <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                   <div className="flex items-center justify-center mb-1">

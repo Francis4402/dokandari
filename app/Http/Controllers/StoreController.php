@@ -20,8 +20,10 @@ class StoreController extends Controller
     public function index()
     {
         $stores = Store::where('user_id', auth()->id())->get();
+        $products = Products::whereIn('store_id', $stores->pluck('id'))->get();
         return Inertia::render('dashboard/store/index', [
-            'stores' => $stores
+            'stores' => $stores,
+            'products' => $products
         ]);
     }
 
@@ -50,7 +52,9 @@ class StoreController extends Controller
             'storetype' => 'required|string',
             'license' => 'nullable|string',
             'address' => 'required|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp'
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+            'national_id' => 'required|string|unique:stores,national_id|min:10|max:10',
+            'mobile' => 'required|string|unique:stores,mobile|max:11',
         ]);
 
         DB::beginTransaction();
@@ -63,6 +67,8 @@ class StoreController extends Controller
                 'storetype' => $validated['storetype'],
                 'license' => $validated['license'] ?? null,
                 'address' => $validated['address'],
+                'national_id' => $validated['national_id'],
+                'mobile' => $validated['mobile'],
                 'logo' => null
             ]);
 

@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('logo')->nullable();
             $table->text('address');
+            $table->string('mobile')->unique();
             $table->string('storetype');
+            $table->string('national_id')->unique();
             $table->string('license')->nullable();
             $table->decimal('rating')->default(0);
             $table->string('review_count')->default(0);

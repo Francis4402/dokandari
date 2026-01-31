@@ -21,8 +21,10 @@ export interface storeType {
     storetype: string;
     license: string;
     address: string;
+    mobile: string;
     rating: number;
     review_count: string;
+    national_id: string;
     created_at: string;
     updated_at: string;
 }
@@ -37,23 +39,23 @@ export interface categoryType {
 }
 
 export interface Product {
-  id: string;
-  user_id: string;
-  store_id: string;
-  name: string;
-  images: string;
-  slug: string;
-  category: string;
-  quantity: number;
-  regular_price: string;
-  sale_price: string;
-  description: string;
+    id: string;
+    user_id: string;
+    store_id: string;
+    name: string;
+    images: string;
+    slug: string;
+    category: string;
+    quantity: number;
+    regular_price: string;
+    sale_price: string;
+    description: string;
     product_type: 'top-selling' | 'trending' | 'featured' | 'regular';
-  inStock: boolean;
-  rating: number;
+    inStock: boolean;
+    rating: number;
     review_count: string;
-  created_at: string;
-  updated_at: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {

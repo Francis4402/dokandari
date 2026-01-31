@@ -650,7 +650,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                         </div>
                         <p className="text-gray-600 mb-2">Click to upload image</p>
                         <p className="text-sm text-gray-500">PNG, JPG, GIF</p>
-                        <label className="cursor-pointer">
+                        <label className="cursor-pointer mt-5">
                           <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                             Choose File
                           </span>
