@@ -74,6 +74,8 @@ Route::get('/track-order', [TrackOrderController::class, 'index'])->name('tracko
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
 Route::get('/products', [ProductsController::class, 'products'])->name('products.index');
 
+Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
+
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');

@@ -14,6 +14,27 @@ export interface User {
     email_verified_at: string;
 }
 
+export type CartItem = {
+    id: string;
+    user_id: string;
+    store_id: string;
+    name: string;
+    images: string;
+    slug: string;
+    category: string;
+    quantity: number;
+    regular_price: string;
+    sale_price: string;
+    description: string;
+    product_type: 'top-selling' | 'trending' | 'featured' | 'regular';
+    inStock: boolean;
+    rating: number;
+    review_count: string;
+    created_at: string;
+    updated_at: string;
+}
+
+
 export interface storeType {
     id: string;
     name: string;

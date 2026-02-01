@@ -83,12 +83,6 @@ const Products = ({ products, auth }: ProductsPageProps) => {
         );
     };
 
-    // Get product type display name
-    const getProductTypeDisplay = (type: string): string => {
-        return type.split('-').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-    };
 
     const getImageSrc = (images: string) => {
         if (!images) return '/placeholder-image.jpg';

@@ -32,7 +32,6 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
     );
   }, [products]);
 
-  // No fake calculations - just use the actual quantity from products
 
   const calculateDiscount = (regularPrice: string, salePrice: string): number => {
     const regular = parseFloat(regularPrice);

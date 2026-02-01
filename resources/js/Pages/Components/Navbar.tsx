@@ -22,6 +22,7 @@ import {
   FiShoppingCart,
 } from "react-icons/fi"
 import { Dialog, Transition, Disclosure } from "@headlessui/react"
+import { useStore } from "../state/cartStore"
 
 const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
@@ -52,7 +53,9 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  const cartItems = 3
+  const {items} = useStore();
+
+  const cartItems = items.length
   const wishlistItems = 5
   const notifications = 2
 
@@ -280,7 +283,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
               </button>
 
               {/* Desktop Action Buttons */}
-              <div className="hidden lg:flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-1">
                 <Link
                   href="/wishlist"
                   className="p-2 rounded-md hover:bg-gray-100 transition-colors relative"

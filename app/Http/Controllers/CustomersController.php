@@ -15,4 +15,8 @@ class CustomersController extends Controller
             'customers' => $users
         ]);
     }
+
+    public function cartPage() {
+        return Inertia::render('cartpage/index');
+    }
 }

@@ -22,8 +22,6 @@ const categories = [
 
 const Categories = ({categorie}: {categorie: any}) => {
 
-    console.log(categorie)
-
   const swiperRef = useRef<any>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 

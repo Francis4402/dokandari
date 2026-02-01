@@ -3,6 +3,8 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
+import AddtoCartButton from "../buttons/AddtoCartButton";
+import Addtocartactionbutton from "../buttons/Addtocartactionbutton";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
@@ -269,13 +271,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                         <FaRegHeart className="w-4 h-4 text-gray-600" />
                       )}
                     </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <FaShoppingCart className="w-4 h-4 text-gray-600" />
-                    </button>
+                      <Addtocartactionbutton />
                   </div>
                 </div>
 
@@ -328,18 +324,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     </div>
 
                     {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0 ${
-                        product.inStock && product.quantity > 0
-                          ? 'border border-gray-300 hover:border-blue-400 text-gray-700 hover:text-blue-700 group-hover:border-blue-400 group-hover:text-blue-700 hover:bg-blue-50'
-                          : 'border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                      }`}
-                      disabled={!product.inStock || product.quantity <= 0}
-                    >
-                      <FaShoppingCart className="w-4 h-4" />
-                      {product.inStock && product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
+                    <AddtoCartButton product={product} />
                   </div>
                 </div>
               </div>

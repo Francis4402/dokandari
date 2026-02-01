@@ -8,8 +8,6 @@ import {
   FaSearch,
   FaFilter,
   FaCheckCircle,
-  FaBox,
-  FaChartLine,
   FaChevronDown,
   FaEye,
   FaHeart,
@@ -25,28 +23,14 @@ import { storeType } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Extended interface with all required properties
-interface ExtendedStoreType extends storeType {
-  cover_image?: string;
-  description?: string;
-  rating?: number;
-  total_products?: number;
-  total_sales?: number;
-  total_reviews?: number;
-  is_verified?: boolean;
-  address?: string;
-  city?: string;
-  created_at?: string;
-}
-
 interface StoreListPageProps {
-    auth: {
-        user: any
-    },
-    stores: ExtendedStoreType[]
+  auth: {
+    user: any;
+  };
+  stores: storeType[];
 }
 
-const StoreListPage = ({auth, stores}: StoreListPageProps) => {
+const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
@@ -57,31 +41,60 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
   const storesRef = useRef<HTMLDivElement>(null);
 
 
-  const storeTypes = Array.from(new Set(stores.map(s => s.storetype)));
-  const cities = Array.from(new Set(stores.map(s => s.city)));
+  // Safely extract store types and cities
+  const storeTypes = Array.from(
+    new Set(stores.map((s) => s.storetype).filter(Boolean) as string[])
+  );
 
-  const filteredStores = stores.filter(store => {
-    const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (store.description && store.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Extract cities from address field (you can customize this logic)
+  const cities = Array.from(
+    new Set(
+      stores
+        .map((s) => {
+          // Try to extract city from address or use a default
+          if (s.address) {
+            // This is a simple example - adjust based on your address format
+            const parts = s.address.split(',');
+            return parts[parts.length - 1]?.trim();
+          }
+          return null;
+        })
+        .filter(Boolean) as string[]
+    )
+  );
+
+  const filteredStores = stores.filter((store) => {
+    const matchesSearch =
+      store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (store.address && store.address.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = selectedType === "all" || store.storetype === selectedType;
-    const matchesCity = selectedCity === "all" || store.city === selectedCity;
+
+    // Match city from address
+    const matchesCity = selectedCity === "all" || (store.address && store.address.includes(selectedCity));
+
     return matchesSearch && matchesType && matchesCity;
   });
 
-  // Sort filtered stores
+  // Sort filtered stores with safe fallbacks
   const sortedStores = [...filteredStores].sort((a, b) => {
     switch (sortBy) {
       case "rating":
         return (b.rating || 0) - (a.rating || 0);
       case "products":
-        return (b.total_products || 0) - (a.total_products || 0);
+        // Since storeType doesn't have total_products, sort by name as fallback
+        return a.name.localeCompare(b.name);
       case "sales":
-        return (b.total_sales || 0) - (a.total_sales || 0);
+        // Since storeType doesn't have total_sales, sort by rating as fallback
+        return (b.rating || 0) - (a.rating || 0);
       case "newest":
-        return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
+        return (
+          new Date(b.created_at || "").getTime() -
+          new Date(a.created_at || "").getTime()
+        );
       case "featured":
       default:
-        return (b.is_verified ? 1 : 0) - (a.is_verified ? 1 : 0);
+        // Sort by rating as primary
+        return (b.rating || 0) - (a.rating || 0);
     }
   });
 
@@ -93,24 +106,24 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
           opacity: 0,
           duration: 0.8,
           stagger: 0.15,
-          ease: "power3.out"
+          ease: "power3.out",
         });
       }
 
-      const storeCards = storesRef.current?.querySelectorAll('.store-card');
+      const storeCards = storesRef.current?.querySelectorAll(".store-card");
       if (storeCards) {
         storeCards.forEach((card, index) => {
           gsap.from(card, {
             scrollTrigger: {
               trigger: card,
               start: "top bottom-=100",
-              toggleActions: "play none none reverse"
+              toggleActions: "play none none reverse",
             },
             y: 60,
             opacity: 0,
             duration: 0.6,
             delay: index * 0.08,
-            ease: "power2.out"
+            ease: "power2.out",
           });
         });
       }
@@ -127,7 +140,9 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
           <div
             key="all-stores"
             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-              selectedType === "all" ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
+              selectedType === "all"
+                ? "bg-amber-50 text-amber-600 font-medium"
+                : "hover:bg-gray-50"
             }`}
             onClick={() => setSelectedType("all")}
           >
@@ -137,7 +152,9 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
             <div
               key={type}
               className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedType === type ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
+                selectedType === type
+                  ? "bg-amber-50 text-amber-600 font-medium"
+                  : "hover:bg-gray-50"
               }`}
               onClick={() => setSelectedType(type)}
             >
@@ -153,187 +170,197 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
           <div
             key="all-cities"
             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-              selectedCity === "all" ? "bg-amber-50 text-amber-600 font-medium" : "hover:bg-gray-50"
+              selectedCity === "all"
+                ? "bg-amber-50 text-amber-600 font-medium"
+                : "hover:bg-gray-50"
             }`}
             onClick={() => setSelectedCity("all")}
           >
             All Cities
           </div>
-
+          {cities.map((city) => (
+            <div
+              key={city}
+              className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                selectedCity === city
+                  ? "bg-amber-50 text-amber-600 font-medium"
+                  : "hover:bg-gray-50"
+              }`}
+              onClick={() => setSelectedCity(city)}
+            >
+              {city}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 
-  const StoreCard = ({ store }: { store: ExtendedStoreType }) => {
-    const cardRef = useRef<HTMLDivElement>(null);
+    const StoreCard = ({ store }: { store: storeType }) => {
+        const cardRef = useRef<HTMLDivElement>(null);
 
-    const handleMouseEnter = () => {
-      if (cardRef.current) {
-        gsap.to(cardRef.current, {
-          y: -8,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
-    };
+        const handleMouseEnter = () => {
+            if (cardRef.current) {
+            gsap.to(cardRef.current, {
+                y: -8,
+                duration: 0.3,
+                ease: "power2.out",
+            });
+            }
+        };
 
-    const handleMouseLeave = () => {
-      if (cardRef.current) {
-        gsap.to(cardRef.current, {
-          y: 0,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
-    };
+        const handleMouseLeave = () => {
+            if (cardRef.current) {
+            gsap.to(cardRef.current, {
+                y: 0,
+                duration: 0.3,
+                ease: "power2.out",
+            });
+            }
+        };
 
-    // Safe rating value
-    const safeRating = store.rating || 0;
-    const ratingDisplay = safeRating.toFixed(1);
+        const safeRating = typeof store.rating === 'string'
+            ? parseFloat(store.rating) || 0
+            : Number(store.rating) || 0;
 
-    return (
-      <div
-        ref={cardRef}
-        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group store-card cursor-pointer border border-gray-200"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div className="p-0">
-          {/* Cover Image */}
-          <div className="relative h-40 overflow-hidden">
-            <img
-              src={store.cover_image || "/default-cover.jpg"}
-              alt={store.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              onError={(e) => {
-                e.currentTarget.src = "/default-cover.jpg";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        // Format the rating safely
+        const ratingDisplay = Number.isFinite(safeRating)
+            ? safeRating.toFixed(1)
+            : "0.0";
 
-            {/* Store Logo */}
-            <div className="absolute -bottom-10 left-6">
-              <div className="relative">
-                <div className="h-20 w-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
-                  {store.logo ? (
-                    <img
-                      src={`store_images/${store.logo}`}
-                      alt={store.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
-                    {store.name.charAt(0)}
-                  </div>
+        // Parse review count safely
+        const reviewCount = typeof store.review_count === 'string'
+            ? parseInt(store.review_count, 10) || 0
+            : Number(store.review_count) || 0;
+
+        // Ensure storetype has a fallback
+        const storeTypeDisplay = store.storetype || "General Store";
+
+        // Ensure address has a fallback
+        const addressDisplay = store.address || "Address not specified";
+
+        // Ensure name has a fallback
+        const storeName = store.name || "Unnamed Store";
+
+        return (
+            <div
+            ref={cardRef}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group store-card cursor-pointer border border-gray-200"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            >
+            <div className="p-6">
+                {/* Store Header with Logo and Name */}
+                <div className="flex items-start gap-4 mb-4">
+                {/* Store Logo */}
+                <div className="flex-shrink-0">
+                    <div className="h-16 w-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
+                    {store.logo ? (
+                        <img
+                        src={`/store_images/${store.logo}`}
+                        alt={storeName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                        }}
+                        />
+                    ) : <img
+                        src={`/placeholder.png`}
+                        alt={storeName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                        }}
+                        />}
+                    <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
+                        {storeName.charAt(0)}
+                    </div>
+                    </div>
                 </div>
-                {store.is_verified && (
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-                    <FaCheckCircle className="h-4 w-4 text-white" />
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* Quick Actions */}
-            <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="p-2 bg-white/90 hover:bg-white rounded-full shadow-sm">
-                <FaHeart className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+                {/* Store Name and Type */}
+                <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-1 mb-1">
+                        {storeName}
+                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center px-2 py-1 text-xs border border-gray-300 rounded-md">
+                            <FaStore className="h-3 w-3 mr-1" />
+                            {storeTypeDisplay}
+                        </span>
+                        </div>
+                    </div>
 
-          {/* Store Info */}
-          <div className="pt-12 px-6 pb-6">
-            <div className="mb-3">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-1">
-                  {store.name}
-                </h3>
-              </div>
+                    {/* Quick Actions */}
+                    <div className="flex gap-2">
+                        <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full shadow-sm transition-colors">
+                        <FaHeart className="h-4 w-4 text-gray-600" />
+                        </button>
+                    </div>
+                    </div>
 
-              <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center px-2 py-1 text-xs border border-gray-300 rounded-md">
-                  <FaStore className="h-3 w-3 mr-1" />
-                  {store.storetype || "General Store"}
-                </span>
-                {store.is_verified && (
-                  <span className="inline-flex items-center px-2 py-1 text-xs bg-blue-500 text-white rounded-md">
-                    Verified
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1 mb-3">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <FaStar
-                      key={i}
-                      className={`h-3.5 w-3.5 ${
-                        i < Math.floor(safeRating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-2">
+                    <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                        <FaStar
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                            i < Math.floor(safeRating)
+                                ? "text-amber-400 fill-amber-400"
+                                : "text-gray-300"
+                            }`}
+                        />
+                        ))}
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">
+                        {ratingDisplay}
+                    </span>
+                    <span className="text-sm text-gray-500">({reviewCount})</span>
+                    </div>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">{ratingDisplay}</span>
-                <span className="text-sm text-gray-500">({store.total_reviews || 0})</span>
-              </div>
+                </div>
 
-              <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                {store.description || "No description available"}
-              </p>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                {/* Address */}
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                 <FaMapMarkerAlt className="h-4 w-4 flex-shrink-0" />
                 <span className="line-clamp-1">
-                  {store.address || "Address not specified"}, {store.city || "N/A"}
+                    {addressDisplay}
                 </span>
-              </div>
-            </div>
+                </div>
 
-            <div className="border-t pt-4 mb-4">
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <FaBox className="h-3.5 w-3.5 text-blue-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_products || 0}</span>
-                  </div>
-                  <span className="text-xs text-gray-600">Products</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <FaChartLine className="h-3.5 w-3.5 text-green-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_sales || 0}</span>
-                  </div>
-                  <span className="text-xs text-gray-600">Sales</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <div className="flex items-center justify-center gap-1 mb-1">
                     <FaStar className="h-3.5 w-3.5 text-amber-600" />
-                    <span className="text-lg font-bold text-gray-900">{store.total_reviews || 0}</span>
-                  </div>
-                  <span className="text-xs text-gray-600">Reviews</span>
+                    <span className="text-lg font-bold text-gray-900">{ratingDisplay}</span>
+                    </div>
+                    <span className="text-xs text-gray-600">Rating</span>
                 </div>
-              </div>
-            </div>
+                <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                    <FaStar className="h-3.5 w-3.5 text-blue-600" />
+                    <span className="text-lg font-bold text-gray-900">{reviewCount}</span>
+                    </div>
+                    <span className="text-xs text-gray-600">Reviews</span>
+                </div>
+                </div>
 
-            {/* Visit Button */}
-            <Link
-              href={`/stores/${store.id}`}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
-            >
-              <FaEye className="h-4 w-4 mr-2" />
-              Visit Store
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  };
+                {/* Visit Button */}
+                <Link
+                href={`/stores/${store.id}`}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
+                >
+                <FaEye className="h-4 w-4 mr-2" />
+                Visit Store
+                </Link>
+            </div>
+            </div>
+        );
+    };
 
   return (
     <AppLayout user={auth.user}>
@@ -347,12 +374,18 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
           {/* Header */}
           <div ref={headerRef} className="mb-8">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-              <Link href="/" className="hover:text-amber-600 transition-colors">Home</Link>
+              <Link href="/" className="hover:text-amber-600 transition-colors">
+                Home
+              </Link>
               <FaChevronRight className="h-4 w-4" />
               <span className="text-gray-900 font-medium">Stores</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Explore Stores</h1>
-            <p className="text-gray-600">Discover amazing stores and their unique products</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Explore Stores
+            </h1>
+            <p className="text-gray-600">
+              Discover amazing stores and their unique products
+            </p>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
@@ -408,7 +441,11 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                         {sortBy === "sales" && "Most Sales"}
                         {sortBy === "newest" && "Newest"}
                       </span>
-                      <FaChevronDown className={`h-4 w-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                      <FaChevronDown
+                        className={`h-4 w-4 transition-transform ${
+                          showSortDropdown ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
 
                     {showSortDropdown && (
@@ -419,7 +456,11 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                               setSortBy("featured");
                               setShowSortDropdown(false);
                             }}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${sortBy === "featured" ? 'bg-gray-50 text-amber-600' : ''}`}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                              sortBy === "featured"
+                                ? "bg-gray-50 text-amber-600"
+                                : ""
+                            }`}
                           >
                             Featured
                           </button>
@@ -428,7 +469,9 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                               setSortBy("rating");
                               setShowSortDropdown(false);
                             }}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${sortBy === "rating" ? 'bg-gray-50 text-amber-600' : ''}`}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                              sortBy === "rating" ? "bg-gray-50 text-amber-600" : ""
+                            }`}
                           >
                             Highest Rated
                           </button>
@@ -437,7 +480,11 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                               setSortBy("products");
                               setShowSortDropdown(false);
                             }}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${sortBy === "products" ? 'bg-gray-50 text-amber-600' : ''}`}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                              sortBy === "products"
+                                ? "bg-gray-50 text-amber-600"
+                                : ""
+                            }`}
                           >
                             Most Products
                           </button>
@@ -446,7 +493,9 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                               setSortBy("sales");
                               setShowSortDropdown(false);
                             }}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${sortBy === "sales" ? 'bg-gray-50 text-amber-600' : ''}`}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                              sortBy === "sales" ? "bg-gray-50 text-amber-600" : ""
+                            }`}
                           >
                             Most Sales
                           </button>
@@ -455,7 +504,9 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
                               setSortBy("newest");
                               setShowSortDropdown(false);
                             }}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${sortBy === "newest" ? 'bg-gray-50 text-amber-600' : ''}`}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                              sortBy === "newest" ? "bg-gray-50 text-amber-600" : ""
+                            }`}
                           >
                             Newest
                           </button>
@@ -467,9 +518,14 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
 
                 <div className="mt-4 flex items-center justify-between text-sm">
                   <span className="text-gray-600">
-                    <span className="font-semibold text-gray-900">{filteredStores.length}</span> Stores Found
+                    <span className="font-semibold text-gray-900">
+                      {filteredStores.length}
+                    </span>{" "}
+                    Stores Found
                   </span>
-                  {(selectedType !== "all" || selectedCity !== "all" || searchQuery) && (
+                  {(selectedType !== "all" ||
+                    selectedCity !== "all" ||
+                    searchQuery) && (
                     <button
                       onClick={() => {
                         setSelectedType("all");
@@ -498,8 +554,12 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
               {sortedStores.length === 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                   <FaStore className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No stores found</h3>
-                  <p className="text-gray-600 mb-4">Try adjusting your filters or search query</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No stores found
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Try adjusting your filters or search query
+                  </p>
                   <button
                     onClick={() => {
                       setSelectedType("all");
@@ -519,7 +579,11 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
 
       {/* Mobile Filters Modal */}
       <Transition appear show={showMobileFilters} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={setShowMobileFilters}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={setShowMobileFilters}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -545,7 +609,10 @@ const StoreListPage = ({auth, stores}: StoreListPageProps) => {
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex items-center justify-between mb-6">
-                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
+                    >
                       <FaFilter className="h-5 w-5 inline mr-2" />
                       Filters
                     </Dialog.Title>
