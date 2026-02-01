@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { categoryType, PageProps, Product } from '@/types';
+import { categoryType, PageProps, Product, storeType } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import HeroSection from './Components/HeroSection';
 import NavRoutes from './Components/NavRoutes';
@@ -13,7 +13,7 @@ import TopSellingProduct from './Components/TopSellingProduct';
 
 
 
-export default function Welcome({ auth, categories, products }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[] }>) {
+export default function Welcome({ auth, categories, products, stores }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[], stores: storeType[] }>) {
 
     const topSellingProduct = products.filter(product =>
         product.product_type?.toLowerCase() === 'top-selling'
@@ -43,19 +43,16 @@ export default function Welcome({ auth, categories, products }: PageProps<{ lara
                 <NavRoutes />
                 <HeroSection />
                 <Categories categorie={categories} />
-
                 {
                     featuredProducts.length > 0 && (
                         <OfferedProducts product={featuredProducts} />
                     )
                 }
-
                 {
                     trandingProducts.length > 0 && (
                         <TrendingProducts trandingproduct = {trandingProducts} />
                     )
                 }
-
                 {
                     topSellingProduct.length > 0 && (
                         <TopSellingProduct products = {topSellingProduct} />

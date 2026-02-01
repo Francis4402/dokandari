@@ -113,11 +113,16 @@ class ProductsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Products $products)
+    public function show($slug)
     {
-        //
-    }
+        $product = Products::where('slug', $slug)->firstOrFail();
+        $store = Store::where('id', $product->store_id)->first();
 
+        return Inertia::render('productdetails/index', [
+            'product' => $product,
+            'store' => $store,
+        ]);
+    }
     /**
      * Show the form for editing the specified resource.
      */

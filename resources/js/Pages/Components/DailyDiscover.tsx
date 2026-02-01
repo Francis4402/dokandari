@@ -1,10 +1,11 @@
-import { Product } from "@/types";
+import { Product, storeType } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
-import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import Addtocartactionbutton from "../buttons/Addtocartactionbutton";
+import { Link } from "@inertiajs/react";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
@@ -34,7 +35,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     );
   }, [discoverProduct]);
 
-  // No fake calculations - just use the actual quantity from products
 
   const calculateDiscount = (regularPrice: string, salePrice: string): number => {
     const regular = parseFloat(regularPrice);
@@ -196,7 +196,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
           const discount = calculateDiscount(product.regular_price, product.sale_price || '0');
           const hasDiscount = discount > 0;
 
-          // Use actual product quantity - no fake calculations
           const currentStock = product.quantity || 0;
 
           const isInWishlist = wishlist.includes(product.id);
@@ -247,10 +246,12 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="quick-view opacity-0 translate-y-4">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
-                          <FaEye className="w-4 h-4" />
-                          Quick View
-                        </button>
+                        <Link href={`/products/${product.slug}`}>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
+                                <FaEye className="w-4 h-4" />
+                                Quick View
+                            </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -279,7 +280,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                 <div className="p-4 flex-grow flex flex-col">
                   <div className="flex-shrink-0 mb-3">
                     <h3 className="text-base font-semibold leading-tight text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[48px]">
-                      {product.name || 'Unnamed Product'}
+                      {product.name}
                     </h3>
                     {product.category && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mt-2">

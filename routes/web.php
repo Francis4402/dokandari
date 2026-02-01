@@ -15,6 +15,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
 use App\Models\Categories;
 use App\Models\Products;
+use App\Models\Store;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -33,6 +34,7 @@ use Inertia\Inertia;
 Route::get('/', function () {
     $categories = Categories::all();
     $products = Products::all();
+    $stores = Store::all();
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -40,6 +42,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
         'categories' => $categories,
         'products' => $products,
+        'stores' => $stores,
     ]);
 });
 
@@ -73,6 +76,8 @@ Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.inde
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
 Route::get('/products', [ProductsController::class, 'products'])->name('products.index');
+
+Route::get('/products/{id}', [ProductsController::class, 'show'])->name('products.details');
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 

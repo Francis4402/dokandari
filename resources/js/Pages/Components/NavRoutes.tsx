@@ -5,7 +5,7 @@ const NavRoutes = () => {
   const [activeTab, setActiveTab] = useState("discover products");
 
   const navItems = [
-    { id: "discover products", name: "Discover", icon: "🔍", url: "/products" },
+    { id: "discover products", name: "Products", icon: "🔍", url: "/products" },
     { id: "stores", name: "Stores", icon: "🏪", url: "/stores" },
     { id: "track order", name: "Track", icon: "📦", url: "/track-order" },
     { id: "contact us", name: "Contact", icon: "📞", url: "/contactus" },
