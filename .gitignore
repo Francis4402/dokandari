@@ -17,6 +17,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-category_images
-product_images
-store_images
+# category_images
+# product_images
+# store_images
