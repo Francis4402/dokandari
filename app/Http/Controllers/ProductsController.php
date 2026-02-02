@@ -58,6 +58,7 @@ class ProductsController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
+            'subcategory' => 'required|string',
             'quantity' => 'required|integer|min:0',
             'regular_price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
@@ -73,6 +74,7 @@ class ProductsController extends Controller
         $product->name = $validated['name'];
         $product->slug = Str::slug($validated['name']) . '-' . time();
         $product->category = $validated['category'];
+        $product->subcategory = $validated['subcategory'];
         $product->quantity = (int) $validated['quantity'];
         $product->regular_price = (float) $validated['regular_price'];
         $product->sale_price = isset($validated['sale_price']) ? (float) $validated['sale_price'] : null;
@@ -143,61 +145,59 @@ class ProductsController extends Controller
      */
     public function update(Request $request, $slug)
     {
-        $store = Store::where('user_id', auth()->id())->first();
-
-        if (!$store) {
-            return redirect()->back()->withErrors([
-                'store_id' => 'You need to create a store first before adding products.'
-            ]);
-        }
-
-        // Find the existing product
         $product = Products::where('slug', $slug)->firstOrFail();
 
+        // ✅ Validate
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'quantity' => 'required|integer|min:0',
             'regular_price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'description' => 'required|string',
             'inStock' => 'boolean',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-            'images' => 'max:5',
-            'images_to_remove' => 'nullable|array',
-            'images_to_remove.*' => 'string',
+            'images.*' => 'nullable|image|max:10240',
+            'images_to_remove' => 'nullable|string',
         ]);
 
-        // Update the existing product
-        $product->name = $validated['name'];
-        $product->slug = Str::slug($validated['name']) . '-' . time(); // Regenerate slug
-        $product->category = $validated['category'];
-        $product->quantity = (int) $validated['quantity'];
-        $product->regular_price = (float) $validated['regular_price'];
-        $product->sale_price = isset($validated['sale_price']) ? (float) $validated['sale_price'] : null;
-        $product->description = $validated['description'];
-        $product->inStock = $request->boolean('inStock', true);
+        // ✅ Update normal fields (exclude images)
+        $product->update(collect($validated)->except([
+            'images',
+            'images_to_remove',
+        ])->toArray());
 
-        // Handle image removal
-        $currentImages = $product->images ? json_decode($product->images, true) : [];
+        /**
+         * -----------------------------------
+         * IMAGE HANDLING
+         * -----------------------------------
+         */
 
-        if ($request->has('images_to_remove') && is_array($request->images_to_remove)) {
-            foreach ($request->images_to_remove as $imageToRemove) {
-                // Remove from array
-                $currentImages = array_filter($currentImages, function($image) use ($imageToRemove) {
-                    return $image !== $imageToRemove;
-                });
+        // Existing images
+        $existingImages = json_decode($product->images, true) ?? [];
 
-                // Delete file
-                $imagePath = public_path('product_images/' . $imageToRemove);
-                if (file_exists($imagePath)) {
-                    @unlink($imagePath);
+        /**
+         * ✅ Remove selected images
+         */
+        $imagesToRemove = json_decode($request->images_to_remove, true) ?? [];
+
+        if (!empty($imagesToRemove)) {
+            foreach ($imagesToRemove as $img) {
+                $filePath = public_path('product_images/' . $img);
+
+                if (file_exists($filePath)) {
+                    unlink($filePath);
                 }
+
+                $existingImages = array_values(
+                    array_diff($existingImages, [$img])
+                );
             }
         }
 
-        // Handle new image uploads
-        $newImages = [];
+        /**
+         * ✅ Add new images
+         */
         if ($request->hasFile('images')) {
             $path = public_path('product_images');
 
@@ -206,25 +206,24 @@ class ProductsController extends Controller
             }
 
             foreach ($request->file('images') as $index => $file) {
-                // Generate unique filename
-                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
 
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($file->getRealPath());
 
-                // Resize and optimize
+                // Resize & optimize
                 $img->scale(width: 800);
                 $img->save($path . '/' . $filename, quality: 85);
 
-                $newImages[] = $filename;
+                $existingImages[] = $filename;
             }
         }
 
-        // Combine remaining current images with new images
-        $allImages = array_merge(array_values($currentImages), $newImages);
-        $product->images = json_encode($allImages);
-
+        // ✅ Save final images array
+        $product->images = json_encode(array_values($existingImages));
         $product->save();
+
+        return back()->with('success', 'Product updated successfully');
     }
 
     /**

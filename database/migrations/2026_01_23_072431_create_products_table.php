@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('images');
             $table->string('slug')->nullable();
             $table->string('category');
+            $table->string('subcategory');
             $table->integer('quantity')->default(1);
             $table->string('regular_price');
             $table->string('sale_price')->nullable();

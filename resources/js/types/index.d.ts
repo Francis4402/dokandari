@@ -67,6 +67,7 @@ export interface Product {
     images: string;
     slug: string;
     category: string;
+    subcategory: string;
     quantity: number;
     regular_price: string;
     sale_price: string;

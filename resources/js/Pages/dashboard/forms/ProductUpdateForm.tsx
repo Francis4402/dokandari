@@ -56,7 +56,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     images: [] as File[],
     slug: product.slug || '',
     category: product.category || '',
-    subcategory: '',
+    subcategory: product.subcategory || '',
     quantity: product.quantity?.toString() || '1',
     regular_price: product.regular_price?.toString() || '',
     sale_price: product.sale_price?.toString() || '',
@@ -178,47 +178,38 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('slug', data.slug);
-    formData.append('category', data.category);
-    formData.append('subcategory', data.subcategory || '');
-    formData.append('quantity', data.quantity);
-    formData.append('regular_price', data.regular_price);
-    formData.append('sale_price', data.sale_price || '');
-    formData.append('description', data.description);
-    formData.append('inStock', data.inStock ? '1' : '0');
-    formData.append('rating', data.rating);
-    formData.append('store_id', data.store_id);
-    formData.append('_method', 'PUT');
+        const formData = new FormData();
 
-    // Append images to remove
-    imagesToRemove.forEach(image => {
-      formData.append('images_to_remove[]', image);
-    });
+        Object.entries(data).forEach(([key, value]) => {
+            if (key === 'images') {
+            data.images.forEach((file: File, index: number) => {
+                formData.append(`images[${index}]`, file);
+            });
+            } else {
+            formData.append(key, value as string);
+            }
+        });
 
-    // Append new images
-    data.images.forEach((image) => {
-      formData.append('images[]', image);
-    });
+        formData.append('images_to_remove', JSON.stringify(imagesToRemove));
 
-    put(route('dashboard.updateproduct', product.slug), {
-        data: formData,
-        forceFormData: true,
-        onSuccess: () => {
-            toast.success('Product updated successfully!');
-            router.visit(route('dashboard.products'));
-        },
-        onError: (errors) => {
-            console.error('Update errors:', errors);
-            toast.error('Failed to update product. Please check the form for errors.');
-        },
-      preserveScroll: true,
-    });
-  };
+        formData.append('_method', 'PUT');
+
+        router.post(route('dashboard.updateproduct', product.slug), formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Product updated successfully!');
+                setImagesToRemove([]);
+                reset('images');
+                router.visit('/dashboard/products');
+            },
+            onError: () => {
+                toast.error('Failed to update product');
+            },
+        });
+    };
 
   const handleNumberInput = (
     e: React.ChangeEvent<HTMLInputElement>,
