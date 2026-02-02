@@ -69,6 +69,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/dashboard/stores/store', [StoreController::class, 'store'])->name('stores.store');
     Route::delete('/dashboard/store/{id}', [StoreController::class, 'destroy'])->name('dashboard.deletestore');
+
+    Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
+    Route::get('/dashboard/products/{id}/edit', [ProductsController::class, 'edit'])->name('dashboard.edit');
+    Route::put('/dashboard/products/update/{slug}', [ProductsController::class, 'update'])->name('dashboard.updateproduct');
 });
 
 

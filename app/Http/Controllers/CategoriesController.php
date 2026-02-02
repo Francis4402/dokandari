@@ -84,9 +84,45 @@ class CategoriesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoriesRequest $request, Categories $categories)
+    public function update(Request $request, $id)
     {
-        //
+        // Find the category or fail
+        $category = Categories::findOrFail($id);
+
+        // Validate the request
+        $validated = $request->validate([
+            'categories' => 'required|string|max:255',
+            'subcategories' => 'nullable|array',
+            'subcategories.*' => 'string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+        ]);
+
+        $category->categories = $validated['categories'];
+        $category->subcategory = json_encode($validated['subcategories'] ?? []);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+
+            // Delete old image if exists
+            if ($category->image) {
+                $oldImagePath = public_path('category_images/' . $category->image);
+                if (file_exists($oldImagePath)) {
+                    @unlink($oldImagePath);
+                }
+            }
+
+            $filename = time() . '_' . $image->getClientOriginalName();
+            $path = public_path('category_images/' . $filename);
+
+            $manager = new ImageManager(new Driver());
+            $img = $manager->read($image->getPathname());
+            $img->scaleDown(width: 800);
+            $img->save($path, quality: 85);
+
+            $category->image = $filename;
+        }
+
+        $category->save();
     }
 
     /**

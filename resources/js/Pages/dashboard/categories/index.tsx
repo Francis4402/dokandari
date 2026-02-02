@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import {
@@ -14,6 +14,7 @@ import {
   FaExclamationCircle,
   FaUpload,
   FaMinus,
+  FaEdit,
 } from 'react-icons/fa';
 import { categoryType, PageProps } from '@/types';
 import { toast } from 'sonner';
@@ -22,6 +23,12 @@ interface FormData {
   categories: string;
   subcategories: string[];
   image: File | null;
+  remove_image?: boolean;
+}
+
+interface EditFormData extends FormData {
+  id: string;
+  current_image?: string;
 }
 
 const Categories = ({ auth, categories: initialCategories }: PageProps<{ categories: categoryType[] }>) => {
@@ -32,14 +39,17 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<categoryType | null>(null);
 
-  const { data, setData, post, processing, errors, reset, clearErrors } = useForm<FormData>({
+  const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm<FormData>({
     categories: '',
     subcategories: [''],
     image: null,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
 
   const addSubcategoryField = () => {
     setData('subcategories', [...data.subcategories, '']);
@@ -126,11 +136,11 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     const formData = new FormData();
     formData.append('categories', data.categories.trim());
 
-    // Only append subcategories if there are any
+
     if (filteredSubcategories.length > 0) {
       formData.append('subcategories', JSON.stringify(filteredSubcategories));
     } else {
-      formData.append('subcategories', '[]'); // Empty array as JSON
+      formData.append('subcategories', '[]');
     }
 
     if (data.image) {
@@ -139,9 +149,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
 
     post(route('dashboard.storecategory'), {
       data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      forceFormData: true,
       onSuccess: () => {
         setShowAddModal(false);
         reset();
@@ -167,6 +175,48 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     });
   };
 
+  const handleEdit = (category: categoryType) => {
+    setCategoryToEdit(category);
+
+    // Populate form with category data
+    setData({
+      categories: category.categories,
+      subcategories: parseSubcategories(category.subcategory),
+      image: null,
+    });
+
+    // Set current image preview
+    if (category.image) {
+      setCurrentImagePath(`/category_images/${category.image}`);
+    } else {
+      setCurrentImagePath(null);
+    }
+
+    setImagePreview(null);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!categoryToEdit) return;
+
+    put(route('dashboard.updatecategory', categoryToEdit.id), {
+        data: {
+            categories: data.categories.trim(),
+            subcategories: data.subcategories.filter(s => s.trim() !== ''),
+        },
+        onSuccess: () => {
+            toast.success('Update successful!');
+            setShowEditModal(false);
+        },
+        onError: (errors: any) => {
+            toast.error('Update failed: ' + JSON.stringify(errors));
+        },
+        preserveScroll: true,
+    });
+    };
+
   const handleDelete = (id: string) => {
     setCategoryToDelete(id);
     setShowDeleteModal(true);
@@ -190,11 +240,29 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     }
   };
 
-  const resetForm = () => {
+  const resetAddForm = () => {
     reset();
     setImagePreview(null);
     clearErrors();
     setShowAddModal(false);
+  };
+
+  const resetEditForm = () => {
+    reset();
+    setImagePreview(null);
+    setCurrentImagePath(null);
+    setCategoryToEdit(null);
+    clearErrors();
+    setShowEditModal(false);
+  };
+
+  const removeImage = () => {
+    setData('image', null);
+    setImagePreview(null);
+    if (categoryToEdit) {
+      // Clear current image path for editing
+      setCurrentImagePath(null);
+    }
   };
 
   return (
@@ -396,6 +464,14 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                           </div>
                           <div className="flex space-x-2">
                             <button
+                              onClick={() => handleEdit(category)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit category"
+                            >
+                              <FaEdit className="h-4 w-4" />
+                            </button>
+
+                            <button
                               onClick={() => handleDelete(category.id)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete category"
@@ -538,7 +614,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   <h3 className="text-xl font-bold text-gray-800">Add New Category</h3>
                   <button
                     type="button"
-                    onClick={resetForm}
+                    onClick={resetAddForm}
                     className="p-1 text-gray-400 hover:text-gray-600"
                   >
                     <FaTimes className="h-5 w-5" />
@@ -616,7 +692,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   </p>
                 </div>
 
-                {/* Image Upload - REMOVED SIZE LIMIT MESSAGE */}
+                {/* Image Upload */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Image (Optional)
@@ -633,10 +709,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setData('image', null);
-                          setImagePreview(null);
-                        }}
+                        onClick={removeImage}
                         className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
                       >
                         <FaTimes className="h-4 w-4" />
@@ -673,7 +746,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <button
                     type="button"
-                    onClick={resetForm}
+                    onClick={resetAddForm}
                     className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium"
                   >
                     Cancel
@@ -686,6 +759,202 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                     }`}
                   >
                     {processing ? 'Saving...' : 'Add Category'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {showEditModal && categoryToEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-y-auto max-h-[90vh]">
+            <form onSubmit={handleUpdate}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-800">Edit Category</h3>
+                  <button
+                    type="button"
+                    onClick={resetEditForm}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <FaTimes className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Category Name */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={data.categories}
+                    onChange={(e) => setData('categories', e.target.value)}
+                    placeholder="Enter category name"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      errors.categories ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    autoFocus
+                    required
+                  />
+                  {errors.categories && (
+                    <p className="mt-1 text-sm text-red-600">{errors.categories}</p>
+                  )}
+                </div>
+
+                {/* Subcategories Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Subcategories
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addSubcategoryField}
+                      className="inline-flex items-center px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                    >
+                      <FaPlus className="h-3 w-3 mr-1" />
+                      Add Subcategory
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.subcategories.map((subcategory, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={subcategory}
+                            onChange={(e) => updateSubcategory(index, e.target.value)}
+                            placeholder={`Subcategory ${index + 1}`}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        {data.subcategories.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeSubcategoryField(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Remove subcategory"
+                          >
+                            <FaMinus className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {errors.subcategories && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subcategories}</p>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">
+                    Add subcategories for better product organization
+                  </p>
+                </div>
+
+                {/* Image Upload */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category Image
+                  </label>
+
+                  {imagePreview ? (
+                    <div className="mb-4 relative">
+                      <div className="w-full h-48 rounded-lg overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
+                      >
+                        <FaTimes className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : currentImagePath ? (
+                    <div className="mb-4 relative">
+                      <div className="w-full h-48 rounded-lg overflow-hidden">
+                        <img
+                          src={currentImagePath}
+                          alt="Current"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200';
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-center space-x-2 mt-2">
+                        <label className="cursor-pointer">
+                          <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                            Change Image
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                        >
+                          Remove Image
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                          <FaUpload className="h-6 w-6 text-gray-400" />
+                        </div>
+                        <p className="text-gray-600 mb-2">Click to upload image</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, GIF</p>
+                        <label className="cursor-pointer mt-5">
+                          <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            Choose File
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.image && (
+                    <p className="mt-1 text-sm text-red-600">{errors.image}</p>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={resetEditForm}
+                    className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={processing}
+                    className={`px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-blue-700 transition-all ${
+                      processing ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {processing ? 'Updating...' : 'Update Category'}
                   </button>
                 </div>
               </div>

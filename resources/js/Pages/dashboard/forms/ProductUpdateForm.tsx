@@ -1,0 +1,966 @@
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { categoryType, storeType, Product } from '@/types';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  FaFileAlt,
+  FaImage,
+  FaBox,
+  FaTag,
+  FaDollarSign,
+  FaHashtag,
+  FaBookOpen,
+  FaUpload,
+  FaTimes,
+  FaLink,
+  FaStore,
+  FaPercent,
+  FaArrowLeft,
+  FaEye,
+  FaPlus,
+  FaEdit,
+  FaInfoCircle,
+  FaCheckCircle,
+  FaShoppingCart,
+  FaArrowRight,
+  FaChevronDown,
+  FaTrash
+} from 'react-icons/fa';
+import {
+  HiCheck,
+  HiOutlineExclamationCircle,
+} from 'react-icons/hi2';
+import { toast } from 'sonner';
+
+interface EditProductFormProps {
+  auth: {
+    user: any;
+  };
+  store: storeType;
+  categories: categoryType[];
+  product: Product;
+}
+
+export default function EditProductForm({ auth, store, categories, product }: EditProductFormProps) {
+  const imagesInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [showSalePrice, setShowSalePrice] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
+
+  const { data, setData, put, processing, errors, reset } = useForm({
+    name: product.name || '',
+    images: [] as File[],
+    slug: product.slug || '',
+    category: product.category || '',
+    subcategory: '',
+    quantity: product.quantity?.toString() || '1',
+    regular_price: product.regular_price?.toString() || '',
+    sale_price: product.sale_price?.toString() || '',
+    description: product.description || '',
+    inStock: product.inStock ?? true,
+    rating: product.rating?.toString() || '0',
+    store_id: store.id || ''
+  });
+
+  const discountPercentage = data.regular_price && data.sale_price
+    ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
+
+  // Parse subcategories from the selected category
+  const parseSubcategories = (subcategoryString: string | null): string[] => {
+    if (!subcategoryString) return [];
+    try {
+      return JSON.parse(subcategoryString);
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // Initialize form data and existing images
+  useEffect(() => {
+    // Parse existing images
+    if (product.images) {
+      try {
+        const parsedImages = JSON.parse(product.images);
+        setExistingImages(parsedImages);
+        setImagePreviews(parsedImages.map((img: string) => `/product_images/${img}`));
+      } catch (e) {
+        console.error('Error parsing product images:', e);
+      }
+    }
+
+    // Show sale price if exists
+    if (product.sale_price) {
+      setShowSalePrice(true);
+    }
+  }, [product]);
+
+  // Update available subcategories when category changes
+  useEffect(() => {
+    if (data.category) {
+      const selectedCat = categories.find(cat => cat.categories === data.category);
+      if (selectedCat && selectedCat.subcategory) {
+        const subcategories = parseSubcategories(selectedCat.subcategory);
+        setAvailableSubcategories(subcategories);
+
+        if (data.subcategory && !subcategories.includes(data.subcategory)) {
+          setData('subcategory', '');
+        }
+      } else {
+        setAvailableSubcategories([]);
+        setData('subcategory', '');
+      }
+    } else {
+      setAvailableSubcategories([]);
+      setData('subcategory', '');
+    }
+  }, [data.category, categories]);
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (data.name && !data.slug) {
+      const slug = data.name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/--+/g, '-')
+        .trim();
+      setData('slug', slug);
+    }
+  }, [data.name]);
+
+  // Clean up object URLs
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(preview => {
+        if (preview.startsWith('blob:')) {
+          URL.revokeObjectURL(preview);
+        }
+      });
+    };
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length) {
+      setData('images', [...data.images, ...files]);
+      const previews = files.map(file => URL.createObjectURL(file));
+      setImagePreviews([...imagePreviews, ...previews]);
+      toast.success(`${files.length} image(s) added!`);
+    }
+  };
+
+  const removeExistingImage = (index: number, imageName: string) => {
+    const newExistingImages = existingImages.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+
+    setExistingImages(newExistingImages);
+    setImagePreviews(newPreviews);
+    setImagesToRemove([...imagesToRemove, imageName]);
+
+    toast.info('Image marked for removal');
+  };
+
+  const removeNewImage = (index: number) => {
+    const imageIndex = index - existingImages.length;
+    if (imageIndex >= 0) {
+      const newImages = data.images.filter((_, i) => i !== imageIndex);
+      const newPreviews = imagePreviews.filter((_, i) => i !== index);
+
+      URL.revokeObjectURL(imagePreviews[index]);
+
+      setData('images', newImages);
+      setImagePreviews(newPreviews);
+      toast.info('New image removed');
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('slug', data.slug);
+    formData.append('category', data.category);
+    formData.append('subcategory', data.subcategory || '');
+    formData.append('quantity', data.quantity);
+    formData.append('regular_price', data.regular_price);
+    formData.append('sale_price', data.sale_price || '');
+    formData.append('description', data.description);
+    formData.append('inStock', data.inStock ? '1' : '0');
+    formData.append('rating', data.rating);
+    formData.append('store_id', data.store_id);
+    formData.append('_method', 'PUT');
+
+    // Append images to remove
+    imagesToRemove.forEach(image => {
+      formData.append('images_to_remove[]', image);
+    });
+
+    // Append new images
+    data.images.forEach((image) => {
+      formData.append('images[]', image);
+    });
+
+    put(route('dashboard.updateproduct', product.slug), {
+        data: formData,
+        forceFormData: true,
+        onSuccess: () => {
+            toast.success('Product updated successfully!');
+            router.visit(route('dashboard.products'));
+        },
+        onError: (errors) => {
+            console.error('Update errors:', errors);
+            toast.error('Failed to update product. Please check the form for errors.');
+        },
+      preserveScroll: true,
+    });
+  };
+
+  const handleNumberInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: keyof typeof data
+  ) => {
+    const value = e.target.value;
+
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setData(field, value as any);
+    }
+  };
+
+  return (
+    <DashboardLayout user={auth.user}>
+      <Head title='Edit Product'>
+        <meta name="description" content="Edit product information" />
+        <meta name="keywords" content="edit product, update product, product management" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
+
+      <div className="max-w-7xl mx-auto p-5">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <FaEdit className="h-8 w-8 text-purple-600" />
+                Edit Product
+              </h1>
+              <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <FaStore className="h-4 w-4" />
+                Update product in {store.name}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Product ID: {product.id}
+              </p>
+            </div>
+            <Link
+              href={route('dashboard.products')}
+              className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <FaArrowLeft className="h-4 w-4 mr-2" />
+              Back to Products
+            </Link>
+          </div>
+        </div>
+
+        {/* Store Status */}
+        <div className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-white/20">
+                <FaStore className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Editing Product</h3>
+                <p className="opacity-90">
+                  Updating product in: <span className="font-semibold">{store.name}</span>
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20">
+              <FaCheckCircle className="h-3 w-3 mr-1" />
+              Edit Mode
+            </span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Product Information Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaBox className="h-5 w-5 text-purple-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Information</h2>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Product Name */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <FaTag className="h-4 w-4" />
+                      Product Name <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <input
+                        type="text"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        placeholder="Your Product Name"
+                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {errors.name && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.name}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Slug Field */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <FaLink className="h-4 w-4" />
+                      Product Slug
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="text"
+                          value={data.slug}
+                          onChange={(e) => setData('slug', e.target.value)}
+                          placeholder="premium-wireless-headphones"
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const slug = data.name
+                            .toLowerCase()
+                            .replace(/[^\w\s-]/g, '')
+                            .replace(/\s+/g, '-')
+                            .replace(/--+/g, '-')
+                            .trim();
+                          setData('slug', slug);
+                          toast.success('Slug regenerated!');
+                        }}
+                        disabled={!data.name}
+                        className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FaArrowRight className="h-4 w-4" />
+                        Regenerate
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <FaInfoCircle className="h-3 w-3" />
+                      URL-friendly version of the product name
+                    </p>
+                    {errors.slug && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.slug}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Main Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Main Category <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
+                      >
+                        <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
+                          {data.category || 'Select main category'}
+                        </span>
+                        <FaChevronDown
+                          className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {showCategoryDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          {categories.map(cat => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                setData('category', cat.categories);
+                                setShowCategoryDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
+                                data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
+                              }`}
+                            >
+                              {cat.categories}
+                              {data.category === cat.categories && <HiCheck className="h-5 w-5 text-purple-600" />}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {errors.category && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.category}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Sub Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sub Category
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
+                        disabled={!data.category}
+                        className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                          !data.category
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
+                          {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
+                        </span>
+                        {data.category && (
+                          <FaChevronDown
+                            className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                          />
+                        )}
+                      </button>
+
+                      {data.category && showSubcategoryDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          {availableSubcategories.length > 0 ? (
+                            availableSubcategories.map((subcat, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => {
+                                  setData('subcategory', subcat);
+                                  setShowSubcategoryDropdown(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
+                                  data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                }`}
+                              >
+                                {subcat}
+                                {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                              No subcategories available for this category
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {errors.subcategory && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.subcategory}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <FaInfoCircle className="h-3 w-3" />
+                      {data.category
+                        ? availableSubcategories.length > 0
+                          ? `${availableSubcategories.length} subcategories available`
+                          : 'No subcategories available'
+                        : 'Select a main category first'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <FaHashtag className="h-4 w-4" />
+                      Quantity
+                    </label>
+                    <div className="relative">
+                      <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <input
+                        type="number"
+                        min="0"
+                        value={data.quantity}
+                        onChange={(e) => handleNumberInput(e, 'quantity')}
+                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {errors.quantity && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.quantity}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaDollarSign className="h-5 w-5 text-green-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Pricing</h2>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Regular Price */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Regular Price <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={data.regular_price}
+                        onChange={(e) => handleNumberInput(e, 'regular_price')}
+                        placeholder="99.99"
+                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {errors.regular_price && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.regular_price}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Sale Price Toggle */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="enable_sale"
+                      checked={showSalePrice}
+                      onChange={(e) => {
+                        setShowSalePrice(e.target.checked);
+                        if (!e.target.checked) setData('sale_price', '');
+                      }}
+                      className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <label htmlFor="enable_sale" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <FaPercent className="h-4 w-4" />
+                      Enable Sale Price
+                    </label>
+                  </div>
+
+                  {/* Sale Price */}
+                  {showSalePrice && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaPercent className="h-4 w-4" />
+                        Sale Price
+                      </label>
+                      <div className="relative">
+                        <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max={parseFloat(data.regular_price) || undefined}
+                          value={data.sale_price}
+                          onChange={(e) => handleNumberInput(e, 'sale_price')}
+                          placeholder="79.99"
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      {data.regular_price && data.sale_price && discountPercentage > 0 && (
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <FaPercent className="h-3 w-3 mr-1" />
+                            Save {discountPercentage}%
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            Save ${(parseFloat(data.regular_price) - parseFloat(data.sale_price)).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {errors.sale_price && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.sale_price}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaBookOpen className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <textarea
+                    value={data.description}
+                    onChange={(e) => setData('description', e.target.value)}
+                    placeholder="Describe your product features, specifications, and benefits..."
+                    rows={6}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  {errors.description && (
+                    <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                      <HiOutlineExclamationCircle className="h-4 w-4" />
+                      {errors.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Images Upload Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaImage className="h-5 w-5 text-orange-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Images</h2>
+                  <span className="text-xs text-gray-500">
+                    ({existingImages.length + data.images.length} total)
+                  </span>
+                </div>
+
+                <div>
+                  <input
+                    ref={imagesInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Existing Images</h3>
+                    {existingImages.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {existingImages.map((img, i) => (
+                          <div key={i} className="relative group">
+                            <img
+                              src={`/product_images/${img}`}
+                              alt={`Product ${i + 1}`}
+                              className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(i, img)}
+                              className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              title="Remove image"
+                            >
+                              <FaTrash className="h-3 w-3" />
+                            </button>
+                            {imagesToRemove.includes(img) && (
+                              <div className="absolute inset-0 bg-red-500 bg-opacity-50 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-sm font-semibold">Removed</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No existing images</p>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => imagesInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                      data.images.length === 0
+                        ? 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    {data.images.length === 0 ? (
+                      <div className="space-y-4">
+                        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
+                          <FaUpload className="h-10 w-10 text-purple-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">Click to add more images</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB each</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-gray-700">New Images to Add</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {imagePreviews.slice(existingImages.length).map((preview, i) => (
+                            <div key={i + existingImages.length} className="relative group">
+                              <img
+                                src={preview}
+                                alt={`New image ${i + 1}`}
+                                className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeNewImage(i + existingImages.length);
+                                }}
+                                className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                title="Remove new image"
+                              >
+                                <FaTimes className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-600">Click to add more images</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {imagesToRemove.length > 0 && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        <FaInfoCircle className="inline h-4 w-4 mr-1" />
+                        {imagesToRemove.length} image(s) will be removed on update
+                      </p>
+                    </div>
+                  )}
+
+                  {data.images.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                      <FaImage className="h-3 w-3" />
+                      {data.images.length} new image(s) to add
+                    </p>
+                  )}
+                  {errors.images && (
+                    <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                      <HiOutlineExclamationCircle className="h-4 w-4" />
+                      {errors.images}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Stock Status Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaShoppingCart className="h-5 w-5 text-green-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Stock Status</h2>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="inStock"
+                    checked={data.inStock}
+                    onChange={(e) => setData('inStock', e.target.checked)}
+                    className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <label htmlFor="inStock" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <FaBox className="h-4 w-4" />
+                    In Stock
+                  </label>
+                </div>
+                {errors.inStock && (
+                  <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.inStock}
+                  </p>
+                )}
+              </div>
+
+              {/* Preview Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaEye className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Preview</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
+                    {imagePreviews[0] ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreviews[0]}
+                          alt="Product preview"
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {discountPercentage > 0 && (
+                          <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                            -{discountPercentage}%
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors">
+                        <FaBox className="h-16 w-16 text-gray-400 group-hover:text-gray-500 transition-colors" />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="font-bold text-gray-800 truncate">
+                        {data.name || 'Product Name'}
+                      </h3>
+
+                      {/* Category display */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {data.category && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {data.category}
+                          </span>
+                        )}
+                        {data.subcategory && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                            {data.subcategory}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Price Display */}
+                      <div className="mt-2">
+                        {data.sale_price ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold text-green-600">
+                              ${parseFloat(data.sale_price).toFixed(2)}
+                            </span>
+                            <span className="text-sm text-gray-500 line-through">
+                              ${parseFloat(data.regular_price).toFixed(2)}
+                            </span>
+                          </div>
+                        ) : data.regular_price ? (
+                          <span className="text-xl font-bold text-gray-800">
+                            ${parseFloat(data.regular_price).toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-xl font-bold text-gray-400">
+                            $0.00
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          data.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {data.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Qty: {data.quantity || 0}
+                        </span>
+                      </div>
+
+                      {data.slug && (
+                        <div className="mt-2 text-xs text-gray-500 truncate flex items-center gap-1">
+                          <FaLink className="h-3 w-3" />
+                          {data.slug}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaStore className="h-3 w-3" />
+                          Store
+                        </span>
+                        <span className="font-medium text-gray-800">{store.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaBox className="h-3 w-3" />
+                          Categories
+                        </span>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-800">{data.category || 'None'}</div>
+                          {data.subcategory && (
+                            <div className="text-xs text-gray-500">{data.subcategory}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaImage className="h-3 w-3" />
+                          Total Images
+                        </span>
+                        <span className="font-medium text-gray-800">
+                          {existingImages.length + data.images.length} ({imagesToRemove.length} to remove)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <button
+                  type="submit"
+                  disabled={processing || !data.name || !data.category || !data.regular_price || !data.description}
+                  className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+                >
+                  {processing ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                      Updating Product...
+                    </>
+                  ) : (
+                    <>
+                      <FaEdit className="h-4 w-4" />
+                      Update Product
+                    </>
+                  )}
+                </button>
+
+                <div className="mt-6 pt-6 border-t">
+                  <div className="text-xs text-gray-500 space-y-2">
+                    <p className="flex items-center gap-2">
+                      <FaInfoCircle className="h-3 w-3" />
+                      <span>Product will be updated in: <span className="font-medium text-gray-700">{store.name}</span></span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <HiOutlineExclamationCircle className="h-3 w-3" />
+                      <span>All required fields marked with * must be filled</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaPercent className="h-3 w-3" />
+                      <span>Remove sale price by unchecking "Enable Sale Price"</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaImage className="h-3 w-3" />
+                      <span>Click on existing images to remove them</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaTag className="h-3 w-3" />
+                      <span>Changing categories will reset subcategories</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </DashboardLayout>
+  );
+}
