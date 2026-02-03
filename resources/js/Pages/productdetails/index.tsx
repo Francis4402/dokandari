@@ -7,7 +7,6 @@ import {
   FaTruck,
   FaShieldAlt,
   FaStore,
-  FaArrowLeft,
   FaShoppingCart,
   FaCheck,
   FaTag,

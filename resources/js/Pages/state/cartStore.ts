@@ -3,69 +3,118 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 type Store = {
-    items: CartItem[]
-    addToCart: (item: Omit<CartItem, 'quantity'>) => void
+    cart: CartItem[],
+    addToCart: (product: CartItem) => void
     removeFromCart: (id: string) => void
     clearCart: () => void
-    updateQuantity: (id: string, quantity: number) => void
-    totalPrice: () => number
-    getItemCount: () => number
+    getTotalItems: () => number
+    getItemById: (id: string) => CartItem | undefined
+    getSubTotal: () => number
+    getTax: () => number
+    getShipping: () => number
+    getTotal: () => number
+    increaseQty: (id:string) => void
+    decreaseQty: (id:string) => void
 }
+
 
 export const useStore = create<Store>()(
     devtools(
         persist(
             (set, get) => ({
-                items: [],
+                cart: [],
 
-                addToCart: (item) =>
+                addToCart: (product) =>
                     set((state) => {
-                        const existing = state.items.find(
-                            (i) => i.id === item.id
+                        const existing = state.cart.find(
+                            (item) => item.id === product.id
                         )
 
+                        // If already in cart → increase by 1
                         if (existing) {
+                            if (existing.cartQty! >= existing.quantity) {
+                                return state // stop at DB quantity
+                            }
+
                             return {
-                                items: state.items.map((i) =>
-                                    i.id === item.id
-                                        ? { ...i, quantity: i.quantity + 1 }
-                                        : i
+                                cart: state.cart.map((item) =>
+                                    item.id === product.id
+                                        ? {
+                                              ...item,
+                                              cartQty: item.cartQty! + 1,
+                                          }
+                                        : item
                                 ),
                             }
                         }
 
+                        // First time add → cartQty starts at 1
                         return {
-                            items: [...state.items, { ...item, quantity: 1 }],
+                            cart: [
+                                ...state.cart,
+                                {
+                                    ...product,
+                                    cartQty: 1,
+                                },
+                            ],
                         }
                     }),
 
-                removeFromCart: (id) =>
+                    increaseQty: (id) =>
                     set((state) => ({
-                        items: state.items.filter((i) => i.id !== id),
-                    })),
-
-                updateQuantity: (id, quantity) =>
-                    set((state) => ({
-                        items: state.items.map((item) =>
-                            item.id === id
-                                ? { ...item, quantity: Math.max(1, quantity) }
+                        cart: state.cart.map((item) =>
+                            item.id === id && item.cartQty! < item.quantity
+                                ? { ...item, cartQty: item.cartQty! + 1 }
                                 : item
                         ),
                     })),
 
-                clearCart: () => set({ items: [] }),
+                    decreaseQty: (id) =>
+                    set((state) => ({
+                        cart: state.cart
+                            .map((item) =>
+                                item.id === id
+                                    ? {
+                                          ...item,
+                                          cartQty: item.cartQty! - 1,
+                                      }
+                                    : item
+                            )
+                            .filter((item) => item.cartQty! > 0),
+                    })),
 
-                totalPrice: () =>
-                    get().items.reduce(
-                        (total, item) => {
-                            const price = parseFloat(item.sale_price) || parseFloat(item.regular_price);
-                            return total + (price * item.quantity);
-                        },
+                removeFromCart: (id) =>
+                    set((state) => ({
+                        cart: state.cart.filter((item) => item.id !== id),
+                    })),
+
+
+                clearCart: () => set({ cart: [] }),
+
+                getTotalItems: () =>
+                    get().cart.reduce((sum, item) => sum + item.cartQty!, 0),
+
+                getItemById: (id) =>
+                    get().cart.find((item) => item.id === id),
+
+                getSubTotal: () =>
+                    get().cart.reduce(
+                        (sum, item) =>
+                            sum + Number(item.sale_price) * item.cartQty!,
                         0
                     ),
 
-                getItemCount: () =>
-                    get().items.reduce((count, item) => count + item.quantity, 0),
+                getTax: () => {
+                    const taxRate = 0.10 // 5%
+                    return get().getSubTotal() * taxRate
+                },
+
+                getShipping: () => (get().cart.length > 0 ? 120 : 0),
+
+                getTotal: () =>
+                    get().getSubTotal() +
+                    get().getTax() +
+                    get().getShipping(),
             }),
             {
                 name: 'cart-store',

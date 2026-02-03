@@ -30,6 +30,9 @@ export type CartItem = {
     inStock: boolean;
     rating: number;
     review_count: string;
+    cartQty?: number;
+    increaseQty?: number;
+    decreaseQty?: number;
     created_at: string;
     updated_at: string;
 }

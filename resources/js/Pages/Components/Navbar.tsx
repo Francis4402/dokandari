@@ -53,9 +53,9 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  const {items} = useStore();
+  const {getTotalItems} = useStore();
 
-  const cartItems = items.length
+  const cartItems = getTotalItems();
   const wishlistItems = 5
   const notifications = 2
 

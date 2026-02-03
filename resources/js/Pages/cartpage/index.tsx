@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import {
   FaShoppingCart,
@@ -24,15 +24,21 @@ import {
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore } from '../state/cartStore';
-
+import { CartItem } from '@/types';
 
 const CartPage = ({ auth }: { auth: { user: any } }) => {
   const {
-    items: cartItems,
+    cart: cartItems, // Changed from 'items' to 'cart'
     removeFromCart,
-    updateQuantity,
     clearCart,
-    getItemCount
+    getTotalItems, // Changed from 'getItemCount'
+    getSubTotal,
+    getTax,
+    getShipping,
+    getTotal,
+    increaseQty,
+    decreaseQty,
+    getItemById
   } = useStore();
 
   const [couponCode, setCouponCode] = useState('');
@@ -48,20 +54,16 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
 
   // Calculate cart totals based on store items
   const calculateTotals = () => {
-    // Use the total price from store or calculate from items
-    const subtotal = cartItems.reduce((sum, item) => {
-      const price = parseFloat(item.sale_price) || parseFloat(item.regular_price);
-      return sum + (price * item.quantity);
-    }, 0);
+    const subtotal = getSubTotal();
+    const tax = getTax();
+    const shipping = getShipping();
+    const item_count = getTotalItems();
 
-    const item_count = getItemCount();
-
-    const tax = subtotal * 0.08;
-    const shipping = subtotal > 50 ? 0 : 5.99;
+    // Apply coupon discount
     const discount = appliedCoupon ?
       (appliedCoupon.type === 'percentage' ?
         subtotal * (appliedCoupon.discount / 100) :
-        appliedCoupon.discount) :
+        Math.min(appliedCoupon.discount, subtotal)) :
       0;
 
     const total = Math.max(0, subtotal + tax + shipping - discount);
@@ -71,17 +73,20 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
 
   const cartTotals = calculateTotals();
 
-  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity < 1) {
-      removeFromCart(itemId);
-      return;
+  const handleIncreaseQuantity = (itemId: string) => {
+    const item = getItemById(itemId);
+    if (item && item.cartQty && item.cartQty < item.quantity) {
+      increaseQty(itemId);
     }
+  };
 
-    // You might want to add a max quantity constraint
-    const maxQuantity = 100; // Or fetch from product data
-    const finalQuantity = Math.min(newQuantity, maxQuantity);
-
-    updateQuantity(itemId, finalQuantity);
+  const handleDecreaseQuantity = (itemId: string) => {
+    const item = getItemById(itemId);
+    if (item && item.cartQty && item.cartQty > 1) {
+      decreaseQty(itemId);
+    } else {
+      removeFromCart(itemId);
+    }
   };
 
   const moveToWishlist = (itemId: string) => {
@@ -94,7 +99,9 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   };
 
   const handleClearCart = () => {
-    clearCart();
+    if (confirm('Are you sure you want to clear your cart?')) {
+      clearCart();
+    }
   };
 
   const applyCoupon = () => {
@@ -112,6 +119,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     if (coupon) {
       setAppliedCoupon(coupon);
       setCouponCode('');
+    } else {
+      alert('Invalid coupon code');
     }
   };
 
@@ -122,13 +131,13 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'BDT',
       minimumFractionDigits: 2
     }).format(price);
   };
 
   const calculateDiscountPercentage = (regular: number, sale: number | null) => {
-    if (!sale) return 0;
+    if (!sale || sale >= regular) return 0;
     return Math.round(((regular - sale) / regular) * 100);
   };
 
@@ -137,35 +146,49 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
   };
 
-    const getFirstImage = (images: string) => {
+  const getFirstImage = (images: string) => {
     try {
-        // Parse the JSON string
-        const parsed = JSON.parse(images);
+      // Parse the JSON string
+      const parsed = JSON.parse(images);
 
-        // Handle both array and single string
-        let imageName = '';
-        if (Array.isArray(parsed) && parsed.length > 0) {
+      // Handle both array and single string
+      let imageName = '';
+      if (Array.isArray(parsed) && parsed.length > 0) {
         imageName = parsed[0];
-        } else if (typeof parsed === 'string' && parsed) {
+      } else if (typeof parsed === 'string' && parsed) {
         imageName = parsed;
-        }
+      }
 
-        if (imageName) {
+      if (imageName) {
         // Construct full URL
         return `${window.location.origin}/product_images/${imageName}`;
-        }
+      }
     } catch (error) {
-        // If parsing fails, try to extract from string
-        if (typeof images === 'string' && images) {
+      // If parsing fails, try to extract from string
+      if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
-            return `${window.location.origin}/product_images/${matches[1]}`;
+          return `${window.location.origin}/product_images/${matches[1]}`;
         }
-        }
+      }
     }
 
     return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
-    };
+  };
+
+  // Calculate savings from sale prices
+  const calculateSaleSavings = () => {
+    return cartItems.reduce((sum, item) => {
+      const regular = parseFloat(item.regular_price);
+      const sale = parseFloat(item.sale_price);
+      const quantity = item.cartQty || 1;
+
+      if (sale && sale < regular) {
+        return sum + ((regular - sale) * quantity);
+      }
+      return sum;
+    }, 0);
+  };
 
   return (
     <AppLayout user={auth.user}>
@@ -175,7 +198,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                   <FaShoppingCart className="h-8 w-8 mr-3 text-blue-600" />
@@ -234,14 +257,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                   <div>
                     <p className="text-sm text-gray-600">Total Savings</p>
                     <p className="text-2xl font-bold text-green-600">
-                      {formatPrice(cartTotals.discount + cartItems.reduce((sum, item) => {
-                        const regular = parseFloat(item.regular_price);
-                        const sale = parseFloat(item.sale_price);
-                        if (sale && sale < regular) {
-                          return sum + ((regular - sale) * item.quantity);
-                        }
-                        return sum;
-                      }, 0))}
+                      {formatPrice(cartTotals.discount + calculateSaleSavings())}
                     </p>
                   </div>
                   <FaTag className="h-8 w-8 text-green-500" />
@@ -276,7 +292,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
                   <div className="p-6 border-b border-gray-200 bg-gray-50">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <h2 className="text-xl font-semibold text-gray-900">
                         Your Items ({cartTotals.item_count})
                       </h2>
@@ -300,7 +316,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                       const discountPercent = calculateDiscountPercentage(regularPrice, salePrice);
                       const stockStatus = getStockStatus(item.inStock);
                       const currentPrice = salePrice || regularPrice;
-                      const totalPrice = currentPrice * item.quantity;
+                      const quantity = item.cartQty || 1;
+                      const totalPrice = currentPrice * quantity;
                       const imageUrl = getFirstImage(item.images);
                       const rating = item.rating || 0;
                       const reviewCount = item.review_count || '0';
@@ -375,18 +392,19 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                                       {/* Quantity Controls */}
                                       <div className="flex items-center border border-gray-300 rounded-lg bg-white">
                                         <button
-                                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                                          disabled={item.quantity <= 1}
+                                          onClick={() => handleDecreaseQuantity(item.id)}
+                                          disabled={quantity <= 1}
                                           className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
                                         >
                                           <FaMinus className="h-3 w-3" />
                                         </button>
                                         <span className="w-12 text-center py-2 text-gray-900 font-medium border-x border-gray-300">
-                                          {item.quantity}
+                                          {quantity}
                                         </span>
                                         <button
-                                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+                                          onClick={() => handleIncreaseQuantity(item.id)}
+                                          disabled={quantity >= item.quantity}
+                                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
                                         >
                                           <FaPlus className="h-3 w-3" />
                                         </button>
@@ -493,7 +511,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                         </div>
 
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Tax (8%)</span>
+                          <span className="text-gray-600">Tax (10%)</span>
                           <span className="font-medium text-gray-900">{formatPrice(cartTotals.tax)}</span>
                         </div>
 
@@ -512,6 +530,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                               <button
                                 onClick={removeCoupon}
                                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                                aria-label="Remove coupon"
                               >
                                 <FaTimes className="h-4 w-4" />
                               </button>
