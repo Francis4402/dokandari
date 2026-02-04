@@ -26,7 +26,7 @@ export type CartItem = {
     regular_price: string;
     sale_price: string;
     description: string;
-    product_type: 'top-selling' | 'trending' | 'featured' | 'regular';
+    product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
     review_count: string;
@@ -75,7 +75,7 @@ export interface Product {
     regular_price: string;
     sale_price: string;
     description: string;
-    product_type: 'top-selling' | 'trending' | 'featured' | 'regular';
+    product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
     review_count: string;

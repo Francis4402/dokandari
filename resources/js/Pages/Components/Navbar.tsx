@@ -205,30 +205,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                           {item.name}
                           <FiChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
-                        {dropdownOpen && (
-                          <div className="absolute left-0 top-full mt-2 w-96 bg-white rounded-lg shadow-lg border z-50 origin-top-left animate-in fade-in slide-in-from-top-2 duration-200">
-                            <div className="p-4">
-                              <h3 className="text-lg font-semibold mb-4">Shop Categories</h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                {categories.map((category) => (
-                                  <Link
-                                    key={category.name}
-                                    href={category.href}
-                                    onClick={() => setDropdownOpen(false)}
-                                    className="group block space-y-1 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-                                  >
-                                    <div className="font-medium text-gray-900 group-hover:text-blue-600">
-                                      {category.name}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {category.description}
-                                    </div>
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </>
                     ) : (
                       <Link
@@ -283,7 +259,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
               </button>
 
               {/* Desktop Action Buttons */}
-              <div className="hidden md:flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 <Link
                   href="/wishlist"
                   className="p-2 rounded-md hover:bg-gray-100 transition-colors relative"
@@ -307,15 +283,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                     </span>
                   )}
                 </Link>
-
-                <button className="p-2 rounded-md hover:bg-gray-100 transition-colors relative">
-                  <FiBell className="h-5 w-5" />
-                  {notifications > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-xs text-white">
-                      {notifications}
-                    </span>
-                  )}
-                </button>
               </div>
 
               {/* User Dropdown */}
@@ -450,22 +417,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                       </button>
                     </div>
                   </form>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-2">Popular Searches</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {categories.slice(0, 5).map((category) => (
-                        <Link
-                          key={category.name}
-                          href={category.href}
-                          onClick={handleCloseSearch}
-                          className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-200 transition-colors"
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -569,41 +520,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                             </Link>
                           ))}
                         </nav>
-
-                        <div className="border-t my-6" />
-
-                        {/* Categories Section */}
-                        <div className="px-4">
-                          <Disclosure defaultOpen={false}>
-                            {({ open }) => (
-                              <>
-                                <Disclosure.Button className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors">
-                                  <div className="flex items-center gap-3">
-                                    <FiGrid className="h-5 w-5" />
-                                    Categories
-                                  </div>
-                                  <FiChevronRight
-                                    className={`h-5 w-5 transition-transform ${
-                                      open ? 'rotate-90' : ''
-                                    }`}
-                                  />
-                                </Disclosure.Button>
-                                <Disclosure.Panel className="mt-2 space-y-1 px-4">
-                                  {categories.map((category) => (
-                                    <Link
-                                      key={category.name}
-                                      href={category.href}
-                                      onClick={() => setIsMobileMenuOpen(false)}
-                                      className="block rounded-lg px-3 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
-                                    >
-                                      {category.name}
-                                    </Link>
-                                  ))}
-                                </Disclosure.Panel>
-                              </>
-                            )}
-                          </Disclosure>
-                        </div>
 
                         {/* Dashboard Section (if logged in) */}
                         {user && (

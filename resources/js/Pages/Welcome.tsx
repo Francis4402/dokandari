@@ -13,7 +13,7 @@ import TopSellingProduct from './Components/TopSellingProduct';
 
 
 
-export default function Welcome({ auth, categories, products, stores }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[], stores: storeType[] }>) {
+export default function Welcome({ auth, categories, products }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[], stores: storeType[] }>) {
 
     const topSellingProduct = products.filter(product =>
         product.product_type?.toLowerCase() === 'top-selling'
