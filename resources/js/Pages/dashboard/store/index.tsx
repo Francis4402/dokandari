@@ -45,7 +45,6 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
   const [storeToDelete, setStoreToDelete] = useState<string | null>(null);
   const [showMoreActions, setShowMoreActions] = useState<string | null>(null);
 
-
   const stats = {
     totalStores: stores.length,
     totalProducts: stores.reduce((sum, store) => sum + ((store as any).stats?.totalProducts || 0), 0),
@@ -152,8 +151,8 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
     }
   };
 
-  const handleEditStore = (id: string) => {
-    router.visit(route('dashboard.editstore', id));
+  const handleEditStore = (name: string) => {
+    router.visit(route('dashboard.storeedit', name));
     setShowMoreActions(null);
   };
 
@@ -421,12 +420,12 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
                                     <FaEllipsisH className="h-4 w-4" />
                                   </button>
 
-                                  {showMoreActions === store.id && (
+                                  {showMoreActions === store.name && (
                                     <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleEditStore(store.id);
+                                          handleEditStore(store.name);
                                         }}
                                         className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
                                       >
@@ -452,7 +451,7 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleEditStore(store.id);
+                                      handleEditStore(store.name);
                                     }}
                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                     title="Edit store"
@@ -479,7 +478,7 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
                                     <FaBox className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
                                     <span className="text-xs text-gray-600 font-medium truncate">Products</span>
                                   </div>
-                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{products.length}</p>
+                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{products.filter(p => p.store_id === store.id).length}</p>
                                 </div>
                                 <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                   <div className="flex items-center justify-center mb-1">

@@ -71,8 +71,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/dashboard/store/{id}', [StoreController::class, 'destroy'])->name('dashboard.deletestore');
 
     Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
-    Route::get('/dashboard/products/{id}/edit', [ProductsController::class, 'edit'])->name('dashboard.edit');
+    Route::get('/dashboard/products/{id}/edit', [ProductsController::class, 'edit'])->name('dashboard.productedit');
     Route::put('/dashboard/products/update/{slug}', [ProductsController::class, 'update'])->name('dashboard.updateproduct');
+
+    Route::get('/dashboard/store/{name}/edit', [StoreController::class, 'edit'])->name('dashboard.storeedit');
+    Route::put('/dashboard/store/update/{store}', [StoreController::class, 'update'])->name('dashboard.storeupdate');
 });
 
 

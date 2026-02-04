@@ -51,7 +51,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, processing, errors, reset } = useForm({
     name: product.name || '',
     images: [] as File[],
     slug: product.slug || '',

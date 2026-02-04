@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Store;
-use App\Http\Requests\UpdateStoreRequest;
 use App\Models\Products;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -50,11 +51,11 @@ class StoreController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|unique:stores,name',
             'storetype' => 'required|string',
-            'license' => 'nullable|string',
-            'address' => 'required|string',
+            'license' => 'nullable|string|max:24',
+            'address' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'national_id' => 'required|string|unique:stores,national_id|min:10|max:10',
-            'mobile' => 'required|string|unique:stores,mobile|max:11',
+            'mobile' => 'required|string|unique:stores,mobile|min:11|max:11',
         ]);
 
         DB::beginTransaction();
@@ -122,23 +123,108 @@ class StoreController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Store $store)
+    public function edit($name)
     {
-        //
+        $store = Store::where('name', $name)->first();
+
+        return Inertia::render('dashboard/forms/StoreUpdateForm', [
+            'store' => $store
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateStoreRequest $request, Store $store)
+    public function update(Request $request, Store $store)
     {
-        //
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('stores', 'name')->ignore($store->id)
+            ],
+            'storetype' => 'required|string',
+            'address' => 'required|string|max:255',
+            'license' => [
+                'nullable',
+                'string',
+                'max:24',
+                Rule::unique('stores', 'license')->ignore($store->id)
+            ],
+            'national_id' => [
+                'required',
+                'string',
+                'digits:10',
+                Rule::unique('stores', 'national_id')->ignore($store->id)
+            ],
+            'mobile' => [
+                'required',
+                'string',
+                'digits:11',
+                Rule::unique('stores', 'mobile')->ignore($store->id)
+            ],
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'remove_logo' => 'nullable|in:true,false,0,1',
+        ]);
+
+        // Convert string to boolean
+        $removeLogo = in_array($validated['remove_logo'] ?? 'false', ['true', '1', 1, true], true);
+
+        // Handle logo
+        if ($request->hasFile('logo')) {
+            $path = public_path('store_images');
+
+            if (!file_exists($path)) {
+                mkdir($path, 0755, true);
+            }
+
+            if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
+                @unlink(public_path('store_images/' . $store->logo));
+            }
+
+            $file = $request->file('logo');
+            $filename = 'store_' . $store->id . '_' . time() . '_' . Str::random(8) . '.webp';
+
+            $manager = new ImageManager(new Driver());
+            $img = $manager->read($file->getRealPath());
+
+            $img->scale(width: 800);
+            $img->save($path . '/' . $filename, quality: 85);
+
+            $validated['logo'] = $filename;
+
+        } elseif ($removeLogo) {
+            // Remove existing logo
+            if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
+                @unlink(public_path('store_images/' . $store->logo));
+            }
+            $validated['logo'] = null;
+        } else {
+            // Keep existing logo
+            unset($validated['logo']);
+        }
+
+        // Update all fields at once
+        $store->update([
+            'name' => $validated['name'],
+            'storetype' => $validated['storetype'],
+            'address' => $validated['address'],
+            'license' => $validated['license'],
+            'mobile' => $validated['mobile'],
+            'national_id' => $validated['national_id'],
+        ]);
+
+        // Update logo if changed
+        if (isset($validated['logo'])) {
+            $store->logo = $validated['logo'];
+            $store->save();
+        }
     }
 
     public function destroy($id)
     {
         $store = Store::findOrFail($id);
-
 
         if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
             @unlink(public_path('store_images/' . $store->logo));

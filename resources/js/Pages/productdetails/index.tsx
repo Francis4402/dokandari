@@ -18,6 +18,7 @@ import {
 import { Product, storeType } from "@/types";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import AppLayout from "@/Layouts/AppLayout";
+import { Head } from "@inertiajs/react";
 
 interface ProductDetailsPageProps {
   product: Product;
@@ -41,13 +42,13 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
         return parsed;
       }
     } catch {
-      // If not valid JSON, treat as single image string
+
       return [product.images];
     }
     return ['/placeholder-image.jpg'];
   })();
 
-  // Calculate discount if sale price exists
+
   const discount = (() => {
     if (!product.sale_price || !product.regular_price) return 0;
     const regular = parseFloat(product.regular_price);
@@ -64,7 +65,7 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
     return `৳${numPrice.toLocaleString('en-BD')}`;
   };
 
-  // Safely convert rating to number and render stars
+
   const renderStars = () => {
     // Convert rating to number safely
     const ratingNum = typeof product.rating === 'string'
@@ -108,6 +109,11 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
 
   return (
     <AppLayout user={auth.user}>
+        <Head title={product.name}>
+            <meta name="description" content={product.description} />
+            <meta name="keywords" content={`shop, products, buy online, shopping`} />
+            <meta name="robots" content="index, follow" />
+        </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
 

@@ -185,7 +185,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2">
                 <div className="h-14 w-14 rounded-lg flex items-center justify-center">
-                  <img src="Logo.png" alt="i" />
+                  <img src="/Logo.png" alt="i" />
                 </div>
                 <span className="hidden md:inline text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                   HaatPoint
@@ -511,7 +511,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="h-14 w-14 rounded-lg flex items-center justify-center">
-                              <img src="Logo.png" alt="i" />
+                              <img src="/Logo.png" alt="i" />
                             </div>
                             <Dialog.Title className="text-xl font-bold text-gray-900">
                               HaatPoint

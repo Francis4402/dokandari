@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Products;
-use App\Http\Requests\UpdateProductsRequest;
 use App\Models\Categories;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -128,7 +127,7 @@ class ProductsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, $slug)
+    public function edit($slug)
     {
         $store = Store::where('user_id', auth()->id())->first();
         $categories = Categories::all();
@@ -167,18 +166,8 @@ class ProductsController extends Controller
             'images_to_remove',
         ])->toArray());
 
-        /**
-         * -----------------------------------
-         * IMAGE HANDLING
-         * -----------------------------------
-         */
-
-        // Existing images
         $existingImages = json_decode($product->images, true) ?? [];
 
-        /**
-         * ✅ Remove selected images
-         */
         $imagesToRemove = json_decode($request->images_to_remove, true) ?? [];
 
         if (!empty($imagesToRemove)) {
@@ -195,9 +184,6 @@ class ProductsController extends Controller
             }
         }
 
-        /**
-         * ✅ Add new images
-         */
         if ($request->hasFile('images')) {
             $path = public_path('product_images');
 
@@ -222,8 +208,6 @@ class ProductsController extends Controller
         // ✅ Save final images array
         $product->images = json_encode(array_values($existingImages));
         $product->save();
-
-        return back()->with('success', 'Product updated successfully');
     }
 
     /**

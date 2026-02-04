@@ -418,7 +418,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                                 View
                             </Link>
                             <Link
-                                href={`/dashboard/products/${product.slug}/edit`}
+                                href={route(`dashboard.productedit`, product.slug)}
                                 className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                             >
                             <FaEdit className="h-3 w-3 mr-1" />
