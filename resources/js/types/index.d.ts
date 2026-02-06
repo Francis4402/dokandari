@@ -23,13 +23,13 @@ export type CartItem = {
     slug: string;
     category: string;
     quantity: number;
-    regular_price: string;
-    sale_price: string;
+    regular_price: number;
+    sale_price: number;
     description: string;
+    color: string;
     product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
-    review_count: string;
     cartQty?: number;
     increaseQty?: number;
     decreaseQty?: number;
@@ -72,13 +72,14 @@ export interface Product {
     category: string;
     subcategory: string;
     quantity: number;
-    regular_price: string;
-    sale_price: string;
+    regular_price: number;
+    sale_price: number;
     description: string;
+    color: string;
     product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
-    review_count: string;
+    review?: number;
     created_at: string;
     updated_at: string;
 }

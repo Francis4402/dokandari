@@ -74,6 +74,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard/store/{name}/edit', [StoreController::class, 'edit'])->name('dashboard.storeedit');
     Route::put('/dashboard/store/update/{store}', [StoreController::class, 'update'])->name('dashboard.storeupdate');
+
+    Route::get('/checkout', [OrdersController::class, 'checkout'])->name('checkout');
+
+    Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');
+
+    Route::get('/orders/{order}/confirmation', [OrdersController::class, 'confirmation'])->name('orders.confirmation');
+    Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
+
 });
 
 

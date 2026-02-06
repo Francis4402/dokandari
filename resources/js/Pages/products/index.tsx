@@ -8,17 +8,12 @@ import {
   BsHeartFill,
   BsGrid,
   BsList,
-  BsChevronRight,
   BsArrowRight,
   BsLightning,
-  BsShop,
   BsFilter,
-  BsSortDown,
   BsSearch
 } from 'react-icons/bs';
 import {
-  FiTruck,
-  FiShield,
   FiCheckCircle,
   FiPackage
 } from 'react-icons/fi';
@@ -28,7 +23,6 @@ import {
 } from "react-icons/ri";
 import {
   MdOutlineNewReleases,
-  MdVerified
 } from "react-icons/md";
 import { TbSparkles } from "react-icons/tb";
 import AppLayout from '@/Layouts/AppLayout';

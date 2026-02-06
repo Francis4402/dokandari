@@ -36,9 +36,9 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
   }, [discoverProduct]);
 
 
-  const calculateDiscount = (regularPrice: string, salePrice: string): number => {
-    const regular = parseFloat(regularPrice);
-    const sale = parseFloat(salePrice);
+  const calculateDiscount = (regularPrice: number, salePrice: number) => {
+    const regular = (regularPrice);
+    const sale = (salePrice);
 
     if (isNaN(regular) || isNaN(sale) || regular <= 0 || sale >= regular) return 0;
     return Math.round(((regular - sale) / regular) * 100);
@@ -193,7 +193,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
         {discoverProduct.map((product, index) => {
           if (!product) return null;
 
-          const discount = calculateDiscount(product.regular_price, product.sale_price || '0');
+          const discount = calculateDiscount(product.regular_price, product.sale_price || 0);
           const hasDiscount = discount > 0;
 
           const currentStock = product.quantity || 0;
@@ -202,8 +202,8 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
           const imageSrc = getImageSrc(product.images);
 
           // Calculate save amount
-          const regularPriceNum = parseFloat(product.regular_price || '0');
-          const salePriceNum = parseFloat(product.sale_price || '0');
+          const regularPriceNum = (product.regular_price || 0);
+          const salePriceNum = (product.sale_price || 0);
           const saveAmount = hasDiscount ? regularPriceNum - salePriceNum : 0;
 
           return (
@@ -309,17 +309,17 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-blue-600">
-                          {formatPrice(product.sale_price || product.regular_price)}
+                          {product.sale_price || product.regular_price}
                         </span>
                         {hasDiscount && (
                           <span className="text-sm text-gray-500 line-through">
-                            {formatPrice(product.regular_price)}
+                            {product.regular_price}
                           </span>
                         )}
                       </div>
                       {saveAmount > 0 && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          Save {formatPrice(saveAmount.toString())}
+                          Save {saveAmount.toString()}
                         </span>
                       )}
                     </div>

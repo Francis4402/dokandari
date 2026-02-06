@@ -44,7 +44,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
   // Calculate statistics
   const stats = {
     totalProducts: products.length,
-    totalValue: products.reduce((sum, product) => sum + parseFloat(product.sale_price || product.regular_price) * product.quantity, 0),
+    totalValue: products.reduce((sum, product) => sum + (product.sale_price || product.regular_price) * product.quantity, 0),
     inStock: products.filter(p => p.inStock && p.quantity > 0).length,
     outOfStock: products.filter(p => !p.inStock || p.quantity === 0).length,
     lowStock: products.filter(p => p.quantity > 0 && p.quantity < 20).length,
@@ -77,9 +77,9 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
         case 'name-desc':
           return b.name.localeCompare(a.name);
         case 'price-high':
-          return parseFloat(b.sale_price || b.regular_price) - parseFloat(a.sale_price || a.regular_price);
+          return (b.sale_price || b.regular_price) - (a.sale_price || a.regular_price);
         case 'price-low':
-          return parseFloat(a.sale_price || a.regular_price) - parseFloat(b.sale_price || b.regular_price);
+          return (a.sale_price || a.regular_price) - (b.sale_price || b.regular_price);
         case 'quantity-high':
           return b.quantity - a.quantity;
         case 'quantity-low':
@@ -127,10 +127,10 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
     toast.error('Please Create Store First!');
   }
 
-  const calculateDiscount = (regularPrice: string, salePrice: string | null) => {
+  const calculateDiscount = (regularPrice: number, salePrice: number) => {
     if (!salePrice) return 0;
-    const regular = parseFloat(regularPrice);
-    const sale = parseFloat(salePrice);
+    const regular = regularPrice;
+    const sale = salePrice;
     return Math.round(((regular - sale) / regular) * 100);
   };
 

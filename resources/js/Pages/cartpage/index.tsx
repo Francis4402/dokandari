@@ -24,24 +24,28 @@ import {
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore } from '../state/cartStore';
-import { CartItem } from '@/types';
+import ClearCartDialog from '../dialogpopups/ClearCartDialog';
+
+
 
 const CartPage = ({ auth }: { auth: { user: any } }) => {
   const {
-    cart: cartItems, // Changed from 'items' to 'cart'
+    cart: cartItems,
     removeFromCart,
     clearCart,
-    getTotalItems, // Changed from 'getItemCount'
+    getTotalItems,
     getSubTotal,
     getTax,
     getShipping,
-    getTotal,
     increaseQty,
     decreaseQty,
     getItemById
   } = useStore();
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const [couponCode, setCouponCode] = useState('');
+
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discount: number;
@@ -52,7 +56,21 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     type: 'percentage'
   });
 
-  // Calculate cart totals based on store items
+  function open() {
+    setIsOpen(true)
+  }
+
+  function close() {
+    setIsOpen(false)
+  }
+
+  const confirmClearCart = () => {
+    clearCart();
+    close();
+};
+
+
+
   const calculateTotals = () => {
     const subtotal = getSubTotal();
     const tax = getTax();
@@ -93,16 +111,10 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     const item = cartItems.find(item => item.id === itemId);
     if (item) {
       removeFromCart(itemId);
-      // Here you would typically add to wishlist
       console.log('Moved to wishlist:', item.name);
     }
   };
 
-  const handleClearCart = () => {
-    if (confirm('Are you sure you want to clear your cart?')) {
-      clearCart();
-    }
-  };
 
   const applyCoupon = () => {
     if (!couponCode.trim()) return;
@@ -179,8 +191,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   // Calculate savings from sale prices
   const calculateSaleSavings = () => {
     return cartItems.reduce((sum, item) => {
-      const regular = parseFloat(item.regular_price);
-      const sale = parseFloat(item.sale_price);
+      const regular = (item.regular_price);
+      const sale = (item.sale_price);
       const quantity = item.cartQty || 1;
 
       if (sale && sale < regular) {
@@ -193,6 +205,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   return (
     <AppLayout user={auth.user}>
       <Head title="Shopping Cart" />
+
+      <ClearCartDialog isOpen={isOpen} confirmClearCart={confirmClearCart} />
 
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,13 +233,13 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                 </Link>
 
                 {cartItems.length > 0 && (
-                  <button
-                    onClick={handleClearCart}
-                    className="inline-flex items-center px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                  >
-                    <FaTrash className="h-4 w-4 mr-2" />
-                    Clear Cart
-                  </button>
+                    <button
+                        onClick={open}
+                        className="inline-flex items-center px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                        <FaTrash className="h-4 w-4 mr-2" />
+                        Clear Cart
+                    </button>
                 )}
               </div>
             </div>
@@ -311,8 +325,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
 
                   <div className="divide-y divide-gray-100">
                     {cartItems.map((item) => {
-                      const regularPrice = parseFloat(item.regular_price);
-                      const salePrice = item.sale_price ? parseFloat(item.sale_price) : null;
+                      const regularPrice = (item.regular_price);
+                      const salePrice = item.sale_price ? (item.sale_price) : null;
                       const discountPercent = calculateDiscountPercentage(regularPrice, salePrice);
                       const stockStatus = getStockStatus(item.inStock);
                       const currentPrice = salePrice || regularPrice;
@@ -320,7 +334,6 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                       const totalPrice = currentPrice * quantity;
                       const imageUrl = getFirstImage(item.images);
                       const rating = item.rating || 0;
-                      const reviewCount = item.review_count || '0';
 
                       return (
                         <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
@@ -360,11 +373,11 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                                     </div>
                                     <div className="text-right">
                                       <div className="text-lg font-bold text-gray-900">
-                                        {formatPrice(currentPrice)}
+                                        {currentPrice}
                                       </div>
                                       {salePrice && (
                                         <div className="text-sm text-gray-500 line-through">
-                                          {formatPrice(regularPrice)}
+                                          {regularPrice}
                                         </div>
                                       )}
                                     </div>
@@ -381,7 +394,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                                     {rating > 0 && (
                                       <span className="flex items-center text-xs text-gray-600">
                                         <FaStar className="h-3 w-3 text-yellow-400 mr-1" />
-                                        {rating} ({reviewCount} reviews)
+                                        {rating}
                                       </span>
                                     )}
                                   </div>

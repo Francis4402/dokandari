@@ -57,7 +57,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
 
   const cartItems = getTotalItems();
   const wishlistItems = 5
-  const notifications = 2
 
 
   useEffect(() => {
@@ -273,7 +272,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                 </Link>
 
                 <Link
-                  href="/cart"
+                  href={route('cart.index')}
                   className="p-2 rounded-md hover:bg-gray-100 transition-colors relative"
                 >
                   <FiShoppingBag className="h-5 w-5" />

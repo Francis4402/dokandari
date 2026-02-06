@@ -22,14 +22,15 @@ return new class extends Migration
             $table->string('category');
             $table->string('subcategory');
             $table->integer('quantity')->default(1);
-            $table->string('regular_price');
-            $table->string('sale_price')->nullable();
+            $table->bigInteger('regular_price');
+            $table->bigInteger('sale_price')->nullable();
             $table->mediumText('description');
+            $table->string('color')->nullable();
             $table->enum('product_type', ['top-selling', 'trending', 'featured', 'regular'])
                   ->default('regular');
             $table->boolean('inStock')->default(true);
             $table->decimal('rating')->default(0);
-            $table->string('review_count')->default(0);
+            $table->bigInteger('review')->nullable();
             $table->timestamps();
         });
     }
