@@ -27,9 +27,9 @@ const TrandingProducts = ({trandingproduct}: {trandingproduct: Product[]}) => {
     }
   }, [trandingproduct]);
 
-  const calculateDiscount = (regularPrice: string, salePrice: string): string => {
-    const regular = parseFloat(regularPrice);
-    const sale = parseFloat(salePrice);
+  const calculateDiscount = (regularPrice: number, salePrice: number) => {
+    const regular = (regularPrice);
+    const sale = (salePrice);
     if (regular <= 0 || sale >= regular) return '0%';
     const discount = Math.round(((regular - sale) / regular) * 100);
     return `${discount}%`;
@@ -220,7 +220,7 @@ const TrandingProducts = ({trandingproduct}: {trandingproduct: Product[]}) => {
           >
             {parsedProducts.map((offer, index) => {
               const discount = calculateDiscount(offer.regular_price, offer.sale_price);
-              const saveAmount = calculateSaveAmount(offer.regular_price, offer.sale_price);
+              const saveAmount = calculateSaveAmount(offer.regular_price.toString(), offer.sale_price.toString());
 
               // Debug logging
               console.log('Product:', {
@@ -282,11 +282,11 @@ const TrandingProducts = ({trandingproduct}: {trandingproduct: Product[]}) => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-baseline gap-2">
                           <span className="text-2xl font-bold text-primary">
-                            ৳{parseFloat(offer.sale_price || offer.regular_price).toFixed(2)}
+                            ৳{(offer.sale_price || offer.regular_price).toFixed(2)}
                           </span>
                           {discount !== '0%' && (
                             <span className="text-sm text-gray-500 line-through">
-                              ৳{parseFloat(offer.regular_price).toFixed(2)}
+                              ৳{(offer.regular_price).toFixed(2)}
                             </span>
                           )}
                         </div>

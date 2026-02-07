@@ -51,8 +51,8 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
 
   const discount = (() => {
     if (!product.sale_price || !product.regular_price) return 0;
-    const regular = parseFloat(product.regular_price);
-    const sale = parseFloat(product.sale_price);
+    const regular = (product.regular_price);
+    const sale = (product.sale_price);
     if (isNaN(regular) || isNaN(sale) || regular <= 0 || sale >= regular) return 0;
     return Math.round(((regular - sale) / regular) * 100);
   })();
@@ -103,9 +103,9 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
   const currentImage = productImages[selectedImageIndex] || '/placeholder-image.jpg';
 
   // Get review count as number
-  const reviewCount = typeof product.review_count === 'string'
-    ? parseInt(product.review_count) || 0
-    : Number(product.review_count) || 0;
+  const reviewCount = typeof product.review === 'string'
+    ? parseInt(product.review) || 0
+    : Number(product.review) || 0;
 
   return (
     <AppLayout user={auth.user}>
@@ -250,12 +250,12 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
               <div className="bg-gray-50 p-6 rounded-lg">
                 <div className="flex items-baseline space-x-4 mb-3">
                   <span className="text-4xl font-bold text-blue-600">
-                    {formatPrice(product.sale_price || product.regular_price)}
+                    {(product.sale_price || product.regular_price)}
                   </span>
 
                   {product.sale_price && (
                     <span className="text-2xl text-gray-500 line-through">
-                      {formatPrice(product.regular_price)}
+                      {(product.regular_price)}
                     </span>
                   )}
                 </div>
@@ -416,12 +416,12 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Regular Price</span>
-                            <span className="font-medium">{formatPrice(product.regular_price)}</span>
+                            <span className="font-medium">{(product.regular_price)}</span>
                           </div>
                           {product.sale_price && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">Sale Price</span>
-                              <span className="font-medium text-green-600">{formatPrice(product.sale_price)}</span>
+                              <span className="font-medium text-green-600">{(product.sale_price)}</span>
                             </div>
                           )}
                         </div>

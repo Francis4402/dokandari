@@ -46,6 +46,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [colorInputs, setColorInputs] = useState<string[]>(['']);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
@@ -57,6 +58,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     regular_price: '',
     sale_price: '',
     description: '',
+    color: [''],
     inStock: true,
     rating: '0',
     store_id: store.id || ''
@@ -75,6 +77,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
     }
   };
 
+  useEffect(() => {
+    const validColors = colorInputs.filter(color => color.trim() !== '');
+    setData('color', validColors);
+  }, [colorInputs]);
 
   useEffect(() => {
     if (data.category) {
@@ -82,7 +88,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
       if (selectedCat && selectedCat.subcategory) {
         const subcategories = parseSubcategories(selectedCat.subcategory);
         setAvailableSubcategories(subcategories);
-
 
         if (data.subcategory && !subcategories.includes(data.subcategory)) {
           setData('subcategory', '');
@@ -114,6 +119,29 @@ export default function CreateProductForm({auth, store, categories}: productForm
       imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
     };
   }, []);
+
+  const addColorInput = () => {
+    setColorInputs([...colorInputs, '']);
+  }
+
+  const updateColorInput = (index: number, value: string) => {
+    const newInputs = [...colorInputs];
+    newInputs[index] = value;
+    setColorInputs(newInputs);
+  }
+
+  const removeColorInput = (index: number) => {
+    const newInputs = colorInputs.filter((_, i) => i !== index);
+    setColorInputs(newInputs);
+
+    if (newInputs.length === 0) {
+      setColorInputs(['']);
+    }
+  };
+
+  const getValidColors = () => {
+    return colorInputs.filter(color => color.trim() !== '');
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -148,6 +176,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('regular_price', data.regular_price);
     formData.append('sale_price', data.sale_price);
     formData.append('description', data.description);
+    formData.append('color', JSON.stringify(data.color));
     formData.append('inStock', data.inStock.toString());
     formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
@@ -170,21 +199,22 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setShowCategoryDropdown(false);
         setShowSubcategoryDropdown(false);
         setAvailableSubcategories([]);
-
+        setColorInputs(['']);
 
         setData({
-          ...data,
-            name: '',
-            slug: '',
-            category: '',
-            subcategory: '',
-            quantity: '1',
-            regular_price: '',
-            sale_price: '',
-            description: '',
-            inStock: true,
-            store_id: store.id || '',
-          images: []
+          name: '',
+          images: [],
+          slug: '',
+          category: '',
+          subcategory: '',
+          quantity: '1',
+          regular_price: '',
+          sale_price: '',
+          description: '',
+          color: [],
+          inStock: true,
+          rating: '0',
+          store_id: store.id || ''
         });
       },
       onError: () => {
@@ -269,277 +299,308 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
 
                 <div className="space-y-6">
-                  {/* Product Name */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <FaTag className="h-4 w-4" />
-                      Product Name <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <div className="relative">
-                      <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <input
-                        type="text"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        placeholder="Your Product Name"
-                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                    {errors.name && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.name}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Slug Field */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <FaLink className="h-4 w-4" />
-                      Product Slug
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  {/* Row 1: Name and Slug */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Product Name */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaTag className="h-4 w-4" />
+                        Product Name <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <div className="relative">
+                        <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <input
                           type="text"
-                          value={data.slug}
-                          onChange={(e) => setData('slug', e.target.value)}
-                          placeholder="premium-wireless-headphones"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500"
+                          value={data.name}
+                          onChange={(e) => setData('name', e.target.value)}
+                          placeholder="Your Product Name"
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const slug = data.name
-                            .toLowerCase()
-                            .replace(/[^\w\s-]/g, '')
-                            .replace(/\s+/g, '-')
-                            .replace(/--+/g, '-')
-                            .trim();
-                          setData('slug', slug);
-                          toast.success('Slug generated!');
-                        }}
-                        disabled={!data.name}
-                        className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FaArrowRight className="h-4 w-4" />
-                        Generate
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <FaInfoCircle className="h-3 w-3" />
-                      URL-friendly version of the product name
-                    </p>
-                    {errors.slug && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.slug}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Main Category */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Main Category <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
-                      >
-                        <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
-                          {data.category || 'Select main category'}
-                        </span>
-                        <FaChevronDown
-                          className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
-                        />
-                      </button>
-                      {showCategoryDropdown && (
-                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                          {categories.map(cat => (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => {
-                                setData('category', cat.categories);
-                                setShowCategoryDropdown(false);
-                              }}
-                              className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
-                              }`}
-                            >
-                              {cat.categories}
-                            </button>
-                          ))}
-                        </div>
+                      {errors.name && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.name}
+                        </p>
                       )}
                     </div>
-                    {errors.category && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.category}
-                      </p>
-                    )}
+
+                    {/* Slug Field */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaLink className="h-4 w-4" />
+                        Product Slug
+                      </label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <input
+                            type="text"
+                            value={data.slug}
+                            onChange={(e) => setData('slug', e.target.value)}
+                            placeholder="premium-wireless-headphones"
+                            className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const slug = data.name
+                              .toLowerCase()
+                              .replace(/[^\w\s-]/g, '')
+                              .replace(/\s+/g, '-')
+                              .replace(/--+/g, '-')
+                              .trim();
+                            setData('slug', slug);
+                            toast.success('Slug generated!');
+                          }}
+                          disabled={!data.name}
+                          className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FaArrowRight className="h-4 w-4" />
+                          Generate
+                        </button>
+                      </div>
+                      {errors.slug && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.slug}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Sub Category */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sub Category
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
-                        disabled={!data.category}
-                        className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
-                          !data.category
-                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
-                          {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
-                        </span>
-                        {data.category && (
+                  {/* Row 2: Categories */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Main Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Main Category <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
+                        >
+                          <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
+                            {data.category || 'Select main category'}
+                          </span>
                           <FaChevronDown
-                            className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                            className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
                           />
-                        )}
-                      </button>
-
-                      {data.category && showSubcategoryDropdown && (
-                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                          {availableSubcategories.length > 0 ? (
-                            availableSubcategories.map((subcat, index) => (
+                        </button>
+                        {showCategoryDropdown && (
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                            {categories.map(cat => (
                               <button
-                                key={index}
+                                key={cat.id}
                                 type="button"
                                 onClick={() => {
-                                  setData('subcategory', subcat);
-                                  setShowSubcategoryDropdown(false);
+                                  setData('category', cat.categories);
+                                  setShowCategoryDropdown(false);
                                 }}
                                 className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                  data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                  data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
                                 }`}
                               >
-                                {subcat}
-                                {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                                {cat.categories}
                               </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                              No subcategories available for this category
-                            </div>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {errors.category && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.category}
+                        </p>
                       )}
                     </div>
-                    {errors.subcategory && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.subcategory}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <FaInfoCircle className="h-3 w-3" />
-                      {data.category
-                        ? availableSubcategories.length > 0
-                          ? `${availableSubcategories.length} subcategories available`
-                          : 'No subcategories available'
-                        : 'Select a main category first'
-                      }
-                    </p>
+
+                    {/* Sub Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sub Category
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
+                          disabled={!data.category}
+                          className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                            !data.category
+                              ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
+                            {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
+                          </span>
+                          {data.category && (
+                            <FaChevronDown
+                              className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                            />
+                          )}
+                        </button>
+
+                        {data.category && showSubcategoryDropdown && (
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                            {availableSubcategories.length > 0 ? (
+                              availableSubcategories.map((subcat, index) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => {
+                                    setData('subcategory', subcat);
+                                    setShowSubcategoryDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
+                                    data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                  }`}
+                                >
+                                  {subcat}
+                                  {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                No subcategories available for this category
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {errors.subcategory && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.subcategory}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Quantity */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <FaHashtag className="h-4 w-4" />
-                      Quantity
-                    </label>
-                    <div className="relative">
-                      <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <input
-                        type="number"
-                        min="0"
-                        value={data.quantity}
-                        onChange={(e) => handleNumberInput(e, 'quantity')}
-                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
+                  {/* Row 3: Quantity and Colors */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Quantity */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaHashtag className="h-4 w-4" />
+                        Quantity
+                      </label>
+                      <div className="relative">
+                        <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="number"
+                          min="0"
+                          value={data.quantity}
+                          onChange={(e) => handleNumberInput(e, 'quantity')}
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      {errors.quantity && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.quantity}
+                        </p>
+                      )}
                     </div>
-                    {errors.quantity && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.quantity}
-                      </p>
-                    )}
+
+                    {/* Colors */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Colors <span className="text-xs font-normal text-gray-500">(Add multiple)</span>
+                      </label>
+
+                      <div className="space-y-2">
+                        {colorInputs.map((color, index) => (
+                          <div key={index} className="flex gap-2">
+                            <div className="relative flex-1">
+                              <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                              <input
+                                type="text"
+                                value={color}
+                                onChange={(e) => updateColorInput(index, e.target.value)}
+                                placeholder="Enter color name..."
+                                className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            {index === colorInputs.length - 1 ? (
+                              <button
+                                type="button"
+                                onClick={addColorInput}
+                                className="px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                              >
+                                <FaPlus className="h-4 w-4" />
+                                Add
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => removeColorInput(index)}
+                                className="px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                              >
+                                <FaTimes className="h-4 w-4" />
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Display added colors */}
+                      {getValidColors().length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              Added Colors ({getValidColors().length})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setColorInputs([''])}
+                              className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                            >
+                              <FaTimes className="h-3 w-3" />
+                              Clear All
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {getValidColors().map((color, index) => (
+                              <div
+                                key={index}
+                                className="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-lg"
+                              >
+                                <span className="text-sm font-medium text-gray-800">
+                                  {color}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {errors.color && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.color}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Pricing Card */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaDollarSign className="h-5 w-5 text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Pricing</h2>
-                </div>
+                <h2 className="text-xl font-bold text-gray-800"><span className='text-green-600'>BDT</span> Pricing</h2>
 
                 <div className="space-y-6">
-                  {/* Regular Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Regular Price <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <div className="relative">
-                      <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={data.regular_price}
-                        onChange={(e) => handleNumberInput(e, 'regular_price')}
-                        placeholder="99.99"
-                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                    {errors.regular_price && (
-                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                        <HiOutlineExclamationCircle className="h-4 w-4" />
-                        {errors.regular_price}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Sale Price Toggle */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      id="enable_sale"
-                      checked={showSalePrice}
-                      onChange={(e) => {
-                        setShowSalePrice(e.target.checked);
-                        if (!e.target.checked) setData('sale_price', '');
-                      }}
-                      className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                    />
-                    <label htmlFor="enable_sale" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <FaPercent className="h-4 w-4" />
-                      Enable Sale Price
-                    </label>
-                  </div>
-
-                  {/* Sale Price */}
-                  {showSalePrice && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Regular Price */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaPercent className="h-4 w-4" />
-                        Sale Price
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Regular Price <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
                         <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -547,32 +608,80 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           type="number"
                           step="0.01"
                           min="0"
-                          max={parseFloat(data.regular_price) || undefined}
-                          value={data.sale_price}
-                          onChange={(e) => handleNumberInput(e, 'sale_price')}
-                          placeholder="79.99"
+                          value={data.regular_price}
+                          onChange={(e) => handleNumberInput(e, 'regular_price')}
+                          placeholder="99.99"
                           className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
-                      {data.regular_price && data.sale_price && discountPercentage > 0 && (
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <FaPercent className="h-3 w-3 mr-1" />
-                            Save {discountPercentage}%
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            Save ${(parseFloat(data.regular_price) - parseFloat(data.sale_price)).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {errors.sale_price && (
+                      {errors.regular_price && (
                         <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                           <HiOutlineExclamationCircle className="h-4 w-4" />
-                          {errors.sale_price}
+                          {errors.regular_price}
                         </p>
                       )}
                     </div>
-                  )}
+
+                    {/* Sale Price */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <FaPercent className="h-4 w-4" />
+                          Sale Price
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="enable_sale"
+                            checked={showSalePrice}
+                            onChange={(e) => {
+                              setShowSalePrice(e.target.checked);
+                              if (!e.target.checked) setData('sale_price', '');
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          />
+                          <label htmlFor="enable_sale" className="text-sm text-gray-600">
+                            Enable
+                          </label>
+                        </div>
+                      </div>
+
+                      {showSalePrice && (
+                        <div>
+                          <div className="relative">
+                            <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max={parseFloat(data.regular_price) || undefined}
+                              value={data.sale_price}
+                              onChange={(e) => handleNumberInput(e, 'sale_price')}
+                              placeholder="79.99"
+                              className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                          </div>
+                          {data.regular_price && data.sale_price && discountPercentage > 0 && (
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <FaPercent className="h-3 w-3 mr-1" />
+                                Save {discountPercentage}%
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                Save ${(parseFloat(data.regular_price) - parseFloat(data.sale_price)).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {errors.sale_price && (
+                            <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                              <HiOutlineExclamationCircle className="h-4 w-4" />
+                              {errors.sale_price}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -744,17 +853,39 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         {data.name || 'Product Name'}
                       </h3>
 
-                      {/* Category display */}
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {data.category && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            {data.category}
-                          </span>
-                        )}
-                        {data.subcategory && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                            {data.subcategory}
-                          </span>
+                      {/* Category and Color display */}
+                      <div className="space-y-2 mt-2">
+                        {/* Categories */}
+                        <div className="flex flex-wrap gap-1">
+                          {data.category && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {data.category}
+                            </span>
+                          )}
+                          {data.subcategory && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              {data.subcategory}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Colors */}
+                        {getValidColors().length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {getValidColors().slice(0, 3).map((color, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                              >
+                                {color}
+                              </span>
+                            ))}
+                            {getValidColors().length > 3 && (
+                              <span className="text-xs text-gray-500">
+                                +{getValidColors().length - 3} more
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
 

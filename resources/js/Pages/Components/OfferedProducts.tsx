@@ -27,17 +27,17 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
     }
   }, [product]);
 
-  const calculateDiscount = (regularPrice: string, salePrice: string): string => {
-    const regular = parseFloat(regularPrice);
-    const sale = parseFloat(salePrice);
+  const calculateDiscount = (regularPrice: number, salePrice: number) => {
+    const regular = regularPrice;
+    const sale = salePrice;
     if (regular <= 0 || sale >= regular) return '0%';
     const discount = Math.round(((regular - sale) / regular) * 100);
     return `${discount}%`;
   };
 
-  const calculateSaveAmount = (regularPrice: string, salePrice: string): string => {
-    const regular = parseFloat(regularPrice);
-    const sale = parseFloat(salePrice);
+  const calculateSaveAmount = (regularPrice: number, salePrice: number) => {
+    const regular = regularPrice;
+    const sale = salePrice;
     const saveAmount = regular - sale;
     return saveAmount > 0 ? saveAmount.toFixed(0) : '0';
   };
@@ -286,11 +286,11 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-baseline gap-2">
                           <span className="text-2xl font-bold text-primary">
-                            ৳{parseFloat(offer.sale_price || offer.regular_price).toFixed(2)}
+                            ৳{(offer.sale_price || offer.regular_price).toFixed(2)}
                           </span>
                           {discount !== '0%' && (
                             <span className="text-sm text-gray-500 line-through">
-                              ৳{parseFloat(offer.regular_price).toFixed(2)}
+                              ৳{(offer.regular_price).toFixed(2)}
                             </span>
                           )}
                         </div>

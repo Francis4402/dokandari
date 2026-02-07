@@ -63,6 +63,7 @@ class ProductsController extends Controller
             'sale_price' => 'nullable|numeric|min:0',
             'description' => 'required|string',
             'inStock' => 'boolean',
+            'color' => 'nullable|max:20',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'images' => 'max:5',
         ]);
@@ -78,6 +79,7 @@ class ProductsController extends Controller
         $product->regular_price = (float) $validated['regular_price'];
         $product->sale_price = isset($validated['sale_price']) ? (float) $validated['sale_price'] : null;
         $product->description = $validated['description'];
+        $product->color = json_encode($validated['color'] ?? []);
         $product->inStock = $request->boolean('inStock', true);
         $product->rating = 0.0;
 
