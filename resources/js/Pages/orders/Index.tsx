@@ -17,41 +17,13 @@ import {
   FaSearch
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
+import { Orders } from '@/types';
 
-interface OrderItem {
-  id: string;
-  product_name: string;
-  product_image: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
 
-interface Order {
-  id: string;
-  order_number: string;
-  store_name: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  customer_address: string;
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  discount: number;
-  total: number;
-  payment_method: string;
-  payment_status: string;
-  order_status: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  order_items?: OrderItem[];
-}
 
 interface OrdersProps {
   orders: {
-    data: Order[];
+    data: Orders[];
     current_page: number;
     last_page: number;
     per_page: number;
@@ -62,7 +34,7 @@ interface OrdersProps {
   };
 }
 
-const Orders: React.FC<OrdersProps> = ({ orders, auth }) => {
+const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
 
@@ -274,7 +246,7 @@ const Orders: React.FC<OrdersProps> = ({ orders, auth }) => {
                         </div>
                         <div className="flex items-center">
                           <FaBox className="h-3 w-3 mr-1" />
-                          {order.order_items?.length || 0} items
+                          {order.order_items.length || 0} items
                         </div>
                         <div className="flex items-center">
                           {order.payment_method === 'cash_on_delivery' ? (
@@ -392,4 +364,4 @@ const Orders: React.FC<OrdersProps> = ({ orders, auth }) => {
   );
 };
 
-export default Orders;
+export default DashboardOrders;

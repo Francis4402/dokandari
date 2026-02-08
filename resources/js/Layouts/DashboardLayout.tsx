@@ -110,43 +110,61 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar drawer */}
+      {/* Enhanced Mobile sidebar drawer */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
+          {/* Backdrop with blur effect */}
           <Transition.Child
             as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
+            enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
+            leave="ease-in duration-200"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-900/80" />
+            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
             <Transition.Child
               as={Fragment}
-              enter="transition ease-in-out duration-300 transform"
+              enter="transform transition ease-in-out duration-300"
               enterFrom="-translate-x-full"
               enterTo="translate-x-0"
-              leave="transition ease-in-out duration-300 transform"
+              leave="transform transition ease-in-out duration-300"
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 shadow-xl">
+                {/* Close button overlay (click outside to close) */}
+                <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+                  <button
+                    type="button"
+                    className="-m-2.5 p-2.5"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <span className="sr-only">Close sidebar</span>
+                    <FiX className="h-6 w-6 text-white" aria-hidden="true" />
+                  </button>
+                </div>
+
+                {/* Sidebar content */}
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center justify-between">
+                    <div className="h-14 w-14 rounded-lg flex items-center justify-center">
+                        <img src="/Logo.png" alt="i" />
+                    </div>
                     <Link href='/'>
-                        <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
+                      <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
                     </Link>
                     <button
                       type="button"
-                      className="ml-auto rounded-md p-2.5 text-gray-700"
+                      className="ml-auto rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors"
                       onClick={() => setSidebarOpen(false)}
                     >
                       <FiX className="h-6 w-6" aria-hidden="true" />
+                      <span className="sr-only">Close sidebar</span>
                     </button>
                   </div>
                   <nav className="flex flex-1 flex-col">
@@ -158,19 +176,26 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                               <Link
                                 href={item.href}
                                 className={`
-                                  group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
+                                  group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors
                                   ${item.current
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'bg-blue-600 text-white shadow-sm'
                                     : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
                                   }
                                 `}
                                 onClick={() => setSidebarOpen(false)}
                               >
                                 <item.icon
-                                  className={`h-6 w-6 shrink-0 ${item.current ? 'text-white' : 'text-gray-400 group-hover:text-blue-600'}`}
+                                  className={`h-6 w-6 shrink-0 transition-colors ${
+                                    item.current
+                                      ? 'text-white'
+                                      : 'text-gray-400 group-hover:text-blue-600'
+                                  }`}
                                   aria-hidden="true"
                                 />
                                 {item.name}
+                                {item.current && (
+                                  <span className="ml-auto w-2 h-2 bg-white rounded-full" />
+                                )}
                               </Link>
                             </li>
                           ))}
@@ -199,7 +224,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             )}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-md hover:bg-gray-100"
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
             >
               {isCollapsed ? <FiChevronRight className="h-5 w-5" /> : <FiChevronLeft className="h-5 w-5" />}
             </button>
@@ -213,7 +238,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                       <Link
                         href={item.href}
                         className={`
-                          group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
+                          group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors
                           ${item.current
                             ? 'bg-blue-600 text-white'
                             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
@@ -242,7 +267,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-gray-700 lg:hidden hover:bg-gray-100 rounded-md transition-colors"
             onClick={() => setSidebarOpen(true)}
           >
             <FiMenu className="h-6 w-6" aria-hidden="true" />
@@ -258,12 +283,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               </div>
               <input
                 type="search"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 transition-shadow"
                 placeholder="Search..."
               />
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative">
+              <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative transition-colors">
                 <FiBell className="h-6 w-6" aria-hidden="true" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                   3
@@ -280,7 +305,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                     <img
                         src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
                         alt="User profile"
-                        className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white"
+                        className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white transition-transform hover:scale-105"
                     />
                     </Menu.Button>
 
@@ -381,7 +406,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               <nav className="flex mt-2" aria-label="Breadcrumb">
                 <ol className="inline-flex items-center space-x-1 md:space-x-3">
                   <li className="inline-flex items-center">
-                    <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                       <FiHome className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>
@@ -399,7 +424,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             </div>
 
             {/* Page content - Add a white background container for consistency */}
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm transition-shadow">
               {children}
             </div>
           </div>

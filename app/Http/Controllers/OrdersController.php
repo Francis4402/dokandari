@@ -27,14 +27,17 @@ class OrdersController extends Controller
         ]);
     }
 
-    public function adminIndex()
+    public function dashboardIndex()
     {
-        $orders = Orders::with(['user', 'store', 'orderItems'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $store = Store::where('user_id', Auth::id())->first();
+
+        $orders = Orders::where('store_id', $store->id)
+        ->with('orderItems')
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         return Inertia::render('dashboard/orders/index', [
-            'orders' => $orders
+            'orders' => $orders,
         ]);
     }
 
@@ -146,7 +149,7 @@ class OrdersController extends Controller
                         'total' => $itemData['price'] * $itemData['quantity'],
                     ]);
 
-                    // Update product quantity
+
                     $product->decrement('quantity', $itemData['quantity']);
                 }
             }
@@ -175,16 +178,15 @@ class OrdersController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Orders $orders)
+    public function show($id)
     {
-        if ($orders->user_id !== Auth::id()) {
-            abort(403);
-        }
+        $order = Orders::with('orderItems')->findOrFail($id);
 
-        $orders->load(['orderItems', 'store']);
+        $store = Store::find($order->store_id);
 
         return Inertia::render('orders/Show', [
-            'order' => $orders
+            'order' => $order,
+            'store' => $store
         ]);
     }
 
@@ -213,9 +215,11 @@ class OrdersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Orders $orders)
+    public function destroy($id)
     {
-        //
+        $orders = Orders::where('id', $id)->first();
+
+        $orders->delete();
     }
 
 

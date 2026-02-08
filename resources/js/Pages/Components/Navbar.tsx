@@ -538,7 +538,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Dashboard Home
                                 </Link>
                                 <Link
-                                  href="/dashboard/products"
+                                  href="/products"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >
@@ -546,7 +546,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Products
                                 </Link>
                                 <Link
-                                  href="/dashboard/orders"
+                                  href="/orders"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >
@@ -554,15 +554,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Orders
                                 </Link>
                                 <Link
-                                  href="/dashboard/customers"
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-                                >
-                                  <FiUser className="h-5 w-5" />
-                                  Customers
-                                </Link>
-                                <Link
-                                  href="/dashboard/analytics"
+                                  href="/analytics"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >

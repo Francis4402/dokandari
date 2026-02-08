@@ -49,7 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/products', [ProductsController::class, 'index'])->name('dashboard.products');
     Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
     Route::get('/dashboard/stores', [StoreController::class, 'index'])->name('dashboard.store');
-    Route::get('/dashboard/orders', [OrdersController::class, 'index'])->name('dashboard.orders');
+    Route::get('/dashboard/orders', [OrdersController::class, 'dashboardIndex'])->name('dashboard.orders');
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
     Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
@@ -80,11 +80,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');
 
     Route::get('/orders/{order}/confirmation', [OrdersController::class, 'confirmation'])->name('orders.confirmation');
-    Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
+
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
+
+    Route::delete('/dashboard/orders/{id}', [OrdersController::class, 'destroy'])->name('orders.delete');
 
 });
 
+
+    Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');

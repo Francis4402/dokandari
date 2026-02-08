@@ -25,7 +25,7 @@ import {
   FaBuilding,
   FaEllipsisH,
 } from 'react-icons/fa';
-import { Product, storeType, User } from '@/types';
+import { Orders, Product, storeType, User } from '@/types';
 
 interface storeDashboardProps {
     auth: {
@@ -33,9 +33,10 @@ interface storeDashboardProps {
     },
     stores: storeType[];
     products: Product[];
+    orders: Orders[];
 }
 
-const Store = ({ auth, stores, products }: storeDashboardProps) => {
+const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [storeTypeFilter, setStoreTypeFilter] = useState('all');
@@ -485,7 +486,7 @@ const Store = ({ auth, stores, products }: storeDashboardProps) => {
                                     <FaTags className="h-3 w-3 text-gray-500 mr-1 flex-shrink-0" />
                                     <span className="text-xs text-gray-600 font-medium truncate">Orders</span>
                                   </div>
-                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{storeStats.totalOrders || 0}</p>
+                                  <p className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">{orders.filter(o => o.store_id === store.id).length}</p>
                                 </div>
                                 <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                   <div className="flex items-center justify-center mb-1">

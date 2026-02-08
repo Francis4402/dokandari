@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Orders;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\Products;
@@ -22,9 +23,11 @@ class StoreController extends Controller
     {
         $stores = Store::where('user_id', auth()->id())->get();
         $products = Products::whereIn('store_id', $stores->pluck('id'))->get();
+        $orders = Orders::whereIn('store_id', $stores->pluck('id'))->get();
         return Inertia::render('dashboard/store/index', [
             'stores' => $stores,
-            'products' => $products
+            'products' => $products,
+            'orders' => $orders
         ]);
     }
 
