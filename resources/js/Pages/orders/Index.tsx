@@ -14,11 +14,17 @@ import {
   FaReceipt,
   FaArrowRight,
   FaFilter,
-  FaSearch
+  FaSearch,
+  FaStore,
+  FaUser,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaWeight,
+  FaTag,
+  FaInfoCircle
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
-import { Orders } from '@/types';
-
+import type { OrderItem, Orders } from '@/types';
 
 
 interface OrdersProps {
@@ -34,19 +40,17 @@ interface OrdersProps {
   };
 }
 
-const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
+const Orders: React.FC<OrdersProps> = ({ orders, auth }) => {
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
+  const [expandedOrder, setExpandedOrder] = React.useState<string | null>(null);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 2
-    }).format(price);
+    return `৳${price.toFixed(2)}`;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-BD', {
       year: 'numeric',
       month: 'short',
@@ -90,10 +94,31 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
     return icons[status] || <FaBox className="h-4 w-4" />;
   };
 
+  const getImageUrl = (imagePath: string | null | undefined) => {
+    if (!imagePath) {
+      return '/images/placeholder.jpg';
+    }
+
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    if (imagePath.startsWith('/storage/')) {
+      return imagePath;
+    }
+
+    if (!imagePath.includes('/')) {
+      return `/storage/product_images/${imagePath}`;
+    }
+
+    return `/storage/${imagePath.replace(/^\/+/, '')}`;
+  };
+
   const filteredOrders = orders.data.filter(order => {
     const matchesStatus = statusFilter === 'all' || order.order_status === statusFilter;
     const matchesSearch = order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.customer_name.toLowerCase().includes(searchQuery.toLowerCase());
+                         order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         order.recipient_name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -220,6 +245,7 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
+                  <option value="returned">Returned</option>
                 </select>
               </div>
             </div>
@@ -228,9 +254,12 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
           {/* Orders List */}
           <div className="space-y-4">
             {filteredOrders.map((order) => (
-              <div key={order.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+              <div key={order.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
                 {/* Order Header */}
-                <div className="p-6 border-b border-gray-200">
+                <div
+                  className="p-6 border-b border-gray-200 cursor-pointer"
+                  onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -246,7 +275,11 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
                         </div>
                         <div className="flex items-center">
                           <FaBox className="h-3 w-3 mr-1" />
-                          {order.order_items.length || 0} items
+                          {order.item_quantity} item{order.item_quantity !== 1 ? 's' : ''}
+                        </div>
+                        <div className="flex items-center">
+                          <FaStore className="h-3 w-3 mr-1" />
+                          {order.store_name}
                         </div>
                         <div className="flex items-center">
                           {order.payment_method === 'cash_on_delivery' ? (
@@ -254,7 +287,7 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
                           ) : (
                             <FaCreditCard className="h-3 w-3 mr-1" />
                           )}
-                          {order.payment_method === 'cash_on_delivery' ? 'COD' : 'bKash'}
+                          {order.payment_method === 'cash_on_delivery' ? 'Cash on Delivery' : 'bKash'}
                         </div>
                       </div>
                     </div>
@@ -263,10 +296,10 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.order_status)}`}>
                           {getStatusIcon(order.order_status)}
-                          <span className="ml-1">{order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}</span>
+                          <span className="ml-1 capitalize">{order.order_status}</span>
                         </span>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
-                          {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                          <span className="capitalize">{order.payment_status}</span>
                         </span>
                       </div>
                       <p className="text-xl font-bold text-gray-900">
@@ -276,50 +309,212 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
                   </div>
                 </div>
 
-                {/* Order Items Preview */}
-                {order.order_items && order.order_items.length > 0 && (
-                  <div className="p-6 bg-gray-50">
-                    <div className="flex items-center gap-4 overflow-x-auto pb-2">
-                      {order.order_items.slice(0, 4).map((item, index) => (
-                        <div key={index} className="flex-shrink-0">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200">
-                            {item.product_image ? (
-                              <img
-                                src={`/product_images/${item.product_image}`}
-                                alt={item.product_name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <FaBox className="h-6 w-6 text-gray-400" />
-                              </div>
-                            )}
+                {/* Expanded Details */}
+                {expandedOrder === order.id && (
+                  <div className="bg-gray-50">
+                    {/* Recipient Information */}
+                    <div className="p-6 border-b border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <FaUser className="mr-2" /> Delivery Information
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-600">Recipient</p>
+                          <p className="font-medium">{order.recipient_name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Phone</p>
+                          <p className="font-medium flex items-center">
+                            <FaPhone className="h-3 w-3 mr-1 text-gray-400" />
+                            {order.recipient_phone}
+                          </p>
+                        </div>
+                        {order.recipient_phone_alt && (
+                          <div>
+                            <p className="text-sm text-gray-600">Alternative Phone</p>
+                            <p className="font-medium flex items-center">
+                              <FaPhone className="h-3 w-3 mr-1 text-gray-400" />
+                              {order.recipient_phone_alt}
+                            </p>
                           </div>
+                        )}
+                        <div className="md:col-span-2">
+                          <p className="text-sm text-gray-600">Delivery Address</p>
+                          <p className="font-medium flex items-start">
+                            <FaMapMarkerAlt className="h-3 w-3 mr-1 mt-1 text-gray-400" />
+                            {order.recipient_address}
+                          </p>
                         </div>
-                      ))}
-                      {order.order_items.length > 4 && (
-                        <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-600">
-                            +{order.order_items.length - 4}
-                          </span>
-                        </div>
-                      )}
+                      </div>
                     </div>
+
+                    {/* Pathao Tracking (if applicable) */}
+                    {order.shipping_method === 'pathao' && order.tracking_number && (
+                      <div className="p-6 border-b border-gray-200 bg-blue-50">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                          <FaTruck className="mr-2" /> Pathao Tracking
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-600">Tracking Number</p>
+                            <p className="font-medium">{order.tracking_number}</p>
+                          </div>
+                          {order.pathao_city_name && (
+                            <div>
+                              <p className="text-xs text-gray-600">City</p>
+                              <p className="font-medium">{order.pathao_city_name}</p>
+                            </div>
+                          )}
+                          {order.pathao_zone_name && (
+                            <div>
+                              <p className="text-xs text-gray-600">Zone</p>
+                              <p className="font-medium">{order.pathao_zone_name}</p>
+                            </div>
+                          )}
+                          {order.estimated_delivery && (
+                            <div>
+                              <p className="text-xs text-gray-600">Estimated Delivery</p>
+                              <p className="font-medium">{formatDate(order.estimated_delivery)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Order Items */}
+                    <div className="p-6 border-b border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <FaBox className="mr-2" /> Order Items ({order.order_items?.length || 0})
+                      </h4>
+                      <div className="space-y-3">
+                        {order.order_items?.map((item: OrderItem) => (
+                          <div key={item.id} className="flex items-center gap-4 p-3 bg-white rounded-lg">
+                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                              {item.product_image ? (
+                                <img
+                                  src={getImageUrl(item.product_image)}
+                                  alt={item.product_name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FaBox className="h-6 w-6 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-800">{item.product_name}</p>
+                              <p className="text-sm text-gray-600">
+                                Quantity: {item.quantity} × {formatPrice(item.price)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-gray-800">{formatPrice(item.total)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Order Summary */}
+                    <div className="p-6 border-b border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Order Summary</h4>
+                      <div className="space-y-2 max-w-md ml-auto">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span className="font-medium">{formatPrice(order.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Delivery Charge</span>
+                          <span className="font-medium">{formatPrice(order.delivery_charge)}</span>
+                        </div>
+                        {order.cod_charge > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">COD Charge</span>
+                            <span className="font-medium">{formatPrice(order.cod_charge)}</span>
+                          </div>
+                        )}
+                        {order.discount_amount > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Discount</span>
+                            <span className="font-medium text-green-600">-{formatPrice(order.discount_amount)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2">
+                          <span>Total</span>
+                          <span>{formatPrice(order.total)}</span>
+                        </div>
+                        {order.amount_to_collect > 0 && order.payment_method === 'cash_on_delivery' && (
+                          <div className="flex justify-between text-sm text-blue-600">
+                            <span>Amount to Collect</span>
+                            <span className="font-medium">{formatPrice(order.amount_to_collect)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Additional Information */}
+                    {(order.item_weight > 0 || order.coupon_code || order.notes) && (
+                      <div className="p-6">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Additional Information</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          {order.item_weight > 0 && (
+                            <div className="flex items-center">
+                              <FaWeight className="h-3 w-3 mr-2 text-gray-400" />
+                              <span>Weight: {order.item_weight} kg</span>
+                            </div>
+                          )}
+                          {order.coupon_code && (
+                            <div className="flex items-center">
+                              <FaTag className="h-3 w-3 mr-2 text-gray-400" />
+                              <span>Coupon: {order.coupon_code}</span>
+                            </div>
+                          )}
+                          {order.shipped_at && (
+                            <div className="flex items-center">
+                              <FaCalendar className="h-3 w-3 mr-2 text-gray-400" />
+                              <span>Shipped: {formatDate(order.shipped_at)}</span>
+                            </div>
+                          )}
+                          {order.delivered_at && (
+                            <div className="flex items-center">
+                              <FaCheckCircle className="h-3 w-3 mr-2 text-green-400" />
+                              <span>Delivered: {formatDate(order.delivered_at)}</span>
+                            </div>
+                          )}
+                        </div>
+                        {order.notes && (
+                          <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
+                            <p className="text-xs font-medium text-yellow-800 mb-1 flex items-center">
+                              <FaInfoCircle className="mr-1" /> Notes:
+                            </p>
+                            <p className="text-sm text-yellow-700">{order.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Order Actions */}
-                <div className="p-6 bg-gray-50 border-t border-gray-200">
+                <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <div className="flex flex-col sm:flex-row gap-3 justify-end">
                     <Link
                       href={`/orders/${order.id}`}
                       className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <FaEye className="h-4 w-4 mr-2" />
-                      View Details
+                      View Full Details
                     </Link>
                     {order.order_status === 'delivered' && (
-                      <button className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
+                      <button
+                        onClick={() => window.location.href = `/products?reorder=${order.id}`}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <FaShoppingBag className="h-4 w-4 mr-2" />
                         Order Again
                       </button>
                     )}
@@ -364,4 +559,4 @@ const DashboardOrders: React.FC<OrdersProps> = ({ orders, auth }) => {
   );
 };
 
-export default DashboardOrders;
+export default Orders;

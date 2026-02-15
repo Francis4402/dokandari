@@ -15,7 +15,6 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
 use App\Models\Categories;
 use App\Models\Products;
-use App\Models\Store;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -88,7 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-    Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
+Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');

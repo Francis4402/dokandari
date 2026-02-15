@@ -1,4 +1,3 @@
-
 import { Head, Link } from '@inertiajs/react';
 import {
   FaCheckCircle,
@@ -21,16 +20,17 @@ import {
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 
-const Confirmation = ({ order }: any) => {
+const Confirmation = ({ auth, order }: any) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 2
-    }).format(price);
+    }).format(price ?? 0);
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('en-BD', {
       weekday: 'long',
       year: 'numeric',
@@ -43,34 +43,36 @@ const Confirmation = ({ order }: any) => {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'processing': 'bg-blue-100 text-blue-800',
-      'shipped': 'bg-indigo-100 text-indigo-800',
-      'delivered': 'bg-green-100 text-green-800',
-      'cancelled': 'bg-red-100 text-red-800',
-      'returned': 'bg-purple-100 text-purple-800'
+      pending:    'bg-yellow-100 text-yellow-800',
+      processing: 'bg-blue-100 text-blue-800',
+      shipped:    'bg-indigo-100 text-indigo-800',
+      delivered:  'bg-green-100 text-green-800',
+      cancelled:  'bg-red-100 text-red-800',
+      returned:   'bg-purple-100 text-purple-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   const getPaymentStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'paid': 'bg-green-100 text-green-800',
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'failed': 'bg-red-100 text-red-800',
-      'refunded': 'bg-purple-100 text-purple-800'
+      paid:     'bg-green-100 text-green-800',
+      pending:  'bg-yellow-100 text-yellow-800',
+      failed:   'bg-red-100 text-red-800',
+      refunded: 'bg-purple-100 text-purple-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const items = order.items || [];
+  // Laravel serializes orderItems relation as order_items in JSON
+  const items = order.order_items ?? [];
 
   return (
-    <AppLayout user={order.user}>
+    <AppLayout user={auth.user}>
       <Head title={`Order Confirmation - ${order.order_number}`} />
 
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
           {/* Success Header */}
           <div className="text-center mb-12">
             <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -80,7 +82,8 @@ const Confirmation = ({ order }: any) => {
               Order Confirmed!
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Thank you for your order! {order.payment_method === 'cash_on_delivery'
+              Thank you for your order!{' '}
+              {order.payment_method === 'cash_on_delivery'
                 ? `You'll pay ${formatPrice(order.total)} when your order is delivered.`
                 : 'Your payment is being processed.'}
             </p>
@@ -101,9 +104,11 @@ const Confirmation = ({ order }: any) => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Order Details */}
+
+            {/* Left Column */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Order Summary Card */}
+
+              {/* Order Summary */}
               <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
@@ -116,18 +121,22 @@ const Confirmation = ({ order }: any) => {
                   </button>
                 </div>
 
-                {/* Order Items */}
+                {/* Items */}
                 <div className="space-y-4 mb-8">
                   <h3 className="font-semibold text-gray-900 mb-4">Items ({items.length})</h3>
                   {items.map((item: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center">
                         <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center mr-4">
-                          {item.image ? (
+                          {item.product_image ? (
                             <img
-                              src={`/product_images/${item.image}`}
+                              src={`/storage/product_images/${item.product_image}`}
                               alt={item.product_name}
                               className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+                              }}
                             />
                           ) : (
                             <FaBox className="h-6 w-6 text-gray-400" />
@@ -138,10 +147,10 @@ const Confirmation = ({ order }: any) => {
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span>Qty: {item.quantity}</span>
                             <span>Price: {formatPrice(item.price)}</span>
-                            <span>Total: {formatPrice(item.total)}</span>
                           </div>
                         </div>
                       </div>
+                      <p className="font-semibold text-gray-900">{formatPrice(item.total)}</p>
                     </div>
                   ))}
                 </div>
@@ -152,20 +161,24 @@ const Confirmation = ({ order }: any) => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal</span>
+                      {/* DB field: subtotal */}
                       <span className="font-medium">{formatPrice(order.subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
-                      <span className="font-medium">{formatPrice(order.shipping)}</span>
+                      {/* DB field: delivery_charge (not "shipping") */}
+                      <span className="font-medium">{formatPrice(order.delivery_charge)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tax</span>
-                      <span className="font-medium">{formatPrice(order.tax)}</span>
+                      <span className="text-gray-600">Tax (10%)</span>
+                      {/* Tax is not stored — calculate it */}
+                      <span className="font-medium">{formatPrice(order.subtotal * 0.10)}</span>
                     </div>
-                    {order.discount > 0 && (
+                    {order.discount_amount > 0 && (
                       <div className="flex justify-between text-green-600">
-                        <span>Discount</span>
-                        <span className="font-medium">-{formatPrice(order.discount)}</span>
+                        {/* DB field: discount_amount (not "discount") */}
+                        <span>Discount {order.coupon_code && `(${order.coupon_code})`}</span>
+                        <span className="font-medium">-{formatPrice(order.discount_amount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-3">
@@ -179,11 +192,9 @@ const Confirmation = ({ order }: any) => {
                 <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                      {order.payment_method === 'cash_on_delivery' ? (
-                        <FaMoneyBill className="h-6 w-6 text-green-600" />
-                      ) : (
-                        <FaCreditCard className="h-6 w-6 text-blue-600" />
-                      )}
+                      {order.payment_method === 'cash_on_delivery'
+                        ? <FaMoneyBill className="h-6 w-6 text-green-600" />
+                        : <FaCreditCard className="h-6 w-6 text-blue-600" />}
                     </div>
                     <div>
                       <p className="font-bold text-gray-900">
@@ -199,7 +210,7 @@ const Confirmation = ({ order }: any) => {
                 </div>
               </div>
 
-              {/* Order Status Timeline */}
+              {/* Order Timeline */}
               <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Order Timeline</h2>
                 <div className="space-y-6">
@@ -240,7 +251,10 @@ const Confirmation = ({ order }: any) => {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">Shipping</p>
-                      <p className="text-sm text-gray-500">Order will be shipped to your address</p>
+                      <p className="text-sm text-gray-500">
+                        {/* DB field: shipping_method */}
+                        {order.shipping_method === 'pathao' ? 'Pathao Express Delivery' : 'Standard Delivery'}
+                      </p>
                       {order.tracking_number && (
                         <p className="text-xs text-blue-600 mt-1">Tracking: {order.tracking_number}</p>
                       )}
@@ -269,8 +283,9 @@ const Confirmation = ({ order }: any) => {
               </div>
             </div>
 
-            {/* Right Column - Customer & Store Info */}
+            {/* Right Column */}
             <div className="space-y-8">
+
               {/* Customer Information */}
               <div className="bg-white rounded-2xl shadow-xl p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Customer Information</h2>
@@ -282,7 +297,6 @@ const Confirmation = ({ order }: any) => {
                       <p className="font-medium text-gray-900">{order.order_number}</p>
                     </div>
                   </div>
-
                   <div className="flex items-start">
                     <FaUser className="h-4 w-4 text-gray-400 mt-1 mr-3" />
                     <div>
@@ -290,7 +304,6 @@ const Confirmation = ({ order }: any) => {
                       <p className="font-medium text-gray-900">{order.customer_name}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center">
                     <FaEnvelope className="h-4 w-4 text-gray-400 mr-3" />
                     <div>
@@ -298,23 +311,22 @@ const Confirmation = ({ order }: any) => {
                       <p className="font-medium text-gray-900">{order.customer_email}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center">
                     <FaPhone className="h-4 w-4 text-gray-400 mr-3" />
                     <div>
                       <p className="text-sm text-gray-500">Phone</p>
+                      {/* DB field: customer_phone */}
                       <p className="font-medium text-gray-900">{order.customer_phone}</p>
                     </div>
                   </div>
-
                   <div className="flex items-start">
                     <FaMapMarkerAlt className="h-4 w-4 text-gray-400 mt-1 mr-3" />
                     <div>
                       <p className="text-sm text-gray-500">Delivery Address</p>
-                      <p className="font-medium text-gray-900">{order.customer_address}</p>
+                      {/* DB field: recipient_address (not customer_address) */}
+                      <p className="font-medium text-gray-900">{order.recipient_address}</p>
                     </div>
                   </div>
-
                   <div className="flex items-start">
                     <FaCalendar className="h-4 w-4 text-gray-400 mt-1 mr-3" />
                     <div>
@@ -335,8 +347,15 @@ const Confirmation = ({ order }: any) => {
                   <p className="font-medium text-gray-900">{order.store_name}</p>
                   {order.store && (
                     <>
-                      <p className="text-sm text-gray-600">{order.store.address}</p>
-                      <p className="text-sm text-gray-600">Phone: {order.store.mobile}</p>
+                      {order.store.address && (
+                        <p className="text-sm text-gray-600">{order.store.address}</p>
+                      )}
+                      {/* DB field: store.mobile or store.phone */}
+                      {(order.store.mobile || order.store.phone) && (
+                        <p className="text-sm text-gray-600">
+                          Phone: {order.store.mobile ?? order.store.phone}
+                        </p>
+                      )}
                     </>
                   )}
                 </div>

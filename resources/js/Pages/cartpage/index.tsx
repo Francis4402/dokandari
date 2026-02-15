@@ -20,13 +20,17 @@ import {
   FaStar,
   FaShare,
   FaSync,
-  FaGift
+  FaGift,
+  FaMapMarkerAlt,
+  FaTruckLoading,
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore } from '../state/cartStore';
 import ClearCartDialog from '../dialogpopups/ClearCartDialog';
-
-
+import { useEffect } from 'react';
+import axios from 'axios';
+import { areatypes, citytypes, zonetypes } from '@/types';
+import { toast } from 'sonner';
 
 const CartPage = ({ auth }: { auth: { user: any } }) => {
   const {
@@ -39,13 +43,24 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     getShipping,
     increaseQty,
     decreaseQty,
-    getItemById
+    getItemById,
+    shippingMethod,
+    pathaoCharges,
+    selectedCity,
+    selectedZone,
+    selectedArea,
+    setShippingMethod,
+    setPathaoCharges,
+    setSelectedCity,
+    setSelectedZone,
+    setSelectedArea,
+    setCities,
+    setZonesCart,
+    setAreasCart
   } = useStore();
 
   const [isOpen, setIsOpen] = useState(false);
-
   const [couponCode, setCouponCode] = useState('');
-
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discount: number;
@@ -55,6 +70,121 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     discount: 15,
     type: 'percentage'
   });
+
+  // Local state only for API data
+  const [cities, setLocalCities] = useState<citytypes[]>([]);
+  const [zones, setZones] = useState<zonetypes[]>([]);
+  const [areas, setAreas] = useState<areatypes[]>([]);
+  const [loadingPathao, setLoadingPathao] = useState(false);
+
+  useEffect(() => {
+    fetchCities();
+  }, []);
+
+  const fetchCities = async () => {
+    setLoadingPathao(true);
+    try {
+      const res = await axios.get('/api/pathao/cities');
+      const citiesData = res.data.data.data.map((city: any) => ({
+        city_id: city.city_id,
+        city_name: city.city_name
+      }));
+      setLocalCities(citiesData);
+      setCities(citiesData); // Store in Zustand
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    } finally {
+      setLoadingPathao(false);
+    }
+  }
+
+  const fetchZone = async (cityId: string) => {
+    if (!cityId) return;
+
+    setLoadingPathao(true);
+    try {
+      const res = await axios.get(`/api/pathao/zones/${cityId}`);
+      const zonesData = res.data.data.data.map((zone: any) => ({
+        zone_id: zone.zone_id,
+        zone_name: zone.zone_name
+      }));
+      setZones(zonesData);
+      setZonesCart(zonesData);
+      setAreas([]);
+    } catch (error) {
+      console.error('Error fetching zones:', error);
+      setZones([]);
+    } finally {
+      setLoadingPathao(false);
+    }
+  }
+
+  const fetchArea = async (zoneId: string) => {
+    if (!zoneId) return;
+
+    setLoadingPathao(true);
+    try {
+      const res = await axios.get(`/api/pathao/areas/${zoneId}`);
+      const areasData = res.data.data.data.map((area: any) => ({
+        area_id: area.area_id,
+        area_name: area.area_name,
+        home_delivery_available: area.home_delivery_available || false,
+        pickup_available: area.pickup_available || false
+      }));
+      setAreas(areasData);
+      setAreasCart(areasData);
+    } catch (error) {
+      console.error('Error fetching areas:', error);
+      setAreas([]);
+    } finally {
+      setLoadingPathao(false);
+    }
+  }
+
+
+  const calculateShippingCharge = (cityId: string) => {
+    const selectedCityData = cities.find(city => city.city_id === parseInt(cityId));
+    const isChittagong = selectedCityData?.city_name?.toLowerCase().includes('chittagong') ||
+                        selectedCityData?.city_name?.toLowerCase().includes('chattogram');
+
+    return isChittagong ? 80 : 120;
+  };
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    setSelectedCity(cityId);
+
+    if (cityId) {
+      const shippingCharge = calculateShippingCharge(cityId);
+      setPathaoCharges({
+        delivery_charge: shippingCharge,
+        cod_charge: 0,
+        total_charge: shippingCharge
+      });
+
+      fetchZone(cityId);
+    } else {
+      setZones([]);
+      setAreas([]);
+      setPathaoCharges(null);
+    }
+  }
+
+  const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const zoneId = e.target.value;
+    setSelectedZone(zoneId);
+    if (zoneId) {
+      fetchArea(zoneId);
+    } else {
+      setAreas([]);
+    }
+  }
+
+  const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const areaId = e.target.value;
+    setSelectedArea(areaId);
+
+  }
 
   function open() {
     setIsOpen(true)
@@ -67,9 +197,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   const confirmClearCart = () => {
     clearCart();
     close();
-};
-
-
+  };
 
   const calculateTotals = () => {
     const subtotal = getSubTotal();
@@ -77,7 +205,6 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     const shipping = getShipping();
     const item_count = getTotalItems();
 
-    // Apply coupon discount
     const discount = appliedCoupon ?
       (appliedCoupon.type === 'percentage' ?
         subtotal * (appliedCoupon.discount / 100) :
@@ -111,10 +238,9 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     const item = cartItems.find(item => item.id === itemId);
     if (item) {
       removeFromCart(itemId);
-      console.log('Moved to wishlist:', item.name);
+      toast.success(`${item.name} moved to wishlist`);
     }
   };
-
 
   const applyCoupon = () => {
     if (!couponCode.trim()) return;
@@ -131,13 +257,15 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     if (coupon) {
       setAppliedCoupon(coupon);
       setCouponCode('');
+      toast.success(`Coupon ${coupon.code} applied!`);
     } else {
-      alert('Invalid coupon code');
+      toast.error('Invalid coupon code');
     }
   };
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
+    toast.success('Coupon removed');
   };
 
   const formatPrice = (price: number) => {
@@ -160,10 +288,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
 
   const getFirstImage = (images: string) => {
     try {
-      // Parse the JSON string
       const parsed = JSON.parse(images);
-
-      // Handle both array and single string
       let imageName = '';
       if (Array.isArray(parsed) && parsed.length > 0) {
         imageName = parsed[0];
@@ -172,11 +297,9 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
       }
 
       if (imageName) {
-        // Construct full URL
         return `${window.location.origin}/product_images/${imageName}`;
       }
     } catch (error) {
-      // If parsing fails, try to extract from string
       if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
@@ -188,7 +311,6 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   };
 
-  // Calculate savings from sale prices
   const calculateSaleSavings = () => {
     return cartItems.reduce((sum, item) => {
       const regular = (item.regular_price);
@@ -200,6 +322,18 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
       }
       return sum;
     }, 0);
+  };
+
+  const getSelectedCityName = () => {
+    const city = cities.find(c => c.city_id === parseFloat(selectedCity));
+    return city?.city_name || '';
+  };
+
+  const getShippingRateText = () => {
+    if (!selectedCity) return 'Select a city';
+    const isChittagong = getSelectedCityName().toLowerCase().includes('chittagong') ||
+                        getSelectedCityName().toLowerCase().includes('chattogram');
+    return isChittagong ? '80 BDT' : '120 BDT';
   };
 
   return (
@@ -233,13 +367,13 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                 </Link>
 
                 {cartItems.length > 0 && (
-                    <button
-                        onClick={open}
-                        className="inline-flex items-center px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                    >
-                        <FaTrash className="h-4 w-4 mr-2" />
-                        Clear Cart
-                    </button>
+                  <button
+                    onClick={open}
+                    className="inline-flex items-center px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <FaTrash className="h-4 w-4 mr-2" />
+                    Clear Cart
+                  </button>
                 )}
               </div>
             </div>
@@ -373,11 +507,11 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                                     </div>
                                     <div className="text-right">
                                       <div className="text-lg font-bold text-gray-900">
-                                        {currentPrice}
+                                        {formatPrice(currentPrice)}
                                       </div>
                                       {salePrice && (
                                         <div className="text-sm text-gray-500 line-through">
-                                          {regularPrice}
+                                          {formatPrice(regularPrice)}
                                         </div>
                                       )}
                                     </div>
@@ -550,6 +684,189 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                             </div>
                           </div>
                         )}
+                      </div>
+
+                      {/* Delivery Options */}
+                      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl shadow-lg p-6 border border-gray-200 mb-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                          <FaTruck className="h-5 w-5 mr-2 text-green-600" />
+                          Delivery Options
+                        </h2>
+
+                        <div className="space-y-4">
+                          {/* Shipping Method Selection */}
+                          <div className="grid grid-cols-1 gap-3">
+                            {/* Standard Shipping */}
+                            <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                              shippingMethod === 'standard'
+                                ? 'border-blue-500 bg-blue-50 shadow-md'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="shipping_method"
+                                value="standard"
+                                checked={shippingMethod === 'standard'}
+                                onChange={() => setShippingMethod('standard')}
+                                className="h-4 w-4 text-blue-600"
+                              />
+                              <div className="ml-3 flex-grow">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-bold text-gray-900 text-sm">Standard Shipping</p>
+                                  {shippingMethod === 'standard' && (
+                                    <FaCheckCircle className="h-4 w-4 text-blue-600" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  5-7 business days • {formatPrice(120)}
+                                </p>
+                              </div>
+                            </label>
+
+                            {/* Pathao Shipping */}
+                            <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                              shippingMethod === 'pathao'
+                                ? 'border-green-500 bg-green-50 shadow-md'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="shipping_method"
+                                value="pathao"
+                                checked={shippingMethod === 'pathao'}
+                                onChange={() => setShippingMethod('pathao')}
+                                className="h-4 w-4 text-green-600"
+                              />
+                              <div className="ml-3 flex-grow">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <FaTruckLoading className="h-4 w-4 text-green-600 mr-2" />
+                                    <p className="font-bold text-gray-900 text-sm">Pathao Delivery</p>
+                                  </div>
+                                  {shippingMethod === 'pathao' && (
+                                    <FaCheckCircle className="h-4 w-4 text-green-600" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  Fast delivery across Bangladesh • {getSelectedCityName() ? getShippingRateText() : 'Select city'}
+                                </p>
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* Pathao Configuration */}
+                          {shippingMethod === 'pathao' && (
+                            <div className="mt-4 p-4 bg-white rounded-xl border-2 border-green-200">
+                              <h3 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
+                                <FaMapMarkerAlt className="h-4 w-4 text-green-600 mr-2" />
+                                Select Delivery Location
+                              </h3>
+
+                              {/* Loading State */}
+                              {loadingPathao && (
+                                <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                                  <p className="text-xs text-blue-700 font-medium flex items-center">
+                                    <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
+                                    Loading locations...
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Location Selectors */}
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    City *
+                                  </label>
+                                  <select
+                                    value={selectedCity}
+                                    onChange={handleCityChange}
+                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                    disabled={loadingPathao}
+                                  >
+                                    <option value="">Select City</option>
+                                    {cities.map((city) => (
+                                      <option key={city.city_id} value={city.city_id}>
+                                        {city.city_name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    Zone *
+                                  </label>
+                                  <select
+                                    value={selectedZone}
+                                    onChange={handleZoneChange}
+                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                    disabled={!selectedCity || loadingPathao}
+                                  >
+                                    <option value="">Select Zone</option>
+                                    {zones.map((zone) => (
+                                      <option key={zone.zone_id} value={zone.zone_id}>
+                                        {zone.zone_name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    Area *
+                                  </label>
+                                  <select
+                                    value={selectedArea}
+                                    onChange={handleAreaChange}
+                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                    disabled={!selectedZone || loadingPathao}
+                                  >
+                                    <option value="">Select Area</option>
+                                    {areas.map((area) => (
+                                      <option key={area.area_id} value={area.area_id}>
+                                        {area.area_name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Shipping Rate Display */}
+                              {selectedCity && (
+                                <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
+                                  <div className="flex items-center mb-3">
+                                    <FaCheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                                    <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
+                                  </div>
+
+                                  {/* Show city-based pricing info */}
+                                  <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                    <p className="text-xs text-blue-700 flex items-center">
+                                      <FaMapMarkerAlt className="h-3 w-3 mr-1" />
+                                      {getSelectedCityName().toLowerCase().includes('chittagong') ||
+                                       getSelectedCityName().toLowerCase().includes('chattogram')
+                                        ? '✓ Chittagong delivery: 80 BDT'
+                                        : '✓ Outside Chittagong: 120 BDT'}
+                                    </p>
+                                  </div>
+
+                                  <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                                    <p className="text-xs text-green-700 font-semibold mb-1">Total Shipping Charge</p>
+                                    <p className="text-2xl font-bold text-green-700">
+                                      {pathaoCharges ? formatPrice(pathaoCharges.total_charge) : getShippingRateText()}
+                                    </p>
+                                    {!selectedArea && (
+                                      <p className="text-xs text-gray-600 mt-2">
+                                        Select area to complete delivery address
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Coupon Code */}

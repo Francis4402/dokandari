@@ -11,4 +11,14 @@ class Products extends Model
     use HasFactory, HasUuids;
 
     protected $guarded = [];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id', 'id');
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItems::class, 'product_id', 'id');
+    }
 }

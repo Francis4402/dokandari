@@ -144,8 +144,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                     className="-m-2.5 p-2.5"
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <span className="sr-only">Close sidebar</span>
-                    <FiX className="h-6 w-6 text-white" aria-hidden="true" />
+
+
                   </button>
                 </div>
 
