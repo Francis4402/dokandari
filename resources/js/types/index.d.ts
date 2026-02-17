@@ -181,6 +181,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   total: number;
+  weight: number;
   created_at?: string;
   updated_at?: string;
 }

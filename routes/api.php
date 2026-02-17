@@ -23,3 +23,6 @@ Route::get('/pathao/cities', [PathaoController::class, 'cities']);
 Route::get('/pathao/zones/{city_id}', [PathaoController::class, 'zones']);
 Route::get('/pathao/areas/{zone_id}', [PathaoController::class, 'areas']);
 
+Route::post('/pathao/calculate-price', [PathaoController::class, 'calculatePrice']);
+
+Route::get('/pathao/getpathaostore', [PathaoController::class, 'getStores'])->name('pathao.store');

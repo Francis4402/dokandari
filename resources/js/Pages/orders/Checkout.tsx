@@ -10,7 +10,6 @@ import {
   FaShoppingCart,
   FaExclamationCircle,
   FaCheckCircle,
-  FaCreditCard,
   FaMapMarkerAlt,
   FaBox,
   FaTag,
@@ -21,6 +20,7 @@ import {
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore, OrderData } from '../state/cartStore';
+import { toast } from 'sonner';
 
 const Checkout = ({ auth }: any) => {
   const {
@@ -35,8 +35,6 @@ const Checkout = ({ auth }: any) => {
     cities,
     zones,
     areas,
-    isChittagong,
-    getFormattedCartItems
   } = useStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,7 +51,7 @@ const Checkout = ({ auth }: any) => {
   });
 
   const summary = getOrderSummary();
-  const formattedItems = getFormattedCartItems();
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {
@@ -69,16 +67,16 @@ const Checkout = ({ auth }: any) => {
       const parsed = JSON.parse(images);
       const imageName = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed;
       if (imageName) {
-        return `${window.location.origin}/storage/product_images/${imageName}`;
+        return `${window.location.origin}/product_images/${imageName}`;
       }
     } catch {
       if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
-          return `${window.location.origin}/storage/product_images/${matches[1]}`;
+          return `${window.location.origin}/product_images/${matches[1]}`;
         }
         if (images && !images.includes('"')) {
-          return `${window.location.origin}/storage/product_images/${images}`;
+          return `${window.location.origin}/product_images/${images}`;
         }
       }
     }
@@ -137,57 +135,67 @@ const Checkout = ({ auth }: any) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    if (!validateForm()) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    setIsProcessing(true);
-    setError('');
-    setValidationErrors({});
-
-    const orderData: OrderData = {
-      customer_name: data.customer_name,
-      customer_email: data.customer_email,
-      customer_phone: data.customer_phone,
-      customer_address: getFullAddress(),
-      notes: data.notes,
-      payment_method: data.payment_method,
-      shipping_method: shippingMethod,
-      ...(shippingMethod === 'pathao' ? {
-        pathao_city: selectedCity,
-        pathao_city_name: getSelectedCityName(),
-        pathao_zone: selectedZone,
-        pathao_zone_name: getSelectedZoneName(),
-        pathao_area: selectedArea,
-        pathao_area_name: getSelectedAreaName(),
-        pathao_charges: pathaoCharges || {
-          delivery_charge: isChittagong() ? 80 : 120,
-          cod_charge: 0,
-          total_charge: isChittagong() ? 80 : 120
+        if (!validateForm()) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
         }
-      } : {})
+
+        setIsProcessing(true);
+        setError('');
+        setValidationErrors({});
+
+        // Ensure we have all required Pathao data
+        if (shippingMethod === 'pathao') {
+            if (!selectedCity || !selectedZone || !selectedArea || !pathaoCharges) {
+                toast.error('Please complete all delivery information');
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        const orderData: OrderData = {
+            customer_name: data.customer_name,
+            customer_email: data.customer_email,
+            customer_phone: data.customer_phone,
+            customer_address: getFullAddress(),
+            notes: data.notes,
+            payment_method: data.payment_method,
+            shipping_method: shippingMethod,
+
+            amount_to_collect: summary.total,
+
+            ...(shippingMethod === 'pathao' && selectedCity && selectedZone && selectedArea && pathaoCharges ? {
+                // Use field names that match validation
+                pathao_city: selectedCity,  // Send as string ID
+                pathao_city_name: getSelectedCityName(),
+                pathao_zone: selectedZone,  // Send as string ID
+                pathao_zone_name: getSelectedZoneName(),
+                pathao_area: selectedArea,  // Send as string ID
+                pathao_area_name: getSelectedAreaName(),
+                pathao_delivery_charge: pathaoCharges.delivery_charge,
+                pathao_total_charge: pathaoCharges.delivery_charge, // Same as delivery charge
+                delivery_charge: pathaoCharges.delivery_charge,
+                estimated_delivery: getEstimatedDelivery()
+            } : {})
+        };
+
+        try {
+            await processCheckout(orderData);
+        } catch (err: any) {
+            console.error('Checkout error:', err);
+            if (err && typeof err === 'object') {
+                setValidationErrors(err);
+                setError('Please fix the validation errors below');
+            } else {
+                setError('Failed to process checkout. Please try again.');
+            }
+        } finally {
+            setIsProcessing(false);
+        }
     };
-
-    try {
-      await processCheckout(orderData);
-    } catch (err: any) {
-      console.error('Checkout error:', err);
-
-      // Handle validation errors from server
-      if (err && typeof err === 'object') {
-        setValidationErrors(err);
-        setError('Please fix the validation errors below');
-      } else {
-        setError('Failed to process checkout. Please try again.');
-      }
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   // If cart is empty
   if (cartItems.length === 0) {

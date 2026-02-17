@@ -130,7 +130,7 @@ const Confirmation = ({ auth, order }: any) => {
                         <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center mr-4">
                           {item.product_image ? (
                             <img
-                              src={`/storage/product_images/${item.product_image}`}
+                              src={`/product_images/${item.product_image}`}
                               alt={item.product_name}
                               className="w-full h-full object-cover rounded-lg"
                               onError={(e) => {

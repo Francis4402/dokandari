@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+// cartpage/index.tsx
+import { useState, useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
   FaShoppingCart,
   FaTrash,
@@ -25,14 +26,20 @@ import {
   FaTruckLoading,
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
-import { useStore } from '../state/cartStore';
-import ClearCartDialog from '../dialogpopups/ClearCartDialog';
-import { useEffect } from 'react';
 import axios from 'axios';
 import { areatypes, citytypes, zonetypes } from '@/types';
 import { toast } from 'sonner';
+import { useStore } from '../state/cartStore';
+import ClearCartDialog from '../dialogpopups/ClearCartDialog';
 
-const CartPage = ({ auth }: { auth: { user: any } }) => {
+interface CartPageProps {
+  auth: {
+    user: any;
+  };
+  pathaoStoreId?: number | null;
+}
+
+const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
   const {
     cart: cartItems,
     removeFromCart,
@@ -44,7 +51,6 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     increaseQty,
     decreaseQty,
     getItemById,
-    shippingMethod,
     pathaoCharges,
     selectedCity,
     selectedZone,
@@ -56,7 +62,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     setSelectedArea,
     setCities,
     setZonesCart,
-    setAreasCart
+    setAreasCart,
+    getFormattedCartItems
   } = useStore();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -65,17 +72,28 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     code: string;
     discount: number;
     type: 'percentage' | 'fixed';
-  } | null>({
-    code: 'WELCOME15',
-    discount: 15,
-    type: 'percentage'
-  });
+  } | null>(null);
 
   // Local state only for API data
   const [cities, setLocalCities] = useState<citytypes[]>([]);
   const [zones, setZones] = useState<zonetypes[]>([]);
   const [areas, setAreas] = useState<areatypes[]>([]);
   const [loadingPathao, setLoadingPathao] = useState(false);
+
+
+  const storeId = pathaoStoreId || 367082;
+
+  // Log for debugging
+  useEffect(() => {
+    console.log('CartPage mounted with storeId:', storeId);
+    console.log('Cart items:', cartItems);
+    console.log('Cart items length:', cartItems?.length);
+  }, []);
+
+
+  useEffect(() => {
+    setShippingMethod('pathao');
+  }, []);
 
   useEffect(() => {
     fetchCities();
@@ -90,9 +108,10 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
         city_name: city.city_name
       }));
       setLocalCities(citiesData);
-      setCities(citiesData); // Store in Zustand
+      setCities(citiesData);
     } catch (error) {
       console.error('Error fetching cities:', error);
+      toast.error('Failed to load cities');
     } finally {
       setLoadingPathao(false);
     }
@@ -114,6 +133,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     } catch (error) {
       console.error('Error fetching zones:', error);
       setZones([]);
+      toast.error('Failed to load zones');
     } finally {
       setLoadingPathao(false);
     }
@@ -136,63 +156,135 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     } catch (error) {
       console.error('Error fetching areas:', error);
       setAreas([]);
+      toast.error('Failed to load areas');
     } finally {
       setLoadingPathao(false);
     }
   }
 
+  const calculatePathaoPrice = async (cityId: string, zoneId: string, areaId: string) => {
+    if (!cityId || !zoneId || !areaId) {
+        toast.error('Please select all delivery locations');
+        return;
+    }
 
-  const calculateShippingCharge = (cityId: string) => {
-    const selectedCityData = cities.find(city => city.city_id === parseInt(cityId));
-    const isChittagong = selectedCityData?.city_name?.toLowerCase().includes('chittagong') ||
-                        selectedCityData?.city_name?.toLowerCase().includes('chattogram');
+    setLoadingPathao(true);
+    try {
+        const subtotal = getSubTotal();
+        const itemCount = getTotalItems();
+        const items = getFormattedCartItems();
 
-    return isChittagong ? 80 : 120;
-  };
+        console.log('💰 Price Calculation Debug:', {
+            storeId: 367082,
+            subtotal,
+            itemCount,
+            items,
+            cityId,
+            zoneId,
+            areaId
+        });
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const totalWeight = items.reduce((sum, item) => {
+            return sum + ((item.weight || 0.5) * item.quantity);
+        }, 0);
+
+        const priceRequest = {
+            store_id: 367082,
+            sender_city: 2,
+            recipient_city: parseInt(cityId),
+            recipient_zone: parseInt(zoneId),
+            recipient_area: parseInt(areaId),
+            item_type: 2,
+            item_weight: Math.max(0.5, totalWeight),
+            item_quantity: itemCount,
+            amount_to_collect: subtotal,
+            delivery_type: 48
+        };
+
+        console.log('📦 Price Calculation Request:', priceRequest);
+
+        const response = await axios.post('/api/pathao/calculate-price', priceRequest);
+
+        console.log('📨 Price Calculation Response:', response.data);
+
+        if (response.data?.data?.data) {
+            const priceData = response.data.data.data;
+
+            console.log('✅ Pathao Price Data:', priceData);
+
+            // Get base delivery charge from API
+            const baseDeliveryCharge = priceData.price || priceData.final_price || 0;
+
+            // Add 20 BDT extra
+            const totalDeliveryCharge = baseDeliveryCharge + 20;
+
+            // Simple charges object with base and total
+            const charges = {
+                delivery_charge: baseDeliveryCharge, // Keep base for reference
+                total_delivery_charge: totalDeliveryCharge // Total with extra
+            };
+
+            console.log('💰 Setting pathaoCharges:', {
+                base: baseDeliveryCharge,
+                extra: 20,
+                total: totalDeliveryCharge
+            });
+
+            setPathaoCharges(charges);
+
+            toast.success(`Shipping price: ${formatPrice(baseDeliveryCharge)} + 20 BDT extra = ${formatPrice(totalDeliveryCharge)}`);
+        } else {
+            console.error('❌ Invalid response structure:', response.data);
+            throw new Error('Invalid response from server');
+        }
+    } catch (error: any) {
+        console.error('❌ Error calculating Pathao price:', error);
+        console.error('Error response:', error.response?.data);
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to calculate shipping price';
+        toast.error(errorMessage);
+        setPathaoCharges(null);
+    } finally {
+        setLoadingPathao(false);
+    }
+};
+
+  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cityId = e.target.value;
     setSelectedCity(cityId);
+    setSelectedZone('');
+    setSelectedArea('');
+    setZones([]);
+    setAreas([]);
+    setPathaoCharges(null);
 
     if (cityId) {
-      const shippingCharge = calculateShippingCharge(cityId);
-      setPathaoCharges({
-        delivery_charge: shippingCharge,
-        cod_charge: 0,
-        total_charge: shippingCharge
-      });
-
-      fetchZone(cityId);
-    } else {
-      setZones([]);
-      setAreas([]);
-      setPathaoCharges(null);
+      await fetchZone(cityId);
     }
-  }
+  };
 
-  const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleZoneChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const zoneId = e.target.value;
     setSelectedZone(zoneId);
-    if (zoneId) {
-      fetchArea(zoneId);
-    } else {
-      setAreas([]);
-    }
-  }
+    setSelectedArea('');
+    setAreas([]);
+    setPathaoCharges(null);
 
-  const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (zoneId) {
+      await fetchArea(zoneId);
+    }
+  };
+
+  const handleAreaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const areaId = e.target.value;
     setSelectedArea(areaId);
 
-  }
+    if (selectedCity && selectedZone && areaId) {
+      await calculatePathaoPrice(selectedCity, selectedZone, areaId);
+    }
+  };
 
-  function open() {
-    setIsOpen(true)
-  }
-
-  function close() {
-    setIsOpen(false)
-  }
+  const open = () => setIsOpen(true);
+  const close = () => setIsOpen(false);
 
   const confirmClearCart = () => {
     clearCart();
@@ -205,11 +297,12 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     const shipping = getShipping();
     const item_count = getTotalItems();
 
-    const discount = appliedCoupon ?
-      (appliedCoupon.type === 'percentage' ?
-        subtotal * (appliedCoupon.discount / 100) :
-        Math.min(appliedCoupon.discount, subtotal)) :
-      0;
+    let discount = 0;
+    if (appliedCoupon) {
+      discount = appliedCoupon.type === 'percentage'
+        ? subtotal * (appliedCoupon.discount / 100)
+        : Math.min(appliedCoupon.discount, subtotal);
+    }
 
     const total = Math.max(0, subtotal + tax + shipping - discount);
 
@@ -218,24 +311,30 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
 
   const cartTotals = calculateTotals();
 
-  const handleIncreaseQuantity = (itemId: string) => {
+  const handleIncreaseQuantity = async (itemId: string) => {
     const item = getItemById(itemId);
     if (item && item.cartQty && item.cartQty < item.quantity) {
       increaseQty(itemId);
+      if (selectedCity && selectedZone && selectedArea) {
+        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+      }
     }
   };
 
-  const handleDecreaseQuantity = (itemId: string) => {
+  const handleDecreaseQuantity = async (itemId: string) => {
     const item = getItemById(itemId);
     if (item && item.cartQty && item.cartQty > 1) {
       decreaseQty(itemId);
+      if (selectedCity && selectedZone && selectedArea) {
+        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+      }
     } else {
       removeFromCart(itemId);
     }
   };
 
   const moveToWishlist = (itemId: string) => {
-    const item = cartItems.find(item => item.id === itemId);
+    const item = cartItems?.find(item => item.id === itemId);
     if (item) {
       removeFromCart(itemId);
       toast.success(`${item.name} moved to wishlist`);
@@ -312,7 +411,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
   };
 
   const calculateSaleSavings = () => {
-    return cartItems.reduce((sum, item) => {
+    return (cartItems || []).reduce((sum, item) => {
       const regular = (item.regular_price);
       const sale = (item.sale_price);
       const quantity = item.cartQty || 1;
@@ -329,12 +428,40 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
     return city?.city_name || '';
   };
 
-  const getShippingRateText = () => {
-    if (!selectedCity) return 'Select a city';
-    const isChittagong = getSelectedCityName().toLowerCase().includes('chittagong') ||
-                        getSelectedCityName().toLowerCase().includes('chattogram');
-    return isChittagong ? '80 BDT' : '120 BDT';
+  const isCheckoutDisabled = () => {
+    return !selectedCity || !selectedZone || !selectedArea || !pathaoCharges || loadingPathao;
   };
+
+  // Check if cart is empty or undefined
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <AppLayout user={auth.user}>
+        <Head title="Shopping Cart" />
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
+                <FaShoppingCart className="h-12 w-12 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Looks like you haven't added any products to your cart yet. Start shopping to discover amazing products!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/products"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <FaArrowRight className="h-4 w-4 mr-2" />
+                  Browse Products
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={auth.user}>
@@ -353,7 +480,7 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
                   Shopping Cart
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Review and manage your items before checkout
+                  Review your items and select delivery location for Pathao shipping
                 </p>
               </div>
 
@@ -393,8 +520,8 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
               <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Estimated Total</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatPrice(cartTotals.total)}</p>
+                    <p className="text-sm text-gray-600">Subtotal</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatPrice(cartTotals.subtotal)}</p>
                   </div>
                   <FaCreditCard className="h-8 w-8 text-green-500" />
                 </div>
@@ -414,540 +541,500 @@ const CartPage = ({ auth }: { auth: { user: any } }) => {
             </div>
           </div>
 
-          {cartItems.length === 0 ? (
-            // Empty Cart State
-            <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
-                <FaShoppingCart className="h-12 w-12 text-blue-600" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+                <div className="p-6 border-b border-gray-200 bg-gray-50">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Your Items ({cartTotals.item_count})
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+                  {cartItems.map((item) => {
+                    const regularPrice = (item.regular_price);
+                    const salePrice = item.sale_price ? (item.sale_price) : null;
+                    const discountPercent = calculateDiscountPercentage(regularPrice, salePrice);
+                    const stockStatus = getStockStatus(item.inStock);
+                    const currentPrice = salePrice || regularPrice;
+                    const quantity = item.cartQty || 1;
+                    const totalPrice = currentPrice * quantity;
+                    const imageUrl = getFirstImage(item.images);
+                    const rating = item.rating || 0;
+
+                    return (
+                      <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex flex-col sm:flex-row gap-6">
+                          {/* Product Image */}
+                          <div className="flex-shrink-0">
+                            <div className="relative group">
+                              <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                                <img
+                                  src={imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+                                  }}
+                                />
+                              </div>
+                              {discountPercent > 0 && (
+                                <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                  -{discountPercent}%
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Product Info */}
+                          <div className="flex-grow">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                              <div className="flex-grow">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <Link href={`/products/${item.slug}`}>
+                                      <h3 className="font-semibold text-gray-900 text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer">
+                                        {item.name}
+                                      </h3>
+                                    </Link>
+                                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                      {item.description}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-lg font-bold text-gray-900">
+                                      {formatPrice(currentPrice)}
+                                    </div>
+                                    {salePrice && (
+                                      <div className="text-sm text-gray-500 line-through">
+                                        {formatPrice(regularPrice)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Product Meta */}
+                                <div className="flex flex-wrap items-center gap-3 mb-4">
+                                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                    {item.category}
+                                  </span>
+                                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${stockStatus.color}`}>
+                                    {stockStatus.label}
+                                  </span>
+                                  {rating > 0 && (
+                                    <span className="flex items-center text-xs text-gray-600">
+                                      <FaStar className="h-3 w-3 text-yellow-400 mr-1" />
+                                      {rating}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Quantity Controls & Actions */}
+                                <div className="flex flex-wrap items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    {/* Quantity Controls */}
+                                    <div className="flex items-center border border-gray-300 rounded-lg bg-white">
+                                      <button
+                                        onClick={() => handleDecreaseQuantity(item.id)}
+                                        disabled={quantity <= 1}
+                                        className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                                      >
+                                        <FaMinus className="h-3 w-3" />
+                                      </button>
+                                      <span className="w-12 text-center py-2 text-gray-900 font-medium border-x border-gray-300">
+                                        {quantity}
+                                      </span>
+                                      <button
+                                        onClick={() => handleIncreaseQuantity(item.id)}
+                                        disabled={quantity >= item.quantity}
+                                        className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
+                                      >
+                                        <FaPlus className="h-3 w-3" />
+                                      </button>
+                                    </div>
+
+                                    {/* Item Total */}
+                                    <div className="text-sm font-semibold text-gray-900">
+                                      Total: {formatPrice(totalPrice)}
+                                    </div>
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center space-x-4 mt-3 sm:mt-0">
+                                    <button
+                                      onClick={() => moveToWishlist(item.id)}
+                                      className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-3 py-2 rounded-lg transition-colors"
+                                    >
+                                      <FaHeart className="h-4 w-4 mr-2" />
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => removeFromCart(item.id)}
+                                      className="inline-flex items-center text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+                                    >
+                                      <FaTrash className="h-4 w-4 mr-2" />
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                Looks like you haven't added any products to your cart yet. Start shopping to discover amazing products!
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/products"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <FaArrowRight className="h-4 w-4 mr-2" />
-                  Browse Products
-                </Link>
+
+              {/* Trust Badges */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                    <FaShieldAlt className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Secure Checkout</p>
+                    <p className="text-sm text-gray-600">Your data is protected</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                    <FaTruck className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Pathao Delivery</p>
+                    <p className="text-sm text-gray-600">Fast & reliable shipping</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                    <FaUndo className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Easy Returns</p>
+                    <p className="text-sm text-gray-600">30-day return policy</p>
+                  </div>
+                </div>
               </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Cart Items */}
-              <div className="lg:col-span-2">
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-6 space-y-6">
+                {/* Order Summary Card */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
                   <div className="p-6 border-b border-gray-200 bg-gray-50">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        Your Items ({cartTotals.item_count})
-                      </h2>
-                      <div className="flex items-center space-x-2">
-                        <button className="text-sm text-blue-600 hover:text-blue-700 flex items-center">
-                          <FaSync className="h-4 w-4 mr-1" />
-                          Update All
-                        </button>
-                        <button className="text-sm text-gray-600 hover:text-gray-700 flex items-center">
-                          <FaShare className="h-4 w-4 mr-1" />
-                          Share Cart
-                        </button>
+                    <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                      <FaCreditCard className="h-5 w-5 mr-2 text-gray-500" />
+                      Order Summary
+                    </h2>
+                  </div>
+
+                  <div className="p-6">
+                    {/* Pricing Breakdown */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span className="font-medium text-gray-900">{formatPrice(cartTotals.subtotal)}</span>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="divide-y divide-gray-100">
-                    {cartItems.map((item) => {
-                      const regularPrice = (item.regular_price);
-                      const salePrice = item.sale_price ? (item.sale_price) : null;
-                      const discountPercent = calculateDiscountPercentage(regularPrice, salePrice);
-                      const stockStatus = getStockStatus(item.inStock);
-                      const currentPrice = salePrice || regularPrice;
-                      const quantity = item.cartQty || 1;
-                      const totalPrice = currentPrice * quantity;
-                      const imageUrl = getFirstImage(item.images);
-                      const rating = item.rating || 0;
-
-                      return (
-                        <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
-                          <div className="flex flex-col sm:flex-row gap-6">
-                            {/* Product Image */}
-                            <div className="flex-shrink-0">
-                              <div className="relative group">
-                                <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
-                                  <img
-                                    src={imageUrl}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                  />
-                                </div>
-                                {discountPercent > 0 && (
-                                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                    -{discountPercent}%
-                                  </div>
-                                )}
-                              </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Shipping (Pathao)</span>
+                        <span className="font-medium text-gray-900">
+                        {pathaoCharges ? (
+                            <div className="text-right">
+                            <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
                             </div>
-
-                            {/* Product Info */}
-                            <div className="flex-grow">
-                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                <div className="flex-grow">
-                                  <div className="flex items-start justify-between">
-                                    <div>
-                                      <Link href={`/products/${item.slug}`}>
-                                        <h3 className="font-semibold text-gray-900 text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer">
-                                          {item.name}
-                                        </h3>
-                                      </Link>
-                                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                                        {item.description}
-                                      </p>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-lg font-bold text-gray-900">
-                                        {formatPrice(currentPrice)}
-                                      </div>
-                                      {salePrice && (
-                                        <div className="text-sm text-gray-500 line-through">
-                                          {formatPrice(regularPrice)}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Product Meta */}
-                                  <div className="flex flex-wrap items-center gap-3 mb-4">
-                                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                      {item.category}
-                                    </span>
-                                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${stockStatus.color}`}>
-                                      {stockStatus.label}
-                                    </span>
-                                    {rating > 0 && (
-                                      <span className="flex items-center text-xs text-gray-600">
-                                        <FaStar className="h-3 w-3 text-yellow-400 mr-1" />
-                                        {rating}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Quantity Controls & Actions */}
-                                  <div className="flex flex-wrap items-center justify-between">
-                                    <div className="flex items-center space-x-4">
-                                      {/* Quantity Controls */}
-                                      <div className="flex items-center border border-gray-300 rounded-lg bg-white">
-                                        <button
-                                          onClick={() => handleDecreaseQuantity(item.id)}
-                                          disabled={quantity <= 1}
-                                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
-                                        >
-                                          <FaMinus className="h-3 w-3" />
-                                        </button>
-                                        <span className="w-12 text-center py-2 text-gray-900 font-medium border-x border-gray-300">
-                                          {quantity}
-                                        </span>
-                                        <button
-                                          onClick={() => handleIncreaseQuantity(item.id)}
-                                          disabled={quantity >= item.quantity}
-                                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
-                                        >
-                                          <FaPlus className="h-3 w-3" />
-                                        </button>
-                                      </div>
-
-                                      {/* Item Total */}
-                                      <div className="text-sm font-semibold text-gray-900">
-                                        Total: {formatPrice(totalPrice)}
-                                      </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center space-x-4 mt-3 sm:mt-0">
-                                      <button
-                                        onClick={() => moveToWishlist(item.id)}
-                                        className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-3 py-2 rounded-lg transition-colors"
-                                      >
-                                        <FaHeart className="h-4 w-4 mr-2" />
-                                        Save
-                                      </button>
-                                      <button
-                                        onClick={() => removeFromCart(item.id)}
-                                        className="inline-flex items-center text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
-                                      >
-                                        <FaTrash className="h-4 w-4 mr-2" />
-                                        Remove
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Trust Badges */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                      <FaShieldAlt className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Secure Checkout</p>
-                      <p className="text-sm text-gray-600">Your data is protected</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                      <FaTruck className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Free Shipping</p>
-                      <p className="text-sm text-gray-600">On orders over $50</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow p-4 border border-gray-200 flex items-center hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
-                      <FaUndo className="h-6 w-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Easy Returns</p>
-                      <p className="text-sm text-gray-600">30-day return policy</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-6 space-y-6">
-                  {/* Order Summary Card */}
-                  <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                    <div className="p-6 border-b border-gray-200 bg-gray-50">
-                      <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                        <FaCreditCard className="h-5 w-5 mr-2 text-gray-500" />
-                        Order Summary
-                      </h2>
-                    </div>
-
-                    <div className="p-6">
-                      {/* Pricing Breakdown */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Subtotal</span>
-                          <span className="font-medium text-gray-900">{formatPrice(cartTotals.subtotal)}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Shipping</span>
-                          <span className={`font-medium ${cartTotals.shipping === 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                            {cartTotals.shipping === 0 ? (
-                              <span className="flex items-center">
-                                <FaCheckCircle className="h-4 w-4 mr-1" />
-                                FREE
-                              </span>
-                            ) : formatPrice(cartTotals.shipping)}
-                          </span>
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Tax (10%)</span>
-                          <span className="font-medium text-gray-900">{formatPrice(cartTotals.tax)}</span>
-                        </div>
-
-                        {appliedCoupon && (
-                          <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
-                            <div className="flex items-center">
-                              <FaGift className="h-4 w-4 text-green-600 mr-2" />
-                              <span className="text-gray-700">
-                                Discount ({appliedCoupon.code})
-                              </span>
-                            </div>
-                            <div className="flex items-center">
-                              <span className="font-medium text-green-600 mr-2">
-                                -{formatPrice(cartTotals.discount)}
-                              </span>
-                              <button
-                                onClick={removeCoupon}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                aria-label="Remove coupon"
-                              >
-                                <FaTimes className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
+                        ) : (
+                            <span className="text-gray-400">
+                            {loadingPathao ? 'Calculating...' : 'Select area to calculate'}
+                            </span>
                         )}
+                        </span>
+                    </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Tax (10%)</span>
+                        <span className="font-medium text-gray-900">{formatPrice(cartTotals.tax)}</span>
                       </div>
 
-                      {/* Delivery Options */}
-                      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl shadow-lg p-6 border border-gray-200 mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                          <FaTruck className="h-5 w-5 mr-2 text-green-600" />
-                          Delivery Options
-                        </h2>
-
-                        <div className="space-y-4">
-                          {/* Shipping Method Selection */}
-                          <div className="grid grid-cols-1 gap-3">
-                            {/* Standard Shipping */}
-                            <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                              shippingMethod === 'standard'
-                                ? 'border-blue-500 bg-blue-50 shadow-md'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                            }`}>
-                              <input
-                                type="radio"
-                                name="shipping_method"
-                                value="standard"
-                                checked={shippingMethod === 'standard'}
-                                onChange={() => setShippingMethod('standard')}
-                                className="h-4 w-4 text-blue-600"
-                              />
-                              <div className="ml-3 flex-grow">
-                                <div className="flex items-center justify-between">
-                                  <p className="font-bold text-gray-900 text-sm">Standard Shipping</p>
-                                  {shippingMethod === 'standard' && (
-                                    <FaCheckCircle className="h-4 w-4 text-blue-600" />
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1">
-                                  5-7 business days • {formatPrice(120)}
-                                </p>
-                              </div>
-                            </label>
-
-                            {/* Pathao Shipping */}
-                            <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                              shippingMethod === 'pathao'
-                                ? 'border-green-500 bg-green-50 shadow-md'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                            }`}>
-                              <input
-                                type="radio"
-                                name="shipping_method"
-                                value="pathao"
-                                checked={shippingMethod === 'pathao'}
-                                onChange={() => setShippingMethod('pathao')}
-                                className="h-4 w-4 text-green-600"
-                              />
-                              <div className="ml-3 flex-grow">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center">
-                                    <FaTruckLoading className="h-4 w-4 text-green-600 mr-2" />
-                                    <p className="font-bold text-gray-900 text-sm">Pathao Delivery</p>
-                                  </div>
-                                  {shippingMethod === 'pathao' && (
-                                    <FaCheckCircle className="h-4 w-4 text-green-600" />
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1">
-                                  Fast delivery across Bangladesh • {getSelectedCityName() ? getShippingRateText() : 'Select city'}
-                                </p>
-                              </div>
-                            </label>
+                      {appliedCoupon && (
+                        <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
+                          <div className="flex items-center">
+                            <FaGift className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-gray-700">
+                              Discount ({appliedCoupon.code})
+                            </span>
                           </div>
-
-                          {/* Pathao Configuration */}
-                          {shippingMethod === 'pathao' && (
-                            <div className="mt-4 p-4 bg-white rounded-xl border-2 border-green-200">
-                              <h3 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
-                                <FaMapMarkerAlt className="h-4 w-4 text-green-600 mr-2" />
-                                Select Delivery Location
-                              </h3>
-
-                              {/* Loading State */}
-                              {loadingPathao && (
-                                <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                                  <p className="text-xs text-blue-700 font-medium flex items-center">
-                                    <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
-                                    Loading locations...
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Location Selectors */}
-                              <div className="space-y-3">
-                                <div>
-                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                    City *
-                                  </label>
-                                  <select
-                                    value={selectedCity}
-                                    onChange={handleCityChange}
-                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                    disabled={loadingPathao}
-                                  >
-                                    <option value="">Select City</option>
-                                    {cities.map((city) => (
-                                      <option key={city.city_id} value={city.city_id}>
-                                        {city.city_name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                    Zone *
-                                  </label>
-                                  <select
-                                    value={selectedZone}
-                                    onChange={handleZoneChange}
-                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                    disabled={!selectedCity || loadingPathao}
-                                  >
-                                    <option value="">Select Zone</option>
-                                    {zones.map((zone) => (
-                                      <option key={zone.zone_id} value={zone.zone_id}>
-                                        {zone.zone_name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                    Area *
-                                  </label>
-                                  <select
-                                    value={selectedArea}
-                                    onChange={handleAreaChange}
-                                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                    disabled={!selectedZone || loadingPathao}
-                                  >
-                                    <option value="">Select Area</option>
-                                    {areas.map((area) => (
-                                      <option key={area.area_id} value={area.area_id}>
-                                        {area.area_name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-
-                              {/* Shipping Rate Display */}
-                              {selectedCity && (
-                                <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
-                                  <div className="flex items-center mb-3">
-                                    <FaCheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                                    <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
-                                  </div>
-
-                                  {/* Show city-based pricing info */}
-                                  <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                                    <p className="text-xs text-blue-700 flex items-center">
-                                      <FaMapMarkerAlt className="h-3 w-3 mr-1" />
-                                      {getSelectedCityName().toLowerCase().includes('chittagong') ||
-                                       getSelectedCityName().toLowerCase().includes('chattogram')
-                                        ? '✓ Chittagong delivery: 80 BDT'
-                                        : '✓ Outside Chittagong: 120 BDT'}
-                                    </p>
-                                  </div>
-
-                                  <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
-                                    <p className="text-xs text-green-700 font-semibold mb-1">Total Shipping Charge</p>
-                                    <p className="text-2xl font-bold text-green-700">
-                                      {pathaoCharges ? formatPrice(pathaoCharges.total_charge) : getShippingRateText()}
-                                    </p>
-                                    {!selectedArea && (
-                                      <p className="text-xs text-gray-600 mt-2">
-                                        Select area to complete delivery address
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Coupon Code */}
-                      {!appliedCoupon && (
-                        <div className="mb-6">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={couponCode}
-                              onChange={(e) => setCouponCode(e.target.value)}
-                              placeholder="Enter coupon code"
-                              className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                          <div className="flex items-center">
+                            <span className="font-medium text-green-600 mr-2">
+                              -{formatPrice(cartTotals.discount)}
+                            </span>
                             <button
-                              onClick={applyCoupon}
-                              className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors whitespace-nowrap"
+                              onClick={removeCoupon}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              aria-label="Remove coupon"
                             >
-                              Apply
+                              <FaTimes className="h-4 w-4" />
                             </button>
                           </div>
-                          <p className="text-xs text-gray-500 mt-2">
-                            Try codes: SAVE10, SAVE20, FREESHIP
-                          </p>
                         </div>
                       )}
+                    </div>
 
-                      {/* Total */}
-                      <div className="border-t border-gray-200 pt-4 mb-6">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-semibold text-gray-900">Total</span>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-gray-900">
-                              {formatPrice(cartTotals.total)}
+                    {/* Pathao Delivery Configuration */}
+                    <div className="bg-gradient-to-br from-gray-50 to-green-50 rounded-2xl shadow-lg p-6 border-2 border-green-200 mb-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <FaTruck className="h-5 w-5 mr-2 text-green-600" />
+                        Pathao Delivery
+                      </h2>
+
+                      <div className="space-y-4">
+                        {/* Pathao Configuration */}
+                        <div className="mt-2">
+                          <h3 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
+                            <FaMapMarkerAlt className="h-4 w-4 text-green-600 mr-2" />
+                            Select Delivery Location
+                          </h3>
+
+                          {/* Loading State */}
+                          {loadingPathao && (
+                            <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                              <p className="text-xs text-blue-700 font-medium flex items-center">
+                                <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
+                                Loading locations...
+                              </p>
                             </div>
-                            <div className="text-sm text-gray-600">
-                              {cartTotals.item_count} item{cartTotals.item_count !== 1 ? 's' : ''}
+                          )}
+
+                          {/* Location Selectors */}
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                City *
+                              </label>
+                              <select
+                                value={selectedCity}
+                                onChange={handleCityChange}
+                                className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                disabled={loadingPathao}
+                              >
+                                <option value="">Select City</option>
+                                {cities.map((city) => (
+                                  <option key={city.city_id} value={city.city_id}>
+                                    {city.city_name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Zone *
+                              </label>
+                              <select
+                                value={selectedZone}
+                                onChange={handleZoneChange}
+                                className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                disabled={!selectedCity || loadingPathao}
+                              >
+                                <option value="">Select Zone</option>
+                                {zones.map((zone) => (
+                                  <option key={zone.zone_id} value={zone.zone_id}>
+                                    {zone.zone_name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Area *
+                              </label>
+                              <select
+                                value={selectedArea}
+                                onChange={handleAreaChange}
+                                className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                disabled={!selectedZone || loadingPathao}
+                              >
+                                <option value="">Select Area</option>
+                                {areas.map((area) => (
+                                  <option key={area.area_id} value={area.area_id}>
+                                    {area.area_name}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Checkout Button */}
-                      <Link
-                        href="/checkout"
-                        className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center mb-4 flex items-center justify-center"
-                      >
-                        <FaLock className="h-5 w-5 mr-2" />
-                        Proceed to Checkout
-                      </Link>
+                          {/* Shipping Rate Display */}
+                          {selectedCity && (
+                            <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
+                                <div className="flex items-center mb-3">
+                                <FaCheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                                <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
+                                </div>
 
-                      {/* Payment Methods */}
-                      <div className="text-center pt-4 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 mb-3">We accept</p>
-                        <div className="flex justify-center space-x-3">
-                          <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
-                          <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
-                          <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
-                          <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
+                                {/* Loading State for Price Calculation */}
+                                {loadingPathao && (
+                                <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <p className="text-xs text-blue-700 flex items-center">
+                                    <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
+                                    Calculating best shipping rate...
+                                    </p>
+                                </div>
+                                )}
+
+                                {/* City Info */}
+                                <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                <p className="text-xs text-blue-700 flex items-center">
+                                    <FaMapMarkerAlt className="h-3 w-3 mr-1" />
+                                    Delivering to: {getSelectedCityName()}
+                                </p>
+                                </div>
+
+                                {/* Price Display - Simplified to just delivery charge */}
+                                {pathaoCharges && !loadingPathao && (
+                                <div className="space-y-2 mb-3">
+                                    <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Delivery Charge:</span>
+                                    <span className="font-medium text-gray-900">
+                                        {formatPrice(pathaoCharges.delivery_charge)}
+                                    </span>
+                                    </div>
+                                </div>
+                                )}
+
+                                {/* Main Display */}
+                                <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                                <p className="text-xs text-green-700 font-semibold mb-1">
+                                    {loadingPathao ? 'Calculating...' : pathaoCharges ? 'Delivery Charge' : 'Select area to calculate'}
+                                </p>
+                                <p className="text-2xl font-bold text-green-700">
+                                    {loadingPathao ? (
+                                    <FaTruckLoading className="h-6 w-6 mx-auto animate-spin" />
+                                    ) : (
+                                    pathaoCharges ? formatPrice(pathaoCharges.delivery_charge) : '---'
+                                    )}
+                                </p>
+                                {!selectedArea && (
+                                    <p className="text-xs text-gray-600 mt-2">
+                                    Select area to calculate shipping rate
+                                    </p>
+                                )}
+                                </div>
+
+                                {/* Estimated Delivery */}
+                                {selectedArea && pathaoCharges && (
+                                <div className="mt-3 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                                    <p className="text-xs text-purple-700 flex items-center">
+                                    <FaTruck className="h-3 w-3 mr-1" />
+                                    Estimated delivery: {
+                                        getSelectedCityName().toLowerCase().includes('dhaka') ? '1-2' :
+                                        getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-5'
+                                    } business days
+                                    </p>
+                                </div>
+                                )}
+                            </div>
+                            )}
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Need Help */}
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-                    <h3 className="text-lg font-semibold mb-2">Need help?</h3>
-                    <p className="text-blue-100 text-sm mb-4">
-                      Our customer support team is available 24/7 to assist you with your order.
-                    </p>
-                    <Link
-                      href="/contact"
-                      className="inline-flex items-center justify-center w-full py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                    {/* Coupon Code */}
+                    {!appliedCoupon && (
+                      <div className="mb-6">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            placeholder="Enter coupon code"
+                            className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={applyCoupon}
+                            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors whitespace-nowrap"
+                          >
+                            Apply
+                          </button>
+                        </div>
+
+                      </div>
+                    )}
+
+                    {/* Total */}
+                    <div className="border-t border-gray-200 pt-4 mb-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold text-gray-900">Total</span>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-900">
+                            {formatPrice(cartTotals.total)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {cartTotals.item_count} item{cartTotals.item_count !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Checkout Button */}
+                    <button
+                      onClick={() => {
+                        if (!isCheckoutDisabled()) {
+                          router.visit('/checkout');
+                        }
+                      }}
+                      disabled={isCheckoutDisabled()}
+                      className={`w-full py-3 px-4 font-semibold rounded-lg transition-colors text-center mb-4 flex items-center justify-center ${
+                        isCheckoutDisabled()
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
                     >
-                      Contact Support
-                      <FaArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
+                      <FaLock className="h-5 w-5 mr-2" />
+                      {isCheckoutDisabled()
+                        ? 'Complete delivery details to continue'
+                        : 'Proceed to Checkout'}
+                    </button>
+
+                    {/* Payment Methods */}
+                    <div className="text-center pt-4 border-t border-gray-200">
+                      <p className="text-sm text-gray-600 mb-3">We accept</p>
+                      <div className="flex justify-center space-x-3">
+                        <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
+                        <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
+                        <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
+                        <div className="w-10 h-6 bg-gray-100 rounded border border-gray-300"></div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Need Help */}
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                  <h3 className="text-lg font-semibold mb-2">Need help?</h3>
+                  <p className="text-blue-100 text-sm mb-4">
+                    Our customer support team is available 24/7 to assist you with your order.
+                  </p>
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center justify-center w-full py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Contact Support
+                    <FaArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </AppLayout>

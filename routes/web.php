@@ -98,6 +98,8 @@ Route::get('/products/{id}', [ProductsController::class, 'show'])->name('product
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 
+
+
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
