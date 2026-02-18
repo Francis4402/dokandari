@@ -18,6 +18,7 @@ export type CartItem = {
     id: string;
     user_id: string;
     store_id: string;
+    product_id: string;
     store_name?: string;
     store_slug?: string;
     name: string;
@@ -32,12 +33,7 @@ export type CartItem = {
     product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
-    weight?: number;
-    dimensions?: {
-        length: number;
-        width: number;
-        height: number;
-    };
+    item_weight: number;
     store?: {
         id: string;
         name: string;
@@ -90,86 +86,48 @@ export interface Product {
     product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
+    item_weight: number;
     review?: number;
     created_at: string;
     updated_at: string;
 }
 
 export interface Orders {
-  // Core fields
-  id: string;
-  store_id: string;
-  user_id: string;
-  store_name: string;
-  order_number: string;
+    id: string;
+    store_id: string;
+    user_id: string;
+    merchant_order_id: string;
+    sender_name: string;
+    sender_phone: string;
+    recipient_name: string;
+    recipient_phone: string;
+    recipient_address: string;
+    recipient_city: number;
+    recipient_zone: number;
+    recipient_area: number;
+    delivery_type: number;
+    item_type: number;
+    special_instruction?: string;
+    item_quantity: number;
+    item_weight: number;
+    amount_to_collect: number;
+    item_description: string;
+    store_name: string;
+    order_number: string;
+    subtotal: number;
+    delivery_charge: number;
+    total: number;
+    coupon_code: string;
+    discount_amount: number;
+    tracking_number: string;
+    shipping_method: string;
+    payment_method: string;
+    payment_status: string;
+    order_status: string;
+    notes: string;
+    items: string;
 
-
-  customer_name: string;
-  customer_phone: string;
-  customer_email: string | null;
-
-
-  recipient_name: string;
-  recipient_phone: string;
-  recipient_phone_alt: string | null;
-  recipient_address: string;
-
-  // Pathao Location IDs
-  pathao_city_id: number | null;
-  pathao_city_name: string | null;
-  pathao_zone_id: number | null;
-  pathao_zone_name: string | null;
-  pathao_area_id: number | null;
-  pathao_area_name: string | null;
-
-  // Pathao Delivery Settings
-  delivery_type: 48 | 12;
-  item_type: 1 | 2;
-  special_instruction: string | null;
-  item_description: string | null;
-
-  // Order Items & Financials
-  item_quantity: number;
-  item_weight: number;
-  amount_to_collect: number;
-  subtotal: number;
-  delivery_charge: number;
-  cod_charge: number;
-  total_charge: number;
-  total: number;
-
-  // Discount/Coupon
-  coupon_code: string | null;
-  discount_amount: number;
-
-  // Tracking
-  tracking_number: string | null;
-  shipping_method: 'standard' | 'pathao';
-
-  // Pathao Tracking
-  pathao_order_id: string | null;
-  pathao_consignment_id: string | null;
-  pathao_order_status: string | null;
-  pathao_response: any | null;
-
-  // Order Status
-  payment_method: 'cash_on_delivery' | 'bikash';
-  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
-  order_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
-
-  // Additional Fields
-  notes: string | null;
-  estimated_delivery: string | null;
-  items: any | null;
-  shipped_at: string | null;
-  delivered_at: string | null;
-
-  // Timestamps
-  created_at: string;
-  updated_at: string;
-
-  // Relationships
-  order_items?: OrderItem[];
+    order_items?: OrderItem[];
 }
 
 export interface OrderItem {

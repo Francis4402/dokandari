@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import {
   FaLock,
   FaArrowLeft,
@@ -22,12 +22,24 @@ import AppLayout from '@/Layouts/AppLayout';
 import { useStore, OrderData } from '../state/cartStore';
 import { toast } from 'sonner';
 
-const Checkout = ({ auth }: any) => {
+interface CheckoutProps {
+  auth: {
+    user: any
+  };
+  store: {
+    id: string;
+    name: string;
+    phone?: string;
+    mobile?: string;
+    pathao_store_id?: number;
+  };
+}
+
+const Checkout = ({ auth, store }: CheckoutProps) => {
   const {
     cart: cartItems,
     processCheckout,
     getOrderSummary,
-    shippingMethod,
     pathaoCharges,
     selectedCity,
     selectedZone,
@@ -51,7 +63,6 @@ const Checkout = ({ auth }: any) => {
   });
 
   const summary = getOrderSummary();
-
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {
@@ -99,20 +110,17 @@ const Checkout = ({ auth }: any) => {
   };
 
   const getFullAddress = () => {
-    if (shippingMethod === 'pathao' && selectedCity && selectedZone && selectedArea) {
+    if (selectedCity && selectedZone && selectedArea) {
       return `${data.customer_address}, ${getSelectedAreaName()}, ${getSelectedZoneName()}, ${getSelectedCityName()}`;
     }
     return data.customer_address;
   };
 
   const getEstimatedDelivery = () => {
-    if (shippingMethod === 'pathao') {
-      const cityName = getSelectedCityName().toLowerCase();
-      if (cityName.includes('dhaka')) return '1-2 business days';
-      if (cityName.includes('chittagong') || cityName.includes('chattogram')) return '2-3 business days';
-      return '3-4 business days';
-    }
-    return '5-7 business days';
+    const cityName = getSelectedCityName().toLowerCase();
+    if (cityName.includes('dhaka')) return '1-2 business days';
+    if (cityName.includes('chittagong') || cityName.includes('chattogram')) return '2-3 business days';
+    return '3-4 business days';
   };
 
   const validateForm = (): boolean => {
@@ -125,77 +133,81 @@ const Checkout = ({ auth }: any) => {
     else if (!/^01[3-9]\d{8}$/.test(data.customer_phone)) errors.customer_phone = 'Phone number must be 11 digits and start with 01';
     if (!data.customer_address.trim()) errors.customer_address = 'Delivery address is required';
 
-    if (shippingMethod === 'pathao') {
-      if (!selectedCity) errors.pathao_city = 'Please select a city';
-      if (!selectedZone) errors.pathao_zone = 'Please select a zone';
-      if (!selectedArea) errors.pathao_area = 'Please select an area';
-    }
+    // Pathao validation
+    if (!selectedCity) errors.pathao_city = 'Please select a city';
+    if (!selectedZone) errors.pathao_zone = 'Please select a zone';
+    if (!selectedArea) errors.pathao_area = 'Please select an area';
+    if (!pathaoCharges) errors.pathao_charges = 'Please calculate shipping charges';
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-        if (!validateForm()) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
-        setIsProcessing(true);
-        setError('');
-        setValidationErrors({});
+    setIsProcessing(true);
+    setError('');
+    setValidationErrors({});
 
-        // Ensure we have all required Pathao data
-        if (shippingMethod === 'pathao') {
-            if (!selectedCity || !selectedZone || !selectedArea || !pathaoCharges) {
-                toast.error('Please complete all delivery information');
-                setIsProcessing(false);
-                return;
-            }
-        }
+    // Ensure we have all required Pathao data
+    if (!selectedCity || !selectedZone || !selectedArea || !pathaoCharges) {
+      toast.error('Please complete all delivery information');
+      setIsProcessing(false);
+      return;
+    }
 
-        const orderData: OrderData = {
-            customer_name: data.customer_name,
-            customer_email: data.customer_email,
-            customer_phone: data.customer_phone,
-            customer_address: getFullAddress(),
-            notes: data.notes,
-            payment_method: data.payment_method,
-            shipping_method: shippingMethod,
+    // Check if user is authenticated
+    if (!auth.user) {
+      toast.error('Please login to continue');
+      setIsProcessing(false);
+      return;
+    }
 
-            amount_to_collect: summary.total,
+    const orderData: OrderData = {
+      customer_name: data.customer_name,
+      customer_email: data.customer_email,
+      customer_phone: data.customer_phone,
+      customer_address: data.customer_address,
+      notes: data.notes,
+      payment_method: data.payment_method,
 
-            ...(shippingMethod === 'pathao' && selectedCity && selectedZone && selectedArea && pathaoCharges ? {
-                // Use field names that match validation
-                pathao_city: selectedCity,  // Send as string ID
-                pathao_city_name: getSelectedCityName(),
-                pathao_zone: selectedZone,  // Send as string ID
-                pathao_zone_name: getSelectedZoneName(),
-                pathao_area: selectedArea,  // Send as string ID
-                pathao_area_name: getSelectedAreaName(),
-                pathao_delivery_charge: pathaoCharges.delivery_charge,
-                pathao_total_charge: pathaoCharges.delivery_charge, // Same as delivery charge
-                delivery_charge: pathaoCharges.delivery_charge,
-                estimated_delivery: getEstimatedDelivery()
-            } : {})
-        };
-
-        try {
-            await processCheckout(orderData);
-        } catch (err: any) {
-            console.error('Checkout error:', err);
-            if (err && typeof err === 'object') {
-                setValidationErrors(err);
-                setError('Please fix the validation errors below');
-            } else {
-                setError('Failed to process checkout. Please try again.');
-            }
-        } finally {
-            setIsProcessing(false);
-        }
+      // Pathao fields
+      pathao_city: selectedCity,
+      pathao_city_name: getSelectedCityName(),
+      pathao_zone: selectedZone,
+      pathao_zone_name: getSelectedZoneName(),
+      pathao_area: selectedArea,
+      pathao_area_name: getSelectedAreaName(),
     };
+
+    try {
+      // Pass both orderData and store to processCheckout
+      await processCheckout(orderData, {
+        id: store.id,
+        name: store.name,
+        phone: store.phone,
+        mobile: store.mobile
+      });
+
+      // Success! The store will clear cart and redirect
+      // The onSuccess in router.post handles redirection
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      if (err && typeof err === 'object') {
+        setValidationErrors(err);
+        setError('Please fix the validation errors below');
+      } else {
+        setError('Failed to process checkout. Please try again.');
+      }
+      setIsProcessing(false);
+    }
+  };
 
   // If cart is empty
   if (cartItems.length === 0) {
@@ -210,13 +222,13 @@ const Checkout = ({ auth }: any) => {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
               <p className="text-gray-600 mb-8">Add items to your cart before checkout</p>
-              <a
+              <Link
                 href="/products"
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105"
               >
                 <FaArrowLeft className="h-4 w-4 mr-2" />
                 Continue Shopping
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -376,17 +388,17 @@ const Checkout = ({ auth }: any) => {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <FaMapMarkerAlt className="h-4 w-4 inline mr-1 text-blue-600" />
-                        Delivery Address *
+                        Street Address *
                       </label>
                       <textarea
                         required
-                        rows={3}
+                        rows={2}
                         value={data.customer_address}
                         onChange={e => setData('customer_address', e.target.value)}
                         className={`w-full px-4 py-3 border ${
                           validationErrors.customer_address ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                        placeholder="House #, Road #, Area, City, Postal Code"
+                        placeholder="House #, Road #"
                       />
                       {validationErrors.customer_address && (
                         <p className="text-red-500 text-sm mt-1 flex items-center">
@@ -397,7 +409,7 @@ const Checkout = ({ auth }: any) => {
                     </div>
 
                     {/* Pathao Location Summary */}
-                    {shippingMethod === 'pathao' && selectedCity && selectedZone && selectedArea && (
+                    {selectedCity && selectedZone && selectedArea && pathaoCharges && (
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
                         <div className="flex items-start">
                           <FaCheckCircle className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
@@ -406,11 +418,27 @@ const Checkout = ({ auth }: any) => {
                             <p className="text-sm text-green-700 mt-1">
                               {getSelectedAreaName()}, {getSelectedZoneName()}, {getSelectedCityName()}
                             </p>
-                            <p className="text-xs text-green-600 mt-1">
-                              Estimated delivery: {getEstimatedDelivery()}
-                            </p>
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-xs text-green-600">
+                                Delivery: {formatPrice(pathaoCharges.delivery_charge)}
+                              </p>
+                              <p className="text-xs text-green-600 flex items-center">
+                                <FaClock className="h-3 w-3 mr-1" />
+                                {getEstimatedDelivery()}
+                              </p>
+                            </div>
                           </div>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Pathao Location Validation Errors */}
+                    {(!selectedCity || !selectedZone || !selectedArea) && (
+                      <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                        <p className="text-sm text-yellow-700 flex items-center">
+                          <FaExclamationCircle className="h-4 w-4 mr-2" />
+                          Please select city, zone, and area in the cart page before checkout
+                        </p>
                       </div>
                     )}
 
@@ -583,15 +611,17 @@ const Checkout = ({ auth }: any) => {
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 flex items-center">
                             <FaTruck className="h-4 w-4 mr-1 text-blue-500" />
-                            Shipping
+                            Shipping (Pathao)
                           </span>
-                          <span className={`font-medium ${summary.shipping === 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                            {summary.shipping === 0 ? (
-                              <span className="flex items-center">
-                                <FaCheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                                FREE
-                              </span>
-                            ) : formatPrice(summary.shipping)}
+                          <span className="font-medium text-gray-900">
+                            {pathaoCharges ? (
+                              <div className="text-right">
+                                <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
+                                <div className="text-xs text-green-600">Includes +20 BDT</div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">Not calculated</span>
+                            )}
                           </span>
                         </div>
 
@@ -602,8 +632,6 @@ const Checkout = ({ auth }: any) => {
                           </span>
                           <span className="font-medium text-gray-900">{formatPrice(summary.tax)}</span>
                         </div>
-
-
 
                         <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                           <span className="text-lg font-bold text-gray-900">Total</span>
@@ -619,23 +647,23 @@ const Checkout = ({ auth }: any) => {
                       </div>
 
                       {/* Delivery Info */}
-                      <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                        <div className="flex items-start">
-                          <FaClock className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-gray-900">Estimated Delivery</p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {getEstimatedDelivery()}
-                            </p>
-                            {shippingMethod === 'pathao' && (
+                      {selectedCity && selectedZone && selectedArea && pathaoCharges && (
+                        <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                          <div className="flex items-start">
+                            <FaClock className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                            <div>
+                              <p className="font-semibold text-gray-900">Estimated Delivery</p>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {getEstimatedDelivery()}
+                              </p>
                               <p className="text-xs text-blue-600 mt-2 flex items-center">
                                 <FaCheckCircle className="h-3 w-3 mr-1" />
                                 Pathao Express Delivery
                               </p>
-                            )}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Terms and Place Order */}
                       <div className="mt-6">
@@ -657,7 +685,7 @@ const Checkout = ({ auth }: any) => {
 
                         <button
                           type="submit"
-                          disabled={processing || isProcessing || cartItems.length === 0}
+                          disabled={processing || isProcessing || cartItems.length === 0 || !selectedCity || !selectedZone || !selectedArea || !pathaoCharges}
                           className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg"
                         >
                           <FaLock className="h-5 w-5 mr-2" />

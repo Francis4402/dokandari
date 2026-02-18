@@ -1,4 +1,3 @@
-// cartpage/index.tsx
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -19,9 +18,6 @@ import {
   FaBox,
   FaTimes,
   FaStar,
-  FaShare,
-  FaSync,
-  FaGift,
   FaMapMarkerAlt,
   FaTruckLoading,
 } from 'react-icons/fa';
@@ -55,7 +51,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     selectedCity,
     selectedZone,
     selectedArea,
-    setShippingMethod,
     setPathaoCharges,
     setSelectedCity,
     setSelectedZone,
@@ -80,7 +75,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
   const [areas, setAreas] = useState<areatypes[]>([]);
   const [loadingPathao, setLoadingPathao] = useState(false);
 
-
   const storeId = pathaoStoreId || 367082;
 
   // Log for debugging
@@ -88,11 +82,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     console.log('CartPage mounted with storeId:', storeId);
     console.log('Cart items:', cartItems);
     console.log('Cart items length:', cartItems?.length);
-  }, []);
-
-
-  useEffect(() => {
-    setShippingMethod('pathao');
   }, []);
 
   useEffect(() => {
@@ -185,7 +174,7 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
         });
 
         const totalWeight = items.reduce((sum, item) => {
-            return sum + ((item.weight || 0.5) * item.quantity);
+            return sum + ((item.item_weight || 0.5) * item.quantity);
         }, 0);
 
         const priceRequest = {
@@ -201,38 +190,25 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
             delivery_type: 48
         };
 
-        console.log('📦 Price Calculation Request:', priceRequest);
-
         const response = await axios.post('/api/pathao/calculate-price', priceRequest);
 
         console.log('📨 Price Calculation Response:', response.data);
 
         if (response.data?.data?.data) {
             const priceData = response.data.data.data;
-
             console.log('✅ Pathao Price Data:', priceData);
 
-            // Get base delivery charge from API
+            // Get base delivery charge from API and add 20 BDT
             const baseDeliveryCharge = priceData.price || priceData.final_price || 0;
-
-            // Add 20 BDT extra
             const totalDeliveryCharge = baseDeliveryCharge + 20;
 
-            // Simple charges object with base and total
+            // Simple charges object with just the total delivery charge
             const charges = {
-                delivery_charge: baseDeliveryCharge, // Keep base for reference
-                total_delivery_charge: totalDeliveryCharge // Total with extra
+                delivery_charge: totalDeliveryCharge // API charge + 20
             };
 
-            console.log('💰 Setting pathaoCharges:', {
-                base: baseDeliveryCharge,
-                extra: 20,
-                total: totalDeliveryCharge
-            });
-
             setPathaoCharges(charges);
-
-            toast.success(`Shipping price: ${formatPrice(baseDeliveryCharge)} + 20 BDT extra = ${formatPrice(totalDeliveryCharge)}`);
+            toast.success(`Shipping price: ${formatPrice(totalDeliveryCharge)}`);
         } else {
             console.error('❌ Invalid response structure:', response.data);
             throw new Error('Invalid response from server');
@@ -246,7 +222,7 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     } finally {
         setLoadingPathao(false);
     }
-};
+  };
 
   const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cityId = e.target.value;
@@ -345,10 +321,10 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     if (!couponCode.trim()) return;
 
     const validCoupons = [
-      { code: 'SAVE10', discount: 10, type: 'percentage' as const },
-      { code: 'SAVE20', discount: 20, type: 'percentage' as const },
-      { code: 'FREESHIP', discount: 5.99, type: 'fixed' as const },
-      { code: 'WELCOME15', discount: 15, type: 'percentage' as const }
+      { code: 'fdagd', discount: 10, type: 'percentage' as const },
+      { code: 'dsagag', discount: 20, type: 'percentage' as const },
+      { code: 'fegdaf', discount: 5.99, type: 'fixed' as const },
+      { code: 'gdafeagds', discount: 15, type: 'percentage' as const }
     ];
 
     const coupon = validCoupons.find(c => c.code === couponCode.toUpperCase());
@@ -747,17 +723,17 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Shipping (Pathao)</span>
                         <span className="font-medium text-gray-900">
-                        {pathaoCharges ? (
+                          {pathaoCharges ? (
                             <div className="text-right">
-                            <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
+                              <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
                             </div>
-                        ) : (
+                          ) : (
                             <span className="text-gray-400">
-                            {loadingPathao ? 'Calculating...' : 'Select area to calculate'}
+                              {loadingPathao ? 'Calculating...' : 'Select area to calculate'}
                             </span>
-                        )}
+                          )}
                         </span>
-                    </div>
+                      </div>
 
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Tax (10%)</span>
@@ -767,7 +743,7 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                       {appliedCoupon && (
                         <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
                           <div className="flex items-center">
-                            <FaGift className="h-4 w-4 text-green-600 mr-2" />
+                            <FaTag className="h-4 w-4 text-green-600 mr-2" />
                             <span className="text-gray-700">
                               Discount ({appliedCoupon.code})
                             </span>
@@ -876,74 +852,67 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                           {/* Shipping Rate Display */}
                           {selectedCity && (
                             <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
-                                <div className="flex items-center mb-3">
+                              <div className="flex items-center mb-3">
                                 <FaCheckCircle className="h-5 w-5 text-green-600 mr-2" />
                                 <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
-                                </div>
+                              </div>
 
-                                {/* Loading State for Price Calculation */}
-                                {loadingPathao && (
+                              {/* Loading State for Price Calculation */}
+                              {loadingPathao && (
                                 <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                    <p className="text-xs text-blue-700 flex items-center">
+                                  <p className="text-xs text-blue-700 flex items-center">
                                     <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
                                     Calculating best shipping rate...
-                                    </p>
+                                  </p>
                                 </div>
-                                )}
+                              )}
 
-                                {/* City Info */}
-                                <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                              {/* City Info */}
+                              <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
                                 <p className="text-xs text-blue-700 flex items-center">
-                                    <FaMapMarkerAlt className="h-3 w-3 mr-1" />
-                                    Delivering to: {getSelectedCityName()}
+                                  <FaMapMarkerAlt className="h-3 w-3 mr-1" />
+                                  Delivering to: {getSelectedCityName()}
                                 </p>
-                                </div>
+                              </div>
 
-                                {/* Price Display - Simplified to just delivery charge */}
-                                {pathaoCharges && !loadingPathao && (
-                                <div className="space-y-2 mb-3">
-                                    <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Delivery Charge:</span>
-                                    <span className="font-medium text-gray-900">
-                                        {formatPrice(pathaoCharges.delivery_charge)}
-                                    </span>
-                                    </div>
-                                </div>
-                                )}
-
-                                {/* Main Display */}
-                                <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                              {/* Main Display */}
+                              <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
                                 <p className="text-xs text-green-700 font-semibold mb-1">
-                                    {loadingPathao ? 'Calculating...' : pathaoCharges ? 'Delivery Charge' : 'Select area to calculate'}
+                                  {loadingPathao ? 'Calculating...' : pathaoCharges ? 'Total Delivery Charge' : 'Select area to calculate'}
                                 </p>
                                 <p className="text-2xl font-bold text-green-700">
-                                    {loadingPathao ? (
+                                  {loadingPathao ? (
                                     <FaTruckLoading className="h-6 w-6 mx-auto animate-spin" />
-                                    ) : (
+                                  ) : (
                                     pathaoCharges ? formatPrice(pathaoCharges.delivery_charge) : '---'
-                                    )}
+                                  )}
                                 </p>
-                                {!selectedArea && (
-                                    <p className="text-xs text-gray-600 mt-2">
-                                    Select area to calculate shipping rate
-                                    </p>
+                                {pathaoCharges && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Includes +20 BDT service fee
+                                  </p>
                                 )}
-                                </div>
+                                {!selectedArea && (
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    Select area to calculate shipping rate
+                                  </p>
+                                )}
+                              </div>
 
-                                {/* Estimated Delivery */}
-                                {selectedArea && pathaoCharges && (
+                              {/* Estimated Delivery */}
+                              {selectedArea && pathaoCharges && (
                                 <div className="mt-3 p-2 bg-purple-50 rounded-lg border border-purple-200">
-                                    <p className="text-xs text-purple-700 flex items-center">
+                                  <p className="text-xs text-purple-700 flex items-center">
                                     <FaTruck className="h-3 w-3 mr-1" />
                                     Estimated delivery: {
-                                        getSelectedCityName().toLowerCase().includes('dhaka') ? '1-2' :
-                                        getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-5'
+                                      getSelectedCityName().toLowerCase().includes('dhaka') ? '1-2' :
+                                      getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-5'
                                     } business days
-                                    </p>
+                                  </p>
                                 </div>
-                                )}
+                              )}
                             </div>
-                            )}
+                          )}
                         </div>
                       </div>
                     </div>
@@ -966,7 +935,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                             Apply
                           </button>
                         </div>
-
                       </div>
                     )}
 

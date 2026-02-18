@@ -44,7 +44,7 @@ class PathaoController extends Controller
                 'sender_city' => 'required|integer',
                 'recipient_city' => 'required|integer',
                 'recipient_zone' => 'required|integer',
-                'recipient_area' => 'required|integer',
+                'recipient_area' => 'nullable|integer',
                 'item_type' => 'required|integer|in:1,2',
                 'item_weight' => 'required|numeric|min:0.5',
                 'item_quantity' => 'required|integer|min:1',

@@ -22,7 +22,28 @@ import {
   FaCheckCircle,
   FaShoppingCart,
   FaArrowRight,
-  FaChevronDown
+  FaChevronDown,
+  FaWeightHanging,
+  FaPalette,
+  FaStar,
+  FaHeading,
+  FaParagraph,
+  FaList,
+  FaCode,
+  FaBold,
+  FaItalic,
+  FaUnderline,
+  FaAlignLeft,
+  FaAlignCenter,
+  FaAlignRight,
+  FaLink as FaLinkIcon,
+  FaQuoteRight,
+  FaListOl,
+  FaListUl,
+  FaUndo,
+  FaRedo,
+  FaEye as FaEyeIcon,
+  FaPen,
 } from 'react-icons/fa';
 import {
   HiCheck,
@@ -30,6 +51,13 @@ import {
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
 
+// Rich text editor toolbar button types
+interface ToolbarButton {
+  icon: React.ReactNode;
+  command: string;
+  title: string;
+  value?: string;
+}
 
 interface productFormType {
     auth: {
@@ -39,14 +67,52 @@ interface productFormType {
     categories: categoryType[];
 }
 
+// Product type matching your schema
+export interface Product {
+    id: string;
+    user_id: string;
+    store_id: string;
+    name: string;
+    images: string;
+    slug: string;
+    category: string;
+    subcategory: string;
+    quantity: number;
+    regular_price: number;
+    sale_price: number | null;
+    description: string;
+    color: string;
+    product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
+    inStock: boolean;
+    rating: number;
+    item_weight: number;
+    review?: number;
+    created_at: string;
+    updated_at: string;
+}
+
 export default function CreateProductForm({auth, store, categories}: productFormType) {
   const imagesInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
+
+  // Rich text editor state
+  const [editorMode, setEditorMode] = useState<'write' | 'preview'>('write');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  // Product type options matching your schema
+  const productTypes = [
+    { value: 'regular', label: 'Regular' },
+    { value: 'featured', label: 'Featured' },
+    { value: 'trending', label: 'Trending' },
+    { value: 'top-selling', label: 'Top Selling' },
+    { value: 'new-arrival', label: 'New Arrival' }
+  ];
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
@@ -61,7 +127,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
     color: [''],
     inStock: true,
     rating: '0',
-    store_id: store.id || ''
+    item_weight: '',
+    store_id: store.id || '',
+    product_type: 'regular' as 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular',
   });
 
   const discountPercentage = data.regular_price && data.sale_price
@@ -76,6 +144,76 @@ export default function CreateProductForm({auth, store, categories}: productForm
       return [];
     }
   };
+
+  // Rich text editor toolbar buttons
+  const toolbarButtons: ToolbarButton[] = [
+    { icon: <FaBold />, command: 'bold', title: 'Bold' },
+    { icon: <FaItalic />, command: 'italic', title: 'Italic' },
+    { icon: <FaUnderline />, command: 'underline', title: 'Underline' },
+    { icon: <FaListUl />, command: 'insertUnorderedList', title: 'Bullet List' },
+    { icon: <FaListOl />, command: 'insertOrderedList', title: 'Numbered List' },
+    { icon: <FaQuoteRight />, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
+    { icon: <FaCode />, command: 'formatBlock', value: 'pre', title: 'Code Block' },
+    { icon: <FaLinkIcon />, command: 'createLink', title: 'Insert Link' },
+    { icon: <FaAlignLeft />, command: 'justifyLeft', title: 'Align Left' },
+    { icon: <FaAlignCenter />, command: 'justifyCenter', title: 'Align Center' },
+    { icon: <FaAlignRight />, command: 'justifyRight', title: 'Align Right' },
+    { icon: <FaHeading />, command: 'formatBlock', value: 'h2', title: 'Heading' },
+    { icon: <FaParagraph />, command: 'formatBlock', value: 'p', title: 'Paragraph' },
+  ];
+
+  // Initialize editor content from form data
+  useEffect(() => {
+    if (editorRef.current && data.description && editorMode === 'write') {
+      editorRef.current.innerHTML = data.description;
+    }
+  }, [data.description, editorMode]);
+
+  // Apply rich text formatting
+  const applyFormatting = (button: ToolbarButton) => {
+    if (!editorRef.current) return;
+
+    // Focus the editor
+    editorRef.current.focus();
+
+    if (button.command === 'createLink') {
+      const url = window.prompt('Enter the URL:');
+      if (url) {
+        document.execCommand(button.command, false, url);
+      }
+    } else if (button.value) {
+      document.execCommand(button.command, false, button.value);
+    } else {
+      document.execCommand(button.command, false, undefined);
+    }
+
+    // Update the form data with the new HTML content
+    setData('description', editorRef.current.innerHTML);
+  };
+
+  // Handle editor content change
+  const handleEditorChange = () => {
+    if (editorRef.current) {
+      setData('description', editorRef.current.innerHTML);
+    }
+  };
+
+  // Insert emoji
+  const insertEmoji = (emoji: string) => {
+    if (!editorRef.current) return;
+
+    editorRef.current.focus();
+    document.execCommand('insertText', false, emoji);
+
+    setData('description', editorRef.current.innerHTML);
+    setShowEmojiPicker(false);
+  };
+
+  // Common emojis for product descriptions
+  const commonEmojis = [
+    '😊', '👍', '⭐', '🔥', '✅', '🎁', '💯', '🚀', '💪', '✨',
+    '🎨', '📦', '🛒', '💰', '💎', '🔋', '⚡', '🌟', '💫', '🎯'
+  ];
 
   useEffect(() => {
     const validColors = colorInputs.filter(color => color.trim() !== '');
@@ -174,12 +312,14 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('subcategory', data.subcategory);
     formData.append('quantity', data.quantity);
     formData.append('regular_price', data.regular_price);
-    formData.append('sale_price', data.sale_price);
+    formData.append('sale_price', data.sale_price || '');
     formData.append('description', data.description);
     formData.append('color', JSON.stringify(data.color));
     formData.append('inStock', data.inStock.toString());
     formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
+    formData.append('item_weight', data.item_weight);
+    formData.append('product_type', data.product_type);
 
     // Append images
     data.images.forEach((image, index) => {
@@ -200,22 +340,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setShowSubcategoryDropdown(false);
         setAvailableSubcategories([]);
         setColorInputs(['']);
-
-        setData({
-          name: '',
-          images: [],
-          slug: '',
-          category: '',
-          subcategory: '',
-          quantity: '1',
-          regular_price: '',
-          sale_price: '',
-          description: '',
-          color: [],
-          inStock: true,
-          rating: '0',
-          store_id: store.id || ''
-        });
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
       },
       onError: () => {
         toast.error('Failed to create product. Please check the form for errors.');
@@ -516,7 +643,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         {colorInputs.map((color, index) => (
                           <div key={index} className="flex gap-2">
                             <div className="relative flex-1">
-                              <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                              <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                               <input
                                 type="text"
                                 value={color}
@@ -588,12 +715,44 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       )}
                     </div>
                   </div>
+
+                  {/* Row 4: Item Weight */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <FaWeightHanging className="h-4 w-4" />
+                      Item Weight (kg) <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        value={data.item_weight}
+                        onChange={(e) => handleNumberInput(e, 'item_weight')}
+                        placeholder="0.5"
+                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {errors.item_weight && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.item_weight}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Used for shipping cost calculation (minimum 0.1 kg)
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Pricing Card */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-800"><span className='text-green-600'>BDT</span> Pricing</h2>
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaDollarSign className="h-5 w-5 text-green-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Pricing</h2>
+                </div>
 
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -685,31 +844,154 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
               </div>
 
-              {/* Description Card */}
+              {/* Rich Description Card */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaBookOpen className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
+                <div className="flex items-center justify-between mb-6 pb-4 border-b">
+                  <div className="flex items-center gap-2">
+                    <FaBookOpen className="h-5 w-5 text-blue-600" />
+                    <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditorMode('write')}
+                      className={`px-3 py-1.5 rounded-l-lg text-sm font-medium transition-colors ${
+                        editorMode === 'write'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <FaPen className="h-3 w-3 inline mr-1" />
+                      Write
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorMode('preview')}
+                      className={`px-3 py-1.5 rounded-r-lg text-sm font-medium transition-colors ${
+                        editorMode === 'preview'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <FaEyeIcon className="h-3 w-3 inline mr-1" />
+                      Preview
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <textarea
-                    value={data.description}
-                    onChange={(e) => setData('description', e.target.value)}
-                    placeholder="Describe your product features, specifications, and benefits..."
-                    rows={6}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  {errors.description && (
-                    <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                      <HiOutlineExclamationCircle className="h-4 w-4" />
-                      {errors.description}
-                    </p>
-                  )}
-                </div>
+                {/* Rich Text Toolbar */}
+                {editorMode === 'write' && (
+                  <div className="mb-4">
+                    <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                      {toolbarButtons.map((button, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => applyFormatting(button)}
+                          title={button.title}
+                          className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
+                        >
+                          {button.icon}
+                        </button>
+                      ))}
+                      <div className="w-px h-6 bg-gray-300 mx-1" />
+                      <button
+                        type="button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
+                        title="Insert Emoji"
+                      >
+                        😊
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          document.execCommand('undo', false, undefined);
+                          if (editorRef.current) {
+                            setData('description', editorRef.current.innerHTML);
+                          }
+                        }}
+                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
+                        title="Undo"
+                      >
+                        <FaUndo />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          document.execCommand('redo', false, undefined);
+                          if (editorRef.current) {
+                            setData('description', editorRef.current.innerHTML);
+                          }
+                        }}
+                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
+                        title="Redo"
+                      >
+                        <FaRedo />
+                      </button>
+                    </div>
+
+                    {/* Emoji Picker */}
+                    {showEmojiPicker && (
+                      <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200 shadow-lg">
+                        <div className="grid grid-cols-10 gap-1">
+                          {commonEmojis.map((emoji, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => insertEmoji(emoji)}
+                              className="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-lg"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Description Editor - Using contenteditable div */}
+                {editorMode === 'write' ? (
+                  <div>
+                    <div
+                      ref={editorRef}
+                      contentEditable
+                      onInput={handleEditorChange}
+                      onBlur={handleEditorChange}
+                      className="w-full min-h-[250px] rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent overflow-y-auto prose prose-sm max-w-none"
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word'
+                      }}
+                      data-placeholder="Describe your product features, specifications, and benefits..."
+                      suppressContentEditableWarning={true}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-gray-500">
+                        <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Use the toolbar above to format your text
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="min-h-[250px] p-4 border border-gray-200 rounded-lg bg-gray-50 prose prose-sm max-w-none">
+                    {data.description ? (
+                      <div dangerouslySetInnerHTML={{ __html: data.description }} />
+                    ) : (
+                      <p className="text-gray-400 text-center">No description provided</p>
+                    )}
+                  </div>
+                )}
+
+                {errors.description && (
+                  <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -790,6 +1072,34 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       {errors.images}
                     </p>
                   )}
+                </div>
+              </div>
+
+              {/* Product Type Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaStar className="h-5 w-5 text-yellow-500" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Type</h2>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Product Type
+                  </label>
+                  <select
+                    value={data.product_type}
+                    onChange={(e) => setData('product_type', e.target.value as any)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    {productTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Determines how the product appears in collections and promotions
+                  </p>
                 </div>
               </div>
 
@@ -887,6 +1197,14 @@ export default function CreateProductForm({auth, store, categories}: productForm
                             )}
                           </div>
                         )}
+
+                        {/* Weight */}
+                        {data.item_weight && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <FaWeightHanging className="h-3 w-3" />
+                            Weight: {data.item_weight} kg
+                          </div>
+                        )}
                       </div>
 
                       {/* Price Display */}
@@ -928,6 +1246,16 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           {data.slug}
                         </div>
                       )}
+
+                      {/* Product Type Badge */}
+                      {data.product_type !== 'regular' && (
+                        <div className="mt-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <FaStar className="h-3 w-3 mr-1" />
+                            {data.product_type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -961,7 +1289,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <button
                   type="submit"
-                  disabled={processing || !data.name || !data.category || !data.regular_price || !data.description}
+                  disabled={processing || !data.name || !data.category || !data.regular_price || !data.description || !data.item_weight}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
                 >
                   {processing ? (
@@ -988,6 +1316,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       <span>All required fields marked with * must be filled</span>
                     </p>
                     <p className="flex items-center gap-2">
+                      <FaWeightHanging className="h-3 w-3" />
+                      <span>Item weight is required for shipping calculation</span>
+                    </p>
+                    <p className="flex items-center gap-2">
                       <FaPercent className="h-3 w-3" />
                       <span>Sale price is optional but recommended for promotions</span>
                     </p>
@@ -996,8 +1328,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       <span>High-quality images increase conversion by up to 30%</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaTag className="h-3 w-3" />
-                      <span>Subcategory helps customers find your product faster</span>
+                      <FaBookOpen className="h-3 w-3" />
+                      <span>Rich text editor allows formatted product descriptions</span>
                     </p>
                   </div>
                 </div>

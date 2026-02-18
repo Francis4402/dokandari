@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('color')->nullable();
             $table->enum('product_type', ['top-selling', 'trending', 'featured', 'regular'])
                   ->default('regular');
+            $table->integer('item_weight');
             $table->boolean('inStock')->default(true);
             $table->decimal('rating')->default(0);
             $table->bigInteger('review')->nullable();

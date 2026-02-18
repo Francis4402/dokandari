@@ -1,45 +1,103 @@
-import { CartItem, citytypes, zonetypes, areatypes } from '@/types'
+import { CartItem, citytypes, zonetypes, areatypes, Orders } from '@/types'
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 export interface OrderData {
+    // Customer Info
     customer_name: string;
     customer_email: string;
     customer_phone: string;
     customer_address: string;
     notes?: string;
-    payment_method: string;
-    shipping_method?: 'standard' | 'pathao';
+    payment_method: 'cash_on_delivery' | 'bikash';
 
-    // Pathao fields - matching validation errors
+    // Pathao fields (for frontend use)
     pathao_city?: string;
     pathao_city_name?: string;
     pathao_zone?: string;
     pathao_zone_name?: string;
     pathao_area?: string;
     pathao_area_name?: string;
-    pathao_delivery_charge?: number;
-    pathao_total_charge?: number;
-    delivery_charge?: number;
-    estimated_delivery?: string;
-    tracking_number?: string;
-
-    // Required field
-    amount_to_collect?: number;
 }
 
 export interface PathaoCharges {
-    delivery_charge: number; // This will now include the 20 BDT extra
+    delivery_charge: number;
+}
+
+
+export type OrderPayload = {
+
+    store_id: string;
+
+    merchant_order_id?: string | null;
+    order_number: string;
+
+    // Sender Info
+    sender_name: string;
+    sender_phone: string;
+
+    // Recipient Info
+    recipient_name: string;
+    recipient_phone: string;
+    recipient_address: string;
+    recipient_city: number;
+    recipient_zone: number;
+    recipient_area: number;
+
+    // Pathao Settings
+    delivery_type: number;
+    item_type: number;
+    special_instruction?: string | null;
+
+    // Order Details
+    item_quantity: number;
+    item_weight: number;
+    amount_to_collect: number;
+    item_description: string;
+    store_name: string;
+
+    // Financials
+    subtotal: number;
+    delivery_charge: number;
+    total: number;
+    coupon_code?: string | null;
+    discount_amount?: number;
+
+    // Tracking
+    tracking_number?: string | null;
+    shipping_method: string;
+
+    // Status
+    payment_method: string;
+    payment_status: string;
+    order_status: string;
+
+    // Additional
+    notes?: string | null;
+    items: Array<{
+        product_id: string;
+        name: string;
+        quantity: number;
+        price: number;
+        total: number;
+        store_id: string;
+        item_weight: number;
+    }>;
+
+    // Customer info (for reference)
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string;
+    customer_address?: string;
 }
 
 type Store = {
     // Cart state
     cart: CartItem[];
 
-    // Shipping state
-    shippingMethod: 'standard' | 'pathao';
+    // Shipping state - only Pathao now
     pathaoCharges: PathaoCharges | null;
     selectedCity: string;
     selectedZone: string;
@@ -61,8 +119,7 @@ type Store = {
     decreaseQty: (id: string) => void;
     updateCartItemQty: (id: string, quantity: number) => void;
 
-    // Shipping actions
-    setShippingMethod: (method: 'standard' | 'pathao') => void;
+    // Pathao shipping actions
     setPathaoCharges: (charges: PathaoCharges | null) => void;
     setSelectedCity: (cityId: string) => void;
     setSelectedZone: (zoneId: string) => void;
@@ -73,16 +130,13 @@ type Store = {
 
     // Utility functions
     getFormattedCartItems: () => Array<{
-        id: string;
         product_id: string;
         name: string;
         quantity: number;
         price: number;
         total: number;
-        image: string;
-        store_name?: string;
-        store_id?: string;
-        weight?: number;
+        store_id: string;
+        item_weight: number;
     }>;
 
     getOrderSummary: () => {
@@ -91,13 +145,12 @@ type Store = {
         tax: number;
         total: number;
         item_count: number;
-        total_weight?: number;
+        total_weight: number;
         discount?: number;
     };
 
-    processCheckout: (orderData: OrderData) => Promise<void>;
+    processCheckout: (orderData: OrderData, store: { name: string; phone?: string; mobile?: string; id: string }) => Promise<void>;
     resetShippingState: () => void;
-    isChittagong: () => boolean;
     getItemById: (id: string) => CartItem | undefined;
 
     // Cart metadata
@@ -113,7 +166,6 @@ export const useStore = create<Store>()(
         persist(
             (set, get) => ({
                 cart: [],
-                shippingMethod: 'pathao',
                 pathaoCharges: null,
                 selectedCity: '',
                 selectedZone: '',
@@ -125,7 +177,6 @@ export const useStore = create<Store>()(
                 couponCode: null,
                 discountAmount: 0,
 
-                // Cart actions
                 addToCart: (product, quantity = 1) =>
                     set((state) => {
                         const existing = state.cart.find(
@@ -142,10 +193,7 @@ export const useStore = create<Store>()(
                             return {
                                 cart: state.cart.map((item) =>
                                     item.id === product.id
-                                        ? {
-                                              ...item,
-                                              cartQty: newQty,
-                                          }
+                                        ? { ...item, cartQty: newQty }
                                         : item
                                 ),
                                 lastUpdated: new Date().toISOString(),
@@ -157,12 +205,7 @@ export const useStore = create<Store>()(
                             cartQty: quantity,
                             store_name: product.store?.name || product.store_name,
                             store_slug: product.store?.slug || product.store_slug,
-                            weight: product.weight || 0.5,
-                            dimensions: product.dimensions || {
-                                length: 10,
-                                width: 10,
-                                height: 10,
-                            },
+                            item_weight: product.item_weight || 0.5,
                         };
 
                         toast.success(`${product.name} added to cart`);
@@ -198,10 +241,7 @@ export const useStore = create<Store>()(
                         cart: state.cart
                             .map((item) =>
                                 item.id === id
-                                    ? {
-                                          ...item,
-                                          cartQty: Math.max((item.cartQty || 1) - 1, 1),
-                                      }
+                                    ? { ...item, cartQty: Math.max((item.cartQty || 1) - 1, 1) }
                                     : item
                             )
                             .filter((item) => (item.cartQty || 0) > 0),
@@ -219,9 +259,7 @@ export const useStore = create<Store>()(
 
                             return {
                                 cart: state.cart.map((item) =>
-                                    item.id === id
-                                        ? { ...item, cartQty: quantity }
-                                        : item
+                                    item.id === id ? { ...item, cartQty: quantity } : item
                                 ),
                                 lastUpdated: new Date().toISOString(),
                             };
@@ -244,7 +282,6 @@ export const useStore = create<Store>()(
                 clearCart: () => {
                     set({
                         cart: [],
-                        shippingMethod: 'pathao',
                         pathaoCharges: null,
                         selectedCity: '',
                         selectedZone: '',
@@ -256,20 +293,12 @@ export const useStore = create<Store>()(
                     toast.success('Cart cleared');
                 },
 
-                // Coupon actions
                 setCoupon: (code, discount) =>
-                    set({
-                        couponCode: code,
-                        discountAmount: discount,
-                    }),
+                    set({ couponCode: code, discountAmount: discount }),
 
                 removeCoupon: () =>
-                    set({
-                        couponCode: null,
-                        discountAmount: 0,
-                    }),
+                    set({ couponCode: null, discountAmount: 0 }),
 
-                // Getters
                 getTotalItems: () =>
                     get().cart.reduce((sum, item) => sum + (item.cartQty || 1), 0),
 
@@ -283,19 +312,11 @@ export const useStore = create<Store>()(
                         0
                     ),
 
-                getTax: () => {
-                    const taxRate = 0.10;
-                    return get().getSubTotal() * taxRate;
-                },
+                getTax: () => get().getSubTotal() * 0.10,
 
                 getShipping: () => {
-                    const { shippingMethod, pathaoCharges } = get();
-
-                    if (shippingMethod === 'pathao' && pathaoCharges) {
-                        return pathaoCharges.delivery_charge;
-                    }
-
-                    return 0;
+                    const { pathaoCharges } = get();
+                    return pathaoCharges ? pathaoCharges.delivery_charge : 0;
                 },
 
                 getTotal: () => {
@@ -311,18 +332,6 @@ export const useStore = create<Store>()(
 
                     return subtotal + tax + shipping - discountValue;
                 },
-
-                // Shipping actions
-                setShippingMethod: (method) =>
-                    set({
-                        shippingMethod: method,
-                        ...(method === 'standard' ? {
-                            pathaoCharges: null,
-                            selectedCity: '',
-                            selectedZone: '',
-                            selectedArea: ''
-                        } : {})
-                    }),
 
                 setPathaoCharges: (charges) =>
                     set({ pathaoCharges: charges }),
@@ -356,74 +365,28 @@ export const useStore = create<Store>()(
 
                 resetShippingState: () =>
                     set({
-                        shippingMethod: 'pathao',
                         pathaoCharges: null,
                         selectedCity: '',
                         selectedZone: '',
                         selectedArea: ''
                     }),
 
-                // Helper functions
-                isChittagong: () => {
-                    const { selectedCity, cities } = get();
-                    if (!selectedCity) return false;
-
-                    const selectedCityData = cities.find(city => city.city_id === parseInt(selectedCity));
-                    return selectedCityData?.city_name?.toLowerCase().includes('chittagong') ||
-                           selectedCityData?.city_name?.toLowerCase().includes('chattogram') ||
-                           false;
-                },
-
-                // getFormattedCartItems with guaranteed quantity
                 getFormattedCartItems: () => {
                     const cart = get().cart;
                     return cart.map(item => {
-                        try {
-                            let imageUrl = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+                        const price = item.sale_price || item.regular_price;
+                        const quantity = Math.max(1, item.cartQty || 1);
+                        const weight = item.item_weight || 0.5;
 
-                            if (item.images) {
-                                try {
-                                    const parsed = JSON.parse(item.images as string);
-                                    const firstImage = Array.isArray(parsed) ? parsed[0] : parsed;
-                                    if (firstImage) {
-                                        imageUrl = `/product_images/${firstImage}`;
-                                    }
-                                } catch {
-                                    if (typeof item.images === 'string' && item.images) {
-                                        imageUrl = `/product_images/${item.images}`;
-                                    }
-                                }
-                            }
-
-                            const price = item.sale_price || item.regular_price;
-                            const quantity = Math.max(1, item.cartQty || 1);
-
-                            return {
-                                id: item.id,
-                                product_id: item.id,
-                                name: item.name,
-                                quantity: quantity,
-                                price: price,
-                                total: price * quantity,
-                                image: imageUrl,
-                                store_name: item.store_name,
-                                store_id: item.store_id,
-                                weight: item.weight || 0.5,
-                            };
-                        } catch (error) {
-                            console.error('Error formatting cart item:', error);
-                            const quantity = Math.max(1, item.cartQty || 1);
-                            return {
-                                id: item.id,
-                                product_id: item.id,
-                                name: item.name,
-                                quantity: quantity,
-                                price: item.sale_price || item.regular_price,
-                                total: (item.sale_price || item.regular_price) * quantity,
-                                image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
-                                weight: item.weight || 0.5,
-                            };
-                        }
+                        return {
+                            product_id: item.id, // Use item.id as product_id
+                            name: item.name,
+                            quantity: quantity,
+                            price: price,
+                            total: price * quantity,
+                            store_id: item.store_id,
+                            item_weight: weight,
+                        };
                     });
                 },
 
@@ -433,10 +396,12 @@ export const useStore = create<Store>()(
                     const shipping = get().getShipping();
                     const total = get().getTotal();
                     const item_count = get().getTotalItems();
-                    const total_weight = get().cart.reduce((sum, item) =>
-                        sum + ((item.weight || 0.5) * (item.cartQty || 1)), 0
-                    );
-                    const discount = get().discountAmount;
+
+                    const total_weight = get().cart.reduce((sum, item) => {
+                        const weight = item.item_weight || 0.5;
+                        const quantity = item.cartQty || 1;
+                        return sum + (weight * quantity);
+                    }, 0);
 
                     return {
                         subtotal,
@@ -445,159 +410,120 @@ export const useStore = create<Store>()(
                         total,
                         item_count,
                         total_weight,
-                        discount,
+                        discount: get().discountAmount,
                     };
                 },
 
-                // processCheckout with correct field names and 20 BDT extra included in delivery charge
-                processCheckout: async (orderData: OrderData) => {
+                processCheckout: async (orderData: OrderData, store: { name: string; phone?: string; mobile?: string; id: string }) => {
                     const state = get();
 
-                    // Validate cart
                     if (state.cart.length === 0) {
                         toast.error('Your cart is empty');
                         return Promise.reject('Cart is empty');
                     }
 
-                    // Get formatted items with guaranteed quantity
                     const formattedItems = state.getFormattedCartItems();
+                    const summary = state.getOrderSummary();
 
-                    // Validate each item has quantity
+                    // Validate items
                     for (const item of formattedItems) {
                         if (!item.quantity || item.quantity < 1) {
                             toast.error(`Invalid quantity for item: ${item.name}`);
                             return Promise.reject('Invalid quantity');
                         }
+                        if (!item.item_weight || item.item_weight < 0.1) {
+                            toast.error(`Invalid weight for item: ${item.name}`);
+                            return Promise.reject('Invalid weight');
+                        }
                     }
 
-                    const summary = state.getOrderSummary();
+                    // Validate Pathao data
+                    if (!state.selectedCity || !state.selectedZone || !state.selectedArea || !state.pathaoCharges) {
+                        toast.error('Please complete all delivery information');
+                        return Promise.reject('Incomplete delivery info');
+                    }
 
-                    // Get city, zone, area names and IDs
                     const selectedCityData = state.cities.find(c => c.city_id === parseInt(state.selectedCity));
                     const selectedZoneData = state.zones?.find(z => z.zone_id === parseInt(state.selectedZone));
                     const selectedAreaData = state.areas?.find(a => a.area_id === parseInt(state.selectedArea));
 
-                    // Calculate estimated delivery date
-                    const calculateEstimatedDelivery = () => {
-                        const today = new Date();
-                        const isChittagong = selectedCityData?.city_name?.toLowerCase().includes('chittagong') ||
-                                            selectedCityData?.city_name?.toLowerCase().includes('chattogram');
-                        const isDhaka = selectedCityData?.city_name?.toLowerCase().includes('dhaka');
-
-                        if (state.shippingMethod === 'pathao') {
-                            if (isDhaka) {
-                                today.setDate(today.getDate() + 1);
-                            } else if (isChittagong) {
-                                today.setDate(today.getDate() + 2);
-                            } else {
-                                today.setDate(today.getDate() + 3);
-                            }
-                        } else {
-                            today.setDate(today.getDate() + 7);
-                        }
-
-                        return today.toISOString().split('T')[0];
+                    const generateOrderNumber = () => {
+                        const prefix = 'ORD';
+                        const timestamp = Date.now().toString().slice(-8);
+                        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                        return `${prefix}-${timestamp}-${random}`;
                     };
 
-                    // Generate tracking number for Pathao orders
                     const generateTrackingNumber = () => {
-                        if (state.shippingMethod === 'pathao') {
-                            const prefix = 'PA-THAO';
-                            const timestamp = Date.now().toString().slice(-8);
-                            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-                            return `${prefix}-${timestamp}-${random}`;
-                        }
-                        return null;
+                        const prefix = 'PA-THAO';
+                        const timestamp = Date.now().toString().slice(-8);
+                        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                        return `${prefix}-${timestamp}-${random}`;
                     };
 
+                    const orderNumber = generateOrderNumber();
                     const trackingNumber = generateTrackingNumber();
-                    const estimatedDelivery = calculateEstimatedDelivery();
 
-                    // Build complete order payload with field names matching backend validation
-                    const orderPayload: any = {
-                        // Customer Information
+                    // Build payload matching your Orders interface (without product_id)
+                    const orderPayload = {
+                        // Store ID
+                        store_id: store.id,
+
+                        // Order Identifiers
+                        order_number: orderNumber,
+                        merchant_order_id: orderNumber,
+
+                        // Sender Info
+                        sender_name: store.name,
+                        sender_phone: store.phone || store.mobile || '',
+
+                        // Recipient Info
+                        recipient_name: orderData.customer_name,
+                        recipient_phone: orderData.customer_phone,
+                        recipient_address: `${orderData.customer_address}, ${selectedAreaData?.area_name || ''}, ${selectedZoneData?.zone_name || ''}, ${selectedCityData?.city_name || ''}`,
+                        recipient_city: parseInt(state.selectedCity),
+                        recipient_zone: parseInt(state.selectedZone),
+                        recipient_area: parseInt(state.selectedArea),
+
+                        // Pathao Settings
+                        delivery_type: 48,
+                        item_type: 2,
+                        special_instruction: orderData.notes || null,
+
+                        // Order Details
+                        item_quantity: summary.item_count,
+                        item_weight: summary.total_weight,
+                        amount_to_collect: summary.total,
+                        item_description: 'Products order',
+                        store_name: store.name,
+
+                        // Financials
+                        subtotal: summary.subtotal,
+                        delivery_charge: state.pathaoCharges.delivery_charge,
+                        total: summary.total,
+                        coupon_code: state.couponCode || null,
+                        discount_amount: state.discountAmount || 0,
+
+                        // Tracking
+                        tracking_number: trackingNumber,
+                        shipping_method: 'pathao',
+
+                        // Status
+                        payment_method: orderData.payment_method,
+                        payment_status: 'pending',
+                        order_status: 'pending',
+
+                        // Additional
+                        notes: orderData.notes || null,
+                        items: formattedItems,
+
+                        // Customer info (for reference)
                         customer_name: orderData.customer_name,
+                        customer_email: orderData.customer_email,
                         customer_phone: orderData.customer_phone,
                         customer_address: orderData.customer_address,
-                        customer_email: orderData.customer_email,
-                        notes: orderData.notes || '',
-
-                        // Order items
-                        items: formattedItems.map(item => ({
-                            product_id: item.product_id,
-                            name: item.name,
-                            quantity: item.quantity,
-                            price: item.price,
-                            total: item.total,
-                            store_id: item.store_id,
-                        })),
-
-                        // Order totals
-                        subtotal: summary.subtotal,
-                        shipping: summary.shipping,
-                        tax: summary.tax,
-                        total: summary.total,
-                        item_count: summary.item_count,
-                        total_weight: summary.total_weight || 0.5,
-
-                        // IMPORTANT: Add amount_to_collect (required field)
-                        amount_to_collect: summary.total,
-
-                        // Payment
-                        payment_method: orderData.payment_method,
-
-                        // Shipping
-                        shipping_method: state.shippingMethod,
-                        tracking_number: trackingNumber,
-                        estimated_delivery: estimatedDelivery,
                     };
 
-                    // Add Pathao specific fields with EXACT names matching validation errors
-                    if (state.shippingMethod === 'pathao') {
-                        // Check if all required fields are present
-                        if (!state.selectedCity) {
-                            toast.error('Please select a city');
-                            return Promise.reject('City is required');
-                        }
-                        if (!state.selectedZone) {
-                            toast.error('Please select a zone');
-                            return Promise.reject('Zone is required');
-                        }
-                        if (!state.selectedArea) {
-                            toast.error('Please select an area');
-                            return Promise.reject('Area is required');
-                        }
-                        if (!state.pathaoCharges) {
-                            toast.error('Please calculate shipping charges');
-                            return Promise.reject('Shipping charges are required');
-                        }
-
-                        // Get the base charge from API and add 20 BDT extra
-                        const baseDeliveryCharge = state.pathaoCharges.delivery_charge;
-                        // Add 20 BDT extra to the delivery charge
-                        const finalDeliveryCharge = baseDeliveryCharge + 20;
-
-                        // Add all required Pathao fields with the final charge (includes extra 20)
-                        orderPayload.pathao_city = state.selectedCity;
-                        orderPayload.pathao_city_name = selectedCityData?.city_name || '';
-                        orderPayload.pathao_zone = state.selectedZone;
-                        orderPayload.pathao_zone_name = selectedZoneData?.zone_name || '';
-                        orderPayload.pathao_area = state.selectedArea;
-                        orderPayload.pathao_area_name = selectedAreaData?.area_name || '';
-
-                        // Add required charge fields - all with the final amount including extra 20
-                        orderPayload.pathao_delivery_charge = finalDeliveryCharge;
-                        orderPayload.pathao_total_charge = finalDeliveryCharge;
-                        orderPayload.delivery_charge = finalDeliveryCharge;
-                    }
-
-                    // Add coupon if applied
-                    if (state.couponCode) {
-                        orderPayload.coupon_code = state.couponCode;
-                        orderPayload.discount_amount = state.discountAmount;
-                    }
-
-                    // Debug log
                     console.log('📦 Order Payload:', JSON.stringify(orderPayload, null, 2));
 
                     return new Promise<void>((resolve, reject) => {
@@ -609,7 +535,6 @@ export const useStore = create<Store>()(
                             },
                             onError: (errors) => {
                                 console.error('❌ Checkout error:', errors);
-                                // Show validation errors to user
                                 if (typeof errors === 'object') {
                                     Object.entries(errors).forEach(([field, message]) => {
                                         toast.error(`${field}: ${message}`);
@@ -627,8 +552,10 @@ export const useStore = create<Store>()(
                 name: 'cart-storage',
                 version: 1,
                 partialize: (state) => ({
-                    cart: state.cart,
-                    shippingMethod: state.shippingMethod,
+                    cart: state.cart.map(item => ({
+                        ...item,
+                        item_weight: item.item_weight || 0.5,
+                    })),
                     pathaoCharges: state.pathaoCharges,
                     selectedCity: state.selectedCity,
                     selectedZone: state.selectedZone,
@@ -642,10 +569,6 @@ export const useStore = create<Store>()(
                 }),
             }
         ),
-        {
-            name: 'CartStore',
-            enabled: true,
-            serialize: { options: true },
-        }
+        { name: 'CartStore', enabled: true }
     )
 );

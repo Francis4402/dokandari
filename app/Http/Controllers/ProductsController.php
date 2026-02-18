@@ -66,6 +66,7 @@ class ProductsController extends Controller
             'color' => 'nullable|max:20',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'images' => 'max:5',
+            'item_weight' => 'required|numeric',
         ]);
 
         $product = new Products();
@@ -81,6 +82,7 @@ class ProductsController extends Controller
         $product->description = $validated['description'];
         $product->color = json_encode($validated['color'] ?? []);
         $product->inStock = $request->boolean('inStock', true);
+        $product->item_weight = $validated['item_weight'];
         $product->rating = 0.0;
 
         if ($request->hasFile('images')) {
