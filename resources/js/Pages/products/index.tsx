@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Product } from '@/types';
+import { Product, storeType } from '@/types';
 import {
   BsStar,
   BsStarFill,
@@ -35,9 +35,10 @@ interface ProductsPageProps {
     auth?: {
         user?: any;
     };
+    store: storeType;
 }
 
-const Products = ({ products, auth }: ProductsPageProps) => {
+const Products = ({ products, auth, store }: ProductsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [wishlist, setWishlist] = useState<number[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +47,9 @@ const Products = ({ products, auth }: ProductsPageProps) => {
     const [sortBy, setSortBy] = useState('default');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [productType, setProductType] = useState<string>('all');
+
+    console.log(products);
+    console.log(store);
 
     // Get unique categories
     const categories = useMemo(() => {
@@ -600,7 +604,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
                                                             </div>
                                                         </div>
 
-                                                        <AddtoCartButton product={product} />
+                                                        <AddtoCartButton product={product} store={store} />
                                                     </div>
                                                 </div>
                                             </div>
@@ -682,7 +686,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
 
                                                                     {/* Actions - Using AddtoCartButton */}
                                                                     <div className="flex items-center gap-2">
-                                                                        <AddtoCartButton product={product} />
+                                                                        <AddtoCartButton product={product} store={store} />
                                                                         <button
                                                                             onClick={(e) => toggleWishlist(product.id, e)}
                                                                             className="p-2.5 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"

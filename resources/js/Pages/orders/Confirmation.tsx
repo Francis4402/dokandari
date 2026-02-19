@@ -21,619 +21,628 @@ import {
   FaMapPin
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
+import { useEffect } from 'react';
+import { Orders, OrderItem } from '@/types';
 
 interface OrderProps {
   auth: {
     user: any;
   };
-  order: {
-    id: string;
-    order_number: string;
-    customer_name: string;
-    customer_email: string;
-    customer_phone: string;
-    recipient_name: string;
-    recipient_phone: string;
-    recipient_address: string;
-    recipient_city?: number;
-    recipient_zone?: number;
-    recipient_area?: number;
-    subtotal: number;
-    delivery_charge: number;
-    total: number;
-    amount_to_collect: number;
-    payment_method: 'cash_on_delivery' | 'bikash';
-    payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
-    order_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
-    shipping_method: string;
-    tracking_number?: string;
-    estimated_delivery?: string;
-    coupon_code?: string;
-    discount_amount: number;
-    notes?: string;
-    store_name: string;
-    created_at: string;
-    updated_at: string;
-    order_items: Array<{
-      id: number;
-      product_id: string;
-      product_name: string;
-      product_image: string;
-      quantity: number;
-      price: number;
-      total: number;
-    }>;
-    store?: {
-      id: number;
-      name: string;
-      address?: string;
-      phone?: string;
-      mobile?: string;
-      email?: string;
-    };
-    // Pathao specific fields
-    pathao_city_name?: string;
-    pathao_zone_name?: string;
-    pathao_area_name?: string;
-    delivery_type?: number;
-    item_type?: number;
-    special_instruction?: string;
+  order: Orders & {
+    order_items?: OrderItem[];
   };
 }
 
 const Confirmation = ({ auth, order }: OrderProps) => {
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('print') === 'true') {
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  }, []);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(price ?? 0);
+      maximumFractionDigits: 0
+    }).format(price ?? 0).replace('BDT', '৳');
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('en-BD', {
-      weekday: 'long',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      month: 'short',
+      day: 'numeric'
     });
   };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      pending:    'bg-yellow-100 text-yellow-800 border-yellow-200',
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       processing: 'bg-blue-100 text-blue-800 border-blue-200',
-      shipped:    'bg-indigo-100 text-indigo-800 border-indigo-200',
-      delivered:  'bg-green-100 text-green-800 border-green-200',
-      cancelled:  'bg-red-100 text-red-800 border-red-200',
-      returned:   'bg-purple-100 text-purple-800 border-purple-200'
+      shipped: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      delivered: 'bg-green-100 text-green-800 border-green-200',
+      cancelled: 'bg-red-100 text-red-800 border-red-200',
+      returned: 'bg-purple-100 text-purple-800 border-purple-200'
     };
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const getPaymentStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      paid:     'bg-green-100 text-green-800 border-green-200',
-      pending:  'bg-yellow-100 text-yellow-800 border-yellow-200',
-      failed:   'bg-red-100 text-red-800 border-red-200',
+      paid: 'bg-green-100 text-green-800 border-green-200',
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      failed: 'bg-red-100 text-red-800 border-red-200',
       refunded: 'bg-purple-100 text-purple-800 border-purple-200'
     };
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const getFullDeliveryAddress = () => {
-    let address = order.recipient_address;
-    if (order.pathao_area_name || order.pathao_zone_name || order.pathao_city_name) {
-      const parts = [];
-      if (order.pathao_area_name) parts.push(order.pathao_area_name);
-      if (order.pathao_zone_name) parts.push(order.pathao_zone_name);
-      if (order.pathao_city_name) parts.push(order.pathao_city_name);
-      if (parts.length > 0) {
-        address += `, ${parts.join(', ')}`;
-      }
-    }
-    return address;
+    return order.recipient_address;
   };
 
-  // Calculate tax (10% of subtotal)
   const taxAmount = order.subtotal * 0.10;
-
-  // Determine items array
   const items = order.order_items || [];
 
   return (
     <AppLayout user={auth.user}>
       <Head title={`Order Confirmation - ${order.order_number}`} />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Excel Sheet Print Styles */}
+      <style type="text/css" media="print">{`
+        @page {
+          size: A4 landscape;
+          margin: 0.3in;
+        }
 
-          {/* Success Header */}
-          <div className="text-center mb-12">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-green-200 rounded-full opacity-20 animate-ping"></div>
-              </div>
-              <div className="relative w-24 h-24 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <FaCheckCircle className="h-12 w-12 text-white" />
-              </div>
+        /* Hide screen content when printing */
+        .screen-content {
+          display: none !important;
+        }
+
+        /* Show print content */
+        .print-excel-content {
+          display: block !important;
+          background: white !important;
+          color: black !important;
+          font-family: 'Calibri', 'Arial', sans-serif;
+          font-size: 10pt;
+          line-height: 1.2;
+          padding: 20px;
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+
+        /* Hide navbar and footer from AppLayout */
+        nav, header, footer, [role="navigation"] {
+          display: none !important;
+        }
+
+        /* Excel header */
+        .excel-header {
+          margin-bottom: 20px;
+          border-bottom: 2px solid #000000;
+          padding-bottom: 10px;
+        }
+
+        .excel-title {
+          font-size: 20pt;
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+
+        .excel-order-info {
+          font-size: 11pt;
+          display: flex;
+          gap: 30px;
+        }
+
+        /* Excel grid layout */
+        .excel-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        /* Excel section boxes */
+        .excel-section {
+          border: 1px solid #999999;
+          padding: 10px;
+          margin-bottom: 10px;
+        }
+
+        .excel-section-title {
+          font-weight: bold;
+          background-color: #f0f0f0 !important;
+          padding: 3px 8px;
+          margin: -10px -10px 10px -10px;
+          border-bottom: 1px solid #999999;
+          font-size: 11pt;
+        }
+
+        /* Excel field format */
+        .excel-field {
+          display: flex;
+          margin-bottom: 4px;
+          font-size: 9pt;
+        }
+
+        .excel-label {
+          font-weight: 600;
+          width: 80px;
+        }
+
+        .excel-value {
+          flex: 1;
+        }
+
+        /* Excel table */
+        .excel-table {
+          width: 100%;
+          border-collapse: collapse;
+          border: 1px solid #999999;
+          margin-bottom: 15px;
+        }
+
+        .excel-table th {
+          background-color: #f0f0f0 !important;
+          font-weight: 600;
+          text-align: left;
+          padding: 5px 8px;
+          border: 1px solid #666666;
+          font-size: 9pt;
+        }
+
+        .excel-table td {
+          padding: 4px 8px;
+          border: 1px solid #cccccc;
+          font-size: 9pt;
+        }
+
+        .excel-table td.right {
+          text-align: right;
+        }
+
+        .excel-table td.center {
+          text-align: center;
+        }
+
+        /* Excel summary */
+        .excel-summary {
+          width: 40%;
+          margin-left: auto;
+          border-collapse: collapse;
+        }
+
+        .excel-summary td {
+          padding: 4px 8px;
+          border: 1px solid #cccccc;
+        }
+
+        .excel-summary tr:last-child td {
+          font-weight: bold;
+          border-top: 2px solid #000000;
+        }
+
+        /* Excel footer */
+        .excel-footer {
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: 1px solid #999999;
+          font-size: 8pt;
+          text-align: center;
+        }
+      `}</style>
+
+      {/* Print Content - Excel Sheet View */}
+      <div className="print-excel-content" style={{ display: 'none' }}>
+        {/* Excel Header */}
+        <div className="excel-header">
+          <div className="excel-title">HaatPoint</div>
+          <div className="excel-order-info">
+            <span>Order #: {order.order_number}</span>
+            <span>Date: {formatDate(order.created_at)}</span>
+            <span>Status: {order.order_status.toUpperCase()}</span>
+          </div>
+        </div>
+
+        {/* Excel Grid - Customer, Order, Delivery Info */}
+        <div className="excel-grid">
+          {/* Customer Information */}
+          <div className="excel-section">
+            <div className="excel-section-title">CUSTOMER INFORMATION</div>
+            <div className="excel-field">
+              <span className="excel-label">Name:</span>
+              <span className="excel-value">{order.recipient_name}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Order Confirmed! 🎉
-            </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-              Thank you for your order!{' '}
-              {order.payment_method === 'cash_on_delivery'
-                ? `You'll pay ${formatPrice(order.amount_to_collect)} when your order is delivered.`
-                : 'Your payment is being processed.'}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3 justify-center items-center">
-              <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium border border-blue-200">
-                <FaReceipt className="h-4 w-4 mr-2" />
-                Order #: {order.order_number}
-              </span>
-              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(order.order_status)}`}>
-                <FaShoppingBag className="h-3 w-3 mr-1" />
-                {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
-              </span>
-              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border ${getPaymentStatusColor(order.payment_status)}`}>
-                <FaCreditCard className="h-3 w-3 mr-1" />
-                {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
-              </span>
-              {order.tracking_number && (
-                <span className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium border border-purple-200">
-                  <FaTruck className="h-3 w-3 mr-1" />
-                  Tracking: {order.tracking_number}
-                </span>
-              )}
+            <div className="excel-field">
+              <span className="excel-label">Phone:</span>
+              <span className="excel-value">{order.recipient_phone}</span>
+            </div>
+            <div className="excel-field">
+              <span className="excel-label">Email:</span>
+              <span className="excel-value">{order.sender_email}</span>
+            </div>
+            <div className="excel-field" style={{ marginTop: '5px' }}>
+              <span className="excel-label">Address:</span>
+              <span className="excel-value">{getFullDeliveryAddress()}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Order Details */}
+          <div className="excel-section">
+            <div className="excel-section-title">ORDER DETAILS</div>
+            <div className="excel-field">
+              <span className="excel-label">Store:</span>
+              <span className="excel-value">{order.store_name}</span>
+            </div>
+            <div className="excel-field">
+              <span className="excel-label">Store Phone:</span>
+              <span className="excel-value">{order.sender_phone}</span>
+            </div>
+            <div className="excel-field">
+              <span className="excel-label">Payment:</span>
+              <span className="excel-value">{order.payment_method === 'cash_on_delivery' ? 'Cash on Delivery' : 'bKash'}</span>
+            </div>
+            <div className="excel-field">
+              <span className="excel-label">Pay Status:</span>
+              <span className="excel-value">{order.payment_status}</span>
+            </div>
+          </div>
 
-            {/* Left Column - Order Details */}
-            <div className="lg:col-span-2 space-y-8">
+          {/* Delivery Information */}
+          <div className="excel-section">
+            <div className="excel-section-title">DELIVERY INFORMATION</div>
+            <div className="excel-field">
+              <span className="excel-label">Method:</span>
+              <span className="excel-value">{order.shipping_method}</span>
+            </div>
+            <div className="excel-field">
+              <span className="excel-label">Charge:</span>
+              <span className="excel-value">{formatPrice(order.delivery_charge)}</span>
+            </div>
+            {order.tracking_number && (
+              <div className="excel-field">
+                <span className="excel-label">Tracking:</span>
+                <span className="excel-value">{order.tracking_number}</span>
+              </div>
+            )}
+            {order.special_instruction && (
+              <div className="excel-field" style={{ marginTop: '5px' }}>
+                <span className="excel-label">Note:</span>
+                <span className="excel-value">{order.special_instruction}</span>
+              </div>
+            )}
+          </div>
+        </div>
 
-              {/* Order Summary Card */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-white flex items-center">
-                      <FaShoppingBag className="h-5 w-5 mr-2" />
+        {/* Order Items Table */}
+        <div className="excel-section">
+          <div className="excel-section-title">ORDER ITEMS</div>
+          <table className="excel-table">
+            <thead>
+              <tr>
+                <th style={{ width: '50%' }}>Product Name</th>
+                <th style={{ width: '10%' }}>Quantity</th>
+                <th style={{ width: '15%' }}>Unit Price</th>
+                <th style={{ width: '15%' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.product_name}</td>
+                  <td className="center">{item.quantity}</td>
+                  <td className="right">{formatPrice(item.price)}</td>
+                  <td className="right">{formatPrice(item.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Summary Table */}
+          <table className="excel-summary">
+            <tbody>
+              <tr>
+                <td>Subtotal</td>
+                <td className="right">{formatPrice(order.subtotal)}</td>
+              </tr>
+              <tr>
+                <td>Delivery Charge</td>
+                <td className="right">{formatPrice(order.delivery_charge)}</td>
+              </tr>
+              <tr>
+                <td>Tax (10%)</td>
+                <td className="right">{formatPrice(taxAmount)}</td>
+              </tr>
+              {order.discount_amount > 0 && (
+                <tr>
+                  <td>Discount {order.coupon_code && `(${order.coupon_code})`}</td>
+                  <td className="right">-{formatPrice(order.discount_amount)}</td>
+                </tr>
+              )}
+              <tr>
+                <td>TOTAL</td>
+                <td className="right">{formatPrice(order.total)}</td>
+              </tr>
+              {order.payment_method === 'cash_on_delivery' && (
+                <tr>
+                  <td>Amount to Collect (COD)</td>
+                  <td className="right" style={{ fontWeight: 'bold' }}>{formatPrice(order.amount_to_collect)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+
+        {/* Excel Footer */}
+        <div className="excel-footer">
+          <div>Thank you for your business!</div>
+          <div>Generated on: {new Date().toLocaleString('en-BD')}</div>
+        </div>
+      </div>
+
+      {/* Original Beautiful Frontend Design - Screen Only */}
+      <div className="screen-content">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            {/* Success Header */}
+            <div className="text-center mb-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 bg-green-200 rounded-full opacity-20 animate-ping"></div>
+                </div>
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <FaCheckCircle className="h-10 w-10 text-white" />
+                </div>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                Order Confirmed!
+              </h1>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Thank you for your order! {order.payment_method === 'cash_on_delivery'
+                  ? `Pay ${formatPrice(order.amount_to_collect)} on delivery.`
+                  : 'Payment being processed.'}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                  <FaReceipt className="h-3 w-3 mr-1" />
+                  {order.order_number}
+                </span>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.order_status)}`}>
+                  {order.order_status}
+                </span>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
+                  {order.payment_status}
+                </span>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={() => window.print()}
+                  className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+                >
+                  <FaPrint className="mr-2" />
+                  Print Invoice
+                </button>
+              </div>
+            </div>
+
+            {/* Your Original Design - Left Column - Order Items */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex justify-between items-center">
+                    <h2 className="text-lg font-bold text-white flex items-center">
+                      <FaShoppingBag className="h-4 w-4 mr-2" />
                       Order Summary
                     </h2>
-                    <button
-                      onClick={() => window.print()}
-                      className="inline-flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm"
-                    >
-                      <FaPrint className="h-4 w-4 mr-2" />
-                      Print Invoice
-                    </button>
                   </div>
-                </div>
+                  <div className="p-4">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Item</th>
+                          <th className="text-center py-2 text-xs font-medium text-gray-500 uppercase">Qty</th>
+                          <th className="text-right py-2 text-xs font-medium text-gray-500 uppercase">Price</th>
+                          <th className="text-right py-2 text-xs font-medium text-gray-500 uppercase">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((item, index) => (
+                          <tr key={index} className="border-b border-gray-100">
+                            <td className="py-3 text-sm">
+                              <span className="font-medium">{item.product_name}</span>
+                            </td>
+                            <td className="py-3 text-sm text-center">{item.quantity}</td>
+                            <td className="py-3 text-sm text-right">{formatPrice(item.price)}</td>
+                            <td className="py-3 text-sm text-right font-medium">{formatPrice(item.total)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-                <div className="p-6 md:p-8">
-                  {/* Items List */}
-                  <div className="mb-8">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                      <FaBox className="h-4 w-4 mr-2 text-blue-600" />
-                      Items ({items.length})
-                    </h3>
-                    <div className="space-y-4">
-                      {items.map((item: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
-                          <div className="flex items-center flex-1">
-                            <div className="w-20 h-20 rounded-lg bg-white border border-gray-200 flex items-center justify-center mr-4 overflow-hidden">
-                              {item.product_image ? (
-                                <img
-                                  src={`/product_images/${item.product_image}`}
-                                  alt={item.product_name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src =
-                                      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
-                                  }}
-                                />
-                              ) : (
-                                <FaBox className="h-8 w-8 text-gray-400" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 mb-1">{item.product_name}</h4>
-                              <div className="flex items-center space-x-4 text-sm">
-                                <span className="text-gray-600">Qty: <span className="font-medium">{item.quantity}</span></span>
-                                <span className="text-gray-600">Price: <span className="font-medium">{formatPrice(item.price)}</span></span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg text-gray-900">{formatPrice(item.total)}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">Price Breakdown</h3>
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-xl">
-                      <div className="flex justify-between items-center">
+                    {/* Price Summary */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex justify-between text-sm py-1">
                         <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium text-gray-900">{formatPrice(order.subtotal)}</span>
+                        <span className="font-medium">{formatPrice(order.subtotal)}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 flex items-center">
-                          <FaTruck className="h-4 w-4 mr-1 text-blue-500" />
-                          Shipping (Pathao)
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {formatPrice(order.delivery_charge)}
-                          <span className="text-xs text-green-600 ml-1">includes +20 BDT</span>
-                        </span>
+                      <div className="flex justify-between text-sm py-1">
+                        <span className="text-gray-600">Shipping</span>
+                        <span className="font-medium">{formatPrice(order.delivery_charge)}</span>
                       </div>
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between text-sm py-1">
                         <span className="text-gray-600">Tax (10%)</span>
-                        <span className="font-medium text-gray-900">{formatPrice(taxAmount)}</span>
+                        <span className="font-medium">{formatPrice(taxAmount)}</span>
                       </div>
                       {order.discount_amount > 0 && (
-                        <div className="flex justify-between items-center text-green-600">
-                          <span className="flex items-center">
-                            Discount {order.coupon_code && `(${order.coupon_code})`}
-                          </span>
-                          <span className="font-medium">-{formatPrice(order.discount_amount)}</span>
+                        <div className="flex justify-between text-sm py-1">
+                          <span className="text-gray-600">Discount {order.coupon_code && `(${order.coupon_code})`}</span>
+                          <span className="font-medium text-green-600">-{formatPrice(order.discount_amount)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between items-center text-lg font-bold border-t border-gray-200 pt-3 mt-3">
-                        <span>Total Amount</span>
-                        <span className="text-2xl text-green-600">{formatPrice(order.total)}</span>
+                      <div className="flex justify-between text-base font-bold pt-3 mt-2 border-t border-gray-300">
+                        <span>Total</span>
+                        <span className="text-green-600">{formatPrice(order.total)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm bg-blue-50 p-2 rounded-lg">
-                        <span className="text-gray-600">Amount to Collect (COD)</span>
-                        <span className="font-bold text-blue-600">{formatPrice(order.amount_to_collect)}</span>
-                      </div>
+                      {order.payment_method === 'cash_on_delivery' && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-blue-800">Amount to collect on delivery</span>
+                            <span className="text-lg font-bold text-blue-800">{formatPrice(order.amount_to_collect)}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Payment Method */}
-                  <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center mr-4">
+                    {/* Payment Method */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
                         {order.payment_method === 'cash_on_delivery'
-                          ? <FaMoneyBill className="h-6 w-6 text-green-600" />
-                          : <FaCreditCard className="h-6 w-6 text-blue-600" />}
+                          ? <FaMoneyBill className="h-5 w-5 text-green-600" />
+                          : <FaCreditCard className="h-5 w-5 text-blue-600" />}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">
-                          {order.payment_method === 'cash_on_delivery' ? 'Cash on Delivery' : 'bKash Payment'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {order.payment_method === 'cash_on_delivery'
-                            ? `Pay ${formatPrice(order.amount_to_collect)} when you receive your order`
-                            : 'Payment will be verified within 24 hours'}
-                        </p>
+                        <p className="text-sm font-medium">{order.payment_method === 'cash_on_delivery' ? 'Cash on Delivery' : 'bKash'}</p>
+                        {order.payment_method === 'cash_on_delivery' && (
+                          <p className="text-xs text-gray-500">Pay when you receive your order</p>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Order Timeline */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    <FaClock className="h-5 w-5 mr-2" />
-                    Order Timeline
-                  </h2>
+              {/* Right Column - Customer & Delivery Info */}
+              <div className="space-y-4">
+                {/* Customer Info */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-2">
+                    <h3 className="text-white font-bold text-sm flex items-center">
+                      <FaUser className="h-3 w-3 mr-1" />
+                      Customer
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2 text-sm">
+                      <p><span className="text-gray-500">Name:</span> {order.recipient_name}</p>
+                      <p><span className="text-gray-500">Phone:</span> {order.recipient_phone}</p>
+                      <p><span className="text-gray-500">Email:</span> {order.recipient_email}</p>
+                      <p className="pt-2 border-t border-gray-100"><span className="text-gray-500">Order #:</span> {order.order_number}</p>
+                      <p><span className="text-gray-500">Date:</span> {formatDate(order.created_at)}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex items-start">
-                      <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4 border-2 border-green-200">
-                          <FaCheckCircle className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div className="absolute left-5 top-10 h-full w-0.5 bg-gradient-to-b from-green-200 to-gray-200"></div>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Order Confirmed</p>
-                        <p className="text-sm text-gray-500">Your order has been received and confirmed</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center">
-                          <FaCalendar className="h-3 w-3 mr-1" />
-                          {formatDate(order.created_at)}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-start">
-                      <div className="relative">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 border-2 ${
-                          order.order_status === 'processing' || order.order_status === 'shipped' || order.order_status === 'delivered'
-                            ? 'bg-blue-100 border-blue-200'
-                            : 'bg-gray-100 border-gray-200'
-                        }`}>
-                          <FaShoppingBag className={`h-5 w-5 ${
-                            order.order_status === 'processing' || order.order_status === 'shipped' || order.order_status === 'delivered'
-                              ? 'text-blue-600'
-                              : 'text-gray-400'
-                          }`} />
-                        </div>
-                        <div className="absolute left-5 top-10 h-full w-0.5 bg-gradient-to-b from-gray-200 to-gray-200"></div>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Processing</p>
-                        <p className="text-sm text-gray-500">Store is preparing your order</p>
-                        {order.order_status === 'processing' && (
-                          <p className="text-xs text-blue-600 mt-1">In progress</p>
-                        )}
-                      </div>
+                {/* Delivery Info */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                  <div className="bg-gradient-to-r from-green-600 to-teal-600 px-5 py-2">
+                    <h3 className="text-white font-bold text-sm flex items-center">
+                      <FaTruck className="h-3 w-3 mr-1" />
+                      Delivery
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2 text-sm">
+                      <p><span className="text-gray-500">Address:</span> {getFullDeliveryAddress()}</p>
+                      <p><span className="text-gray-500">Method:</span> {order.shipping_method === 'pathao' ? 'Pathao' : 'Standard'}</p>
+                      {order.tracking_number && <p><span className="text-gray-500">Tracking:</span> {order.tracking_number}</p>}
+                      {order.special_instruction && (
+                        <p className="pt-2 border-t border-gray-100"><span className="text-gray-500">Note:</span> {order.special_instruction}</p>
+                      )}
                     </div>
+                  </div>
+                </div>
 
-                    <div className="flex items-start">
-                      <div className="relative">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 border-2 ${
-                          order.order_status === 'shipped' || order.order_status === 'delivered'
-                            ? 'bg-indigo-100 border-indigo-200'
-                            : 'bg-gray-100 border-gray-200'
-                        }`}>
-                          <FaTruck className={`h-5 w-5 ${
-                            order.order_status === 'shipped' || order.order_status === 'delivered'
-                              ? 'text-indigo-600'
-                              : 'text-gray-400'
-                          }`} />
-                        </div>
-                        <div className="absolute left-5 top-10 h-full w-0.5 bg-gradient-to-b from-gray-200 to-gray-200"></div>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Shipping</p>
-                        <p className="text-sm text-gray-500">
-                          {order.shipping_method === 'pathao' ? 'Pathao Express Delivery' : 'Standard Delivery'}
-                        </p>
-                        {order.tracking_number && (
-                          <p className="text-xs text-blue-600 mt-1 flex items-center">
-                            <FaTruck className="h-3 w-3 mr-1" />
-                            Tracking: {order.tracking_number}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 border-2 ${
-                        order.order_status === 'delivered'
-                          ? 'bg-green-100 border-green-200'
-                          : 'bg-gray-100 border-gray-200'
-                      }`}>
-                        <FaHome className={`h-5 w-5 ${
-                          order.order_status === 'delivered'
-                            ? 'text-green-600'
-                            : 'text-gray-400'
-                        }`} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Delivery</p>
-                        <p className="text-sm text-gray-500">
-                          {order.payment_method === 'cash_on_delivery'
-                            ? `Pay on delivery: ${formatPrice(order.amount_to_collect)}`
-                            : 'Order will be delivered'}
-                        </p>
-                        {order.estimated_delivery && (
-                          <p className="text-xs text-gray-400 mt-1 flex items-center">
-                            <FaCalendar className="h-3 w-3 mr-1" />
-                            Estimated: {new Date(order.estimated_delivery).toLocaleDateString('en-BD', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        )}
-                      </div>
+                {/* Store Info */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                  <div className="bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2">
+                    <h3 className="text-white font-bold text-sm flex items-center">
+                      <FaStore className="h-3 w-3 mr-1" />
+                      Store
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2 text-sm">
+                      <p className="font-medium">{order.store_name}</p>
+                      <p><span className="text-gray-500">email:</span>: {order.sender_email}</p>
+                      <p><span className="text-gray-500">Phone:</span> {order.sender_phone}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Customer & Delivery Info */}
-            <div className="space-y-8">
-
-              {/* Customer Information */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    <FaUser className="h-5 w-5 mr-2" />
-                    Customer Information
-                  </h2>
+            {/* Order Notes */}
+            {order.notes && (
+              <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                <div className="bg-gradient-to-r from-yellow-600 to-orange-600 px-5 py-2">
+                  <h3 className="text-white font-bold text-sm">Notes</h3>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-                        <FaReceipt className="h-4 w-4 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Order ID</p>
-                        <p className="font-medium text-gray-900">{order.order_number}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                        <FaUser className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Recipient Name</p>
-                        <p className="font-medium text-gray-900">{order.recipient_name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                        <FaPhone className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-900">{order.recipient_phone}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
-                        <FaEnvelope className="h-4 w-4 text-yellow-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Email</p>
-                        <p className="font-medium text-gray-900">{order.customer_email}</p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="p-4">
+                  <p className="text-sm text-gray-700">{order.notes}</p>
                 </div>
               </div>
+            )}
 
-              {/* Delivery Information */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    <FaMapMarkerAlt className="h-5 w-5 mr-2" />
-                    Delivery Information
-                  </h2>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start">
-                      <FaMapPin className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                      <div>
-                        <p className="text-xs text-gray-500">Delivery Address</p>
-                        <p className="font-medium text-gray-900">{getFullDeliveryAddress()}</p>
-                      </div>
-                    </div>
-
-                    {order.special_instruction && (
-                      <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <p className="text-xs text-yellow-800 font-medium mb-1">Special Instructions:</p>
-                        <p className="text-sm text-gray-700">{order.special_instruction}</p>
-                      </div>
-                    )}
-
-                    {order.shipping_method === 'pathao' && (order.pathao_city_name || order.pathao_zone_name || order.pathao_area_name) && (
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-xs text-blue-800 font-medium mb-1">Pathao Delivery Details:</p>
-                        <p className="text-sm text-gray-700">
-                          {[order.pathao_area_name, order.pathao_zone_name, order.pathao_city_name]
-                            .filter(Boolean)
-                            .join(' → ')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            {/* Timeline */}
+            <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2">
+                <h3 className="text-white font-bold text-sm flex items-center">
+                  <FaClock className="h-3 w-3 mr-1" />
+                  Timeline
+                </h3>
               </div>
-
-              {/* Store Information */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    <FaStore className="h-5 w-5 mr-2" />
-                    Store Information
-                  </h2>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-3">
-                    <p className="font-bold text-gray-900 text-lg">{order.store_name}</p>
-                    {order.store && (
-                      <>
-                        {order.store.address && (
-                          <p className="text-sm text-gray-600 flex items-start">
-                            <FaMapMarkerAlt className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
-                            {order.store.address}
-                          </p>
-                        )}
-                        {(order.store.mobile || order.store.phone) && (
-                          <p className="text-sm text-gray-600 flex items-center">
-                            <FaPhone className="h-4 w-4 text-gray-400 mr-2" />
-                            {order.store.mobile ?? order.store.phone}
-                          </p>
-                        )}
-                        {order.store.email && (
-                          <p className="text-sm text-gray-600 flex items-center">
-                            <FaEnvelope className="h-4 w-4 text-gray-400 mr-2" />
-                            {order.store.email}
-                          </p>
-                        )}
-                      </>
-                    )}
+              <div className="p-3">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    <span>Confirmed {formatDate(order.created_at)}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Order Notes */}
-              {order.notes && (
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-yellow-600 to-orange-600 px-6 py-4">
-                    <h2 className="text-xl font-bold text-white flex items-center">
-                      Order Notes
-                    </h2>
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full ${order.order_status === 'processing' ? 'bg-blue-500' : 'bg-gray-300'} mr-1`}></div>
+                    <span>Processing</span>
                   </div>
-                  <div className="p-6">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-gray-700">{order.notes}</p>
-                    </div>
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full ${order.order_status === 'shipped' ? 'bg-indigo-500' : 'bg-gray-300'} mr-1`}></div>
+                    <span>Shipped</span>
                   </div>
-                </div>
-              )}
-
-              {/* Need Help */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-6 text-white">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
-                    <FaShieldAlt className="h-6 w-6 text-white" />
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full ${order.order_status === 'delivered' ? 'bg-green-500' : 'bg-gray-300'} mr-1`}></div>
+                    <span>Delivered</span>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Need help?</h3>
-                    <p className="text-sm opacity-90">24/7 Customer Support</p>
-                  </div>
-                </div>
-                <p className="text-sm text-blue-100 mb-4">
-                  Our customer support team is available 24/7 to assist you with your order.
-                </p>
-                <div className="space-y-2">
-                  <a
-                    href="tel:1234567890"
-                    className="block w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors text-center"
-                  >
-                    <FaPhone className="h-4 w-4 inline mr-2" />
-                    Call Support
-                  </a>
-                  <Link
-                    href="/contact"
-                    className="block w-full py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors text-center"
-                  >
-                    Contact Support
-                    <FaArrowRight className="h-4 w-4 inline ml-2" />
-                  </Link>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* CTA Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href={route('orders.index')}
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all font-semibold shadow-md hover:shadow-lg"
-            >
-              <FaShoppingBag className="h-5 w-5 mr-2" />
-              View My Orders
-            </Link>
-            <Link
-              href="/products"
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all font-semibold shadow-md hover:shadow-lg"
-            >
-              Continue Shopping
-              <FaArrowRight className="h-5 w-5 ml-2" />
-            </Link>
+            {/* Action Buttons */}
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href={route('orders.index')}
+                className="inline-flex items-center justify-center px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+              >
+                <FaShoppingBag className="h-4 w-4 mr-2" />
+                My Orders
+              </Link>
+              <Link
+                href="/products"
+                className="inline-flex items-center justify-center px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 text-sm font-medium"
+              >
+                Continue Shopping
+                <FaArrowRight className="h-3 w-3 ml-2" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

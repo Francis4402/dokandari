@@ -150,7 +150,6 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchValue.trim()) {
-      console.log("Searching for:", searchValue)
       setSearchOpen(false)
       setSearchValue("")
     }
@@ -291,7 +290,15 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                   className="flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                    {user ? user.name.charAt(0) : <FiUser className="h-4 w-4" />}
+                    {
+                        user ? (
+                            <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
+                                <img src={`/storage/${user.images}`} alt="i" />
+                            </div>
+                        ) : <div>
+                                <FiUser className="h-4 w-4" />
+                            </div>
+                    }
                   </div>
                 </button>
 
@@ -572,7 +579,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                           {user ? (
                             <div className="space-y-1">
                               <Link
-                                href="/profile"
+                                href="/dashboard/profile"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                               >

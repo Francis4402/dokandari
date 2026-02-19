@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->string('name')->unique();
+            $table->string('email');
             $table->string('logo')->nullable();
             $table->text('address');
             $table->string('mobile')->unique();

@@ -17,13 +17,15 @@ return new class extends Migration
             $table->foreignUuid('store_id')->constrained('stores')->cascadeOnDelete();
             $table->string('merchant_order_id')->nullable();
             $table->string('sender_name');
+            $table->string('sender_email')->nullable();
             $table->string('sender_phone');
             $table->string('recipient_name');
+            $table->string('recipient_email');
             $table->string('recipient_phone');
             $table->string('recipient_address');
             $table->integer('recipient_city');
             $table->integer('recipient_zone');
-            $table->integer('recipient_area');
+            $table->integer('recipient_area')->nullable();
             $table->integer('delivery_type')->default(48);
             $table->unsignedBigInteger('item_type')->default(2);
             $table->string('special_instruction')->nullable();

@@ -241,10 +241,15 @@ class ProductsController extends Controller
     }
 
     public function products() {
-        $products = Products::orderBy('created_at', 'desc')->get();
+        $products = Products::with('store')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $store = Store::where('user_id', auth()->id())->first();
 
         return Inertia::render('products/index', [
             'products' => $products,
+            'store' => $store,
         ]);
     }
 }

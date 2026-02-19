@@ -35,9 +35,10 @@ class Orders extends Model
         // Sender Info (from store)
         'sender_name', // Added from schema
         'sender_phone', // Added from schema
-
+        'sender_email',
         // Recipient Information
         'recipient_name',
+        'recipient_email',
         'recipient_phone',
         'recipient_address',
         'recipient_city', // Added from schema

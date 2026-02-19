@@ -6,7 +6,6 @@ use App\Models\Orders;
 use App\Models\OrderItems;
 use App\Models\Products;
 use App\Models\Store;
-use Enan\PathaoCourier\Facades\PathaoCourier;
 use Enan\PathaoCourier\Requests\PathaoOrderRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -32,12 +31,23 @@ class OrdersController extends Controller
 
     public function dashboardIndex()
     {
-        $store = Store::where('user_id', Auth::id())->first();
+        $user = Auth::user();
 
+        // Find the store for this user
+        $store = Store::where('user_id', $user->id)->first();
+
+        // If no store found, return empty orders array
+        if (!$store) {
+            return Inertia::render('dashboard/orders/index', [
+                'orders' => [],
+            ]);
+        }
+
+        // Get orders for this store
         $orders = Orders::where('store_id', $store->id)
-        ->with('orderItems')
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->with('orderItems')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('dashboard/orders/index', [
             'orders' => $orders,
@@ -68,165 +78,187 @@ class OrdersController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    try {
-        Log::info('Order request received:', $request->all());
+    {
+        try {
+            Log::info('Order request received:', $request->all());
 
-        $validated = $request->validate([
-            'recipient_name' => 'required|string|max:255',
-            'recipient_phone' => 'required|string|max:20',
-            'recipient_address' => 'required|string|min:10',
-            'recipient_city' => 'required|integer',
-            'recipient_zone' => 'required|integer',
-            'recipient_area' => 'required|integer',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.price' => 'required|numeric',
-            'subtotal' => 'required|numeric',
-            'delivery_charge' => 'required|numeric',
-            'total' => 'required|numeric',
-            'amount_to_collect' => 'required|numeric',
-            'item_quantity' => 'required|integer',
-            'item_weight' => 'required|numeric|min:0.1',
-            'item_description' => 'required|string',
-            'store_name' => 'required|string',
-            'order_number' => 'required|string|unique:orders',
-            'merchant_order_id' => 'required|string',
-            'payment_method' => 'required|in:cash_on_delivery,bikash',
-            'shipping_method' => 'required|in:pathao',
-            'delivery_type' => 'required|integer|in:12,48',
-            'item_type' => 'required|integer|in:1,2',
-            'coupon_code' => 'nullable|string',
-            'discount_amount' => 'nullable|numeric',
-            'notes' => 'nullable|string',
-            'tracking_number' => 'nullable|string',
-            'special_instruction' => 'nullable|string',
-            'customer_name' => 'nullable|string',
-            'customer_email' => 'nullable|email',
-        ]);
+            $user = Auth::user();
+            if (!$user) return back()->withErrors(['error' => 'User not authenticated']);
 
-        $user = Auth::user();
-        if (!$user) return back()->withErrors(['error' => 'User not authenticated']);
+            $validated = $request->validate([
+                'recipient_name' => 'required|string|max:255',
+                'recipient_email' => 'required|string',
+                'recipient_phone' => 'required|string|max:20',
+                'recipient_address' => 'required|string|min:10',
+                'recipient_city' => 'required|integer',
+                'recipient_zone' => 'required|integer',
+                'recipient_area' => 'nullable|integer',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|string',
+                'items.*.quantity' => 'required|integer|min:1',
+                'items.*.price' => 'required|numeric',
+                'subtotal' => 'required|numeric',
+                'delivery_charge' => 'required|numeric',
+                'total' => 'required|numeric',
+                'amount_to_collect' => 'required|numeric',
+                'item_quantity' => 'required|integer',
+                'item_weight' => 'required|numeric|min:0.1',
+                'item_description' => 'required|string',
+                'store_name' => 'required|string',
+                'order_number' => 'required|string|unique:orders',
+                'merchant_order_id' => 'required|string',
+                'payment_method' => 'required|in:cash_on_delivery,bikash',
+                'shipping_method' => 'required|in:pathao',
+                'delivery_type' => 'required|integer|in:12,48',
+                'item_type' => 'required|integer|in:1,2',
+                'coupon_code' => 'nullable|string',
+                'discount_amount' => 'nullable|numeric',
+                'notes' => 'nullable|string',
+                'tracking_number' => 'nullable|string',
+                'special_instruction' => 'nullable|string',
+                'sender_email' => 'required|email',
+            ]);
 
-        $firstProduct = Products::find($validated['items'][0]['product_id']);
-        if (!$firstProduct) return back()->withErrors(['error' => 'Product not found']);
+            $firstProduct = Products::find($validated['items'][0]['product_id']);
+            if (!$firstProduct) return back()->withErrors(['error' => 'Product not found']);
 
-        // Stock validation
-        foreach ($validated['items'] as $item) {
-            $product = Products::find($item['product_id']);
-            if (!$product) return back()->withErrors(['error' => "Product not found: {$item['product_id']}"]);
-            if ($product->quantity < $item['quantity']) {
-                return back()->withErrors(['error' => "Insufficient stock for: {$product->name}"]);
-            }
-        }
-
-        $store = Store::find($firstProduct->store_id);
-        if (!$store) return back()->withErrors(['error' => 'Store not found']);
-
-        // Create order
-        $order = Orders::create([
-            'user_id' => $user->id,
-            'store_id' => $store->id,
-            'merchant_order_id' => $validated['merchant_order_id'],
-            'order_number' => $validated['order_number'],
-            'sender_name' => $store->name,
-            'sender_phone' => $store->phone ?? $store->mobile ?? '',
-            'recipient_name' => $validated['recipient_name'],
-            'recipient_phone' => $validated['recipient_phone'],
-            'recipient_address' => $validated['recipient_address'],
-            'recipient_city' => $validated['recipient_city'],
-            'recipient_zone' => $validated['recipient_zone'],
-            'recipient_area' => $validated['recipient_area'],
-            'delivery_type' => $validated['delivery_type'],
-            'item_type' => $validated['item_type'],
-            'special_instruction' => $validated['special_instruction'] ?? $validated['notes'] ?? null,
-            'item_quantity' => $validated['item_quantity'],
-            'item_weight' => $validated['item_weight'],
-            'amount_to_collect' => $validated['amount_to_collect'],
-            'item_description' => $validated['item_description'],
-            'store_name' => $validated['store_name'],
-            'subtotal' => $validated['subtotal'],
-            'delivery_charge' => $validated['delivery_charge'],
-            'total' => $validated['total'],
-            'coupon_code' => $validated['coupon_code'] ?? null,
-            'discount_amount' => $validated['discount_amount'] ?? 0,
-            'tracking_number' => $validated['tracking_number'] ?? null,
-            'shipping_method' => $validated['shipping_method'],
-            'payment_method' => $validated['payment_method'],
-            'payment_status' => 'pending',
-            'order_status' => 'pending',
-            'notes' => $validated['notes'] ?? null,
-            'items' => json_encode($validated['items']),
-        ]);
-
-        // Create order items & update stock
-        foreach ($validated['items'] as $item) {
-            $product = Products::find($item['product_id']);
-            if ($product) {
-                OrderItems::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'product_image' => $this->getFirstImage($product->images),
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
-                ]);
-                $product->decrement('quantity', $item['quantity']);
-            }
-        }
-
-        // Pathao API integration
-        if ($validated['shipping_method'] === 'pathao' && $store->pathao_store_id) {
-            try {
-                $pathaoRequest = new PathaoOrderRequest();
-                $pathaoRequest->merge([
-                    'store_id' => $store->pathao_store_id,
-                    'merchant_order_id' => $order->order_number,
-                    'sender_name' => $store->name,
-                    'sender_phone' => $store->phone ?? $store->mobile,
-                    'recipient_name' => $validated['recipient_name'],
-                    'recipient_phone' => $validated['recipient_phone'],
-                    'recipient_address' => $validated['recipient_address'],
-                    'recipient_city' => $validated['recipient_city'],
-                    'recipient_zone' => $validated['recipient_zone'],
-                    'recipient_area' => $validated['recipient_area'],
-                    'delivery_type' => $validated['delivery_type'],
-                    'item_type' => $validated['item_type'],
-                    'special_instruction' => $validated['special_instruction'] ?? '',
-                    'item_quantity' => $validated['item_quantity'],
-                    'item_weight' => $validated['item_weight'],
-                    'amount_to_collect' => $validated['amount_to_collect'],
-                    'item_description' => $validated['item_description'],
-                ]);
-
-                $response = \Enan\PathaoCourier\Facades\PathaoCourier::CREATE_ORDER($pathaoRequest);
-
-                if (!empty($response['data'])) {
-                    $order->update([
-                        'pathao_order_id' => $response['data']['order_id'] ?? null,
-                        'pathao_consignment_id' => $response['data']['consignment_id'] ?? null,
-                        'pathao_response' => json_encode($response),
-                        'tracking_number' => $response['data']['consignment_id'] ?? $order->tracking_number,
-                    ]);
+            // Stock validation
+            foreach ($validated['items'] as $item) {
+                $product = Products::find($item['product_id']);
+                if (!$product) return back()->withErrors(['error' => "Product not found: {$item['product_id']}"]);
+                if ($product->quantity < $item['quantity']) {
+                    return back()->withErrors(['error' => "Insufficient stock for: {$product->name}"]);
                 }
-            } catch (\Exception $e) {
-                Log::error('Pathao error:', ['order_id' => $order->id, 'message' => $e->getMessage()]);
-                $order->update(['pathao_response' => json_encode(['error' => $e->getMessage()])]);
             }
+
+            $store = Store::find($firstProduct->store_id);
+            if (!$store) return back()->withErrors(['error' => 'Store not found']);
+
+            // Create order - with all required fields
+            $order = Orders::create([
+                // IDs
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+
+                // Order Identifiers
+                'merchant_order_id' => $validated['merchant_order_id'],
+                'order_number' => $validated['order_number'],
+
+                // Sender Info (from store)
+                'sender_name' => $store->name,
+                'sender_phone' => $store->phone ?? $store->mobile ?? '',
+                'sender_email' => $validated['sender_email'],
+
+                // Recipient Info
+                'recipient_name' => $validated['recipient_name'],
+                'recipient_email' => $validated['recipient_email'],
+                'recipient_phone' => $validated['recipient_phone'],
+                'recipient_address' => $validated['recipient_address'],
+                'recipient_city' => $validated['recipient_city'],
+                'recipient_zone' => $validated['recipient_zone'],
+                'recipient_area' => $validated['recipient_area'] ?? null,
+
+                // Pathao Settings
+                'delivery_type' => $validated['delivery_type'],
+                'item_type' => $validated['item_type'],
+                'special_instruction' => $validated['special_instruction'] ?? $validated['notes'] ?? null,
+
+                // Order Details
+                'item_quantity' => $validated['item_quantity'],
+                'item_weight' => $validated['item_weight'],
+                'amount_to_collect' => $validated['amount_to_collect'],
+                'item_description' => $validated['item_description'],
+                'store_name' => $validated['store_name'],
+
+                // Financials
+                'subtotal' => $validated['subtotal'],
+                'delivery_charge' => $validated['delivery_charge'],
+                'total' => $validated['total'],
+                'coupon_code' => $validated['coupon_code'] ?? null,
+                'discount_amount' => $validated['discount_amount'] ?? 0,
+
+                // Tracking
+                'tracking_number' => $validated['tracking_number'] ?? null,
+                'shipping_method' => $validated['shipping_method'],
+
+                // Status
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => 'pending',
+                'order_status' => 'pending',
+
+                // Additional
+                'notes' => $validated['notes'] ?? null,
+                'items' => json_encode($validated['items']),
+            ]);
+
+            // Create order items & update stock
+            foreach ($validated['items'] as $item) {
+                $product = Products::find($item['product_id']);
+                if ($product) {
+                    OrderItems::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'product_image' => $this->getFirstImage($product->images),
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'total' => $item['price'] * $item['quantity'],
+                    ]);
+                    $product->decrement('quantity', $item['quantity']);
+                }
+            }
+
+            // Pathao API integration
+            if ($validated['shipping_method'] === 'pathao' && $store->pathao_store_id) {
+                try {
+                    $pathaoRequest = new PathaoOrderRequest();
+                    $pathaoRequest->merge([
+                        'store_id' => $store->pathao_store_id,
+                        'merchant_order_id' => $order->order_number,
+                        'sender_name' => $store->name,
+                        'sender_email' => $validated['sender_email'],
+                        'sender_phone' => $store->phone ?? $store->mobile,
+                        'recipient_name' => $validated['recipient_name'],
+                        'recipient_phone' => $validated['recipient_phone'],
+                        'recipient_address' => $validated['recipient_address'],
+                        'recipient_city' => $validated['recipient_city'],
+                        'recipient_zone' => $validated['recipient_zone'],
+                        'recipient_area' => $validated['recipient_area'] ?? 0,
+                        'delivery_type' => $validated['delivery_type'],
+                        'item_type' => $validated['item_type'],
+                        'special_instruction' => $validated['special_instruction'] ?? '',
+                        'item_quantity' => $validated['item_quantity'],
+                        'item_weight' => $validated['item_weight'],
+                        'amount_to_collect' => $validated['amount_to_collect'],
+                        'item_description' => $validated['item_description'],
+                    ]);
+
+                    $response = \Enan\PathaoCourier\Facades\PathaoCourier::CREATE_ORDER($pathaoRequest);
+
+                    if (!empty($response['data'])) {
+                        $order->update([
+                            'pathao_order_id' => $response['data']['order_id'] ?? null,
+                            'pathao_consignment_id' => $response['data']['consignment_id'] ?? null,
+                            'pathao_response' => json_encode($response),
+                            'tracking_number' => $response['data']['consignment_id'] ?? $order->tracking_number,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Pathao error:', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+                    $order->update(['pathao_response' => json_encode(['error' => $e->getMessage()])]);
+                }
+            }
+
+            return redirect()->route('orders.confirmation', $order->id)
+                ->with('success', 'Order placed successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Order failed:', ['message' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to place order: ' . $e->getMessage()])->withInput();
         }
-
-        return redirect()->route('orders.confirmation', $order->id)
-            ->with('success', 'Order placed successfully!');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return back()->withErrors($e->errors())->withInput();
-    } catch (\Exception $e) {
-        Log::error('Order failed:', ['message' => $e->getMessage()]);
-        return back()->withErrors(['error' => 'Failed to place order: ' . $e->getMessage()])->withInput();
     }
-}
 
 
     public function confirmation(Orders $order)

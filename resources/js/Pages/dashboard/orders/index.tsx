@@ -6,7 +6,6 @@ import {
   FaEye,
   FaEdit,
   FaTrash,
-  FaPlus,
   FaTruck,
   FaCheckCircle,
   FaTimesCircle,
@@ -35,14 +34,17 @@ interface DashboardOrderType {
     auth: {
         user: any
     },
-    orders: Orders[]
+    orders: (Orders & {
+        order_items?: OrderItem[];
+    })[];
 }
 
 const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
 
+
     const { delete: deleteOrder } = useForm();
 
-    const [selectedOrder, setSelectedOrder] = useState<Orders | null>(null);
+    const [selectedOrder, setSelectedOrder] = useState<(Orders & { order_items?: OrderItem[] }) | null>(null);
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -92,7 +94,7 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
         }
     };
 
-    // Helper function to get image URL
+    // Helper function to get image URL from /product_images directory
     const getImageUrl = (imagePath: string | null | undefined) => {
         if (!imagePath) {
             return '/images/placeholder.jpg';
@@ -103,22 +105,28 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
             return imagePath;
         }
 
-        // Check if it's already a full path
-        if (imagePath.startsWith('/storage/')) {
+        // If it's already a full path with /product_images/
+        if (imagePath.includes('/product_images/')) {
             return imagePath;
         }
 
-        // Check if it's just a filename
+        // If it's just a filename, prepend /product_images/
         if (!imagePath.includes('/')) {
-            return `/storage/product_images/${imagePath}`;
+            return `/product_images/${imagePath}`;
         }
 
-        return `/storage/${imagePath.replace(/^\/+/, '')}`;
+        // For any other path, return as is
+        return imagePath;
     };
 
     // Format currency to BDT
     const formatCurrency = (amount: number) => {
-        return `৳${amount.toFixed(2)}`;
+        return new Intl.NumberFormat('en-BD', {
+            style: 'currency',
+            currency: 'BDT',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }).format(amount);
     };
 
     // Format date
@@ -146,14 +154,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                 <h1 className="text-3xl font-bold text-gray-800">Orders Management</h1>
                                 <p className="text-gray-600 mt-1">Manage and track all customer orders</p>
                             </div>
-
-                            <Link
-                                href="/dashboard/orders/create"
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                            >
-                                <FaPlus className="h-4 w-4 mr-2" />
-                                Create New Order
-                            </Link>
                         </div>
                     </div>
 
@@ -176,13 +176,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                         <p className="text-gray-600 mb-6">
                                             No orders available for your store
                                         </p>
-                                        <Link
-                                            href="/dashboard/orders/create"
-                                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all"
-                                        >
-                                            <FaPlus className="h-4 w-4 mr-2" />
-                                            Create Your First Order
-                                        </Link>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -201,9 +194,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                             <div>
                                                                 <div className="flex items-center mb-2">
                                                                     <h3 className="font-bold text-gray-800">{order.order_number}</h3>
-                                                                    <span className="ml-2 text-sm text-gray-500">
-                                                                        {formatDate(order.created_at)}
-                                                                    </span>
                                                                 </div>
                                                                 <div className="flex flex-wrap items-center gap-2 mb-3">
                                                                     <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getStatusColor(order.order_status)}`}>
@@ -249,15 +239,15 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                             <div>
                                                                 <div className="flex items-center text-sm text-gray-600 mb-1">
                                                                     <FaUser className="h-3 w-3 mr-2" />
-                                                                    <span className="font-medium">{order.customer_name}</span>
+                                                                    <span className="font-medium">{order.recipient_name}</span>
                                                                 </div>
                                                                 <div className="flex items-center text-sm text-gray-600">
                                                                     <FaEnvelope className="h-3 w-3 mr-2" />
-                                                                    <span>{order.customer_email || 'No email'}</span>
+                                                                    <span>{order.sender_email || 'No email'}</span>
                                                                 </div>
                                                                 <div className="flex items-center text-sm text-gray-600 mt-1">
                                                                     <FaPhone className="h-3 w-3 mr-2" />
-                                                                    <span>{order.customer_phone}</span>
+                                                                    <span>{order.recipient_phone}</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -282,17 +272,23 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                         {order.order_items && order.order_items.length > 0 && (
                                                             <div className="mt-4">
                                                                 <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-                                                                    {order.order_items.slice(0, 5).map((item: OrderItem) => (
+                                                                    {order.order_items.slice(0, 5).map((item) => (
                                                                         <div key={item.id} className="flex flex-col items-center">
                                                                             <div className="relative">
-                                                                                <img
-                                                                                    src={getImageUrl(item.product_image)}
-                                                                                    alt={item.product_name}
-                                                                                    className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                                                                                    onError={(e) => {
-                                                                                        (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                                                                                    }}
-                                                                                />
+                                                                                {item.product_image ? (
+                                                                                    <img
+                                                                                        src={getImageUrl(item.product_image)}
+                                                                                        alt={item.product_name}
+                                                                                        className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                                                                                        onError={(e) => {
+                                                                                            (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                                                                        }}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                                                                        <FaImage className="h-6 w-6 text-gray-400" />
+                                                                                    </div>
+                                                                                )}
                                                                                 <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                                                                                     {item.quantity}
                                                                                 </div>
@@ -390,19 +386,19 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                         </div>
                                     </div>
 
-                                    {/* Customer Information */}
+                                    {/* Sender Information */}
                                     <div className="mb-6">
                                         <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                            <FaUser className="mr-2" /> Customer Information
+                                            <FaUser className="mr-2" /> Sender Information
                                         </h5>
                                         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                                             <div>
-                                                <p className="font-medium text-gray-800">{selectedOrder.customer_name}</p>
-                                                <p className="text-sm text-gray-600">{selectedOrder.customer_email || 'No email provided'}</p>
+                                                <p className="font-medium text-gray-800">{selectedOrder.sender_name}</p>
+                                                <p className="text-sm text-gray-600">{selectedOrder.sender_email}</p>
                                             </div>
                                             <div className="flex items-center">
                                                 <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-                                                <span className="text-sm text-gray-700">{selectedOrder.customer_phone}</span>
+                                                <span className="text-sm text-gray-700">{selectedOrder.sender_phone}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -420,12 +416,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                 <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
                                                 <span className="text-sm text-gray-700">{selectedOrder.recipient_phone}</span>
                                             </div>
-                                            {selectedOrder.recipient_phone_alt && (
-                                                <div className="flex items-center">
-                                                    <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-                                                    <span className="text-sm text-gray-700">Alt: {selectedOrder.recipient_phone_alt}</span>
-                                                </div>
-                                            )}
                                             <div className="flex items-start">
                                                 <FaMapMarkerAlt className="h-3 w-3 text-gray-400 mr-2 mt-1" />
                                                 <span className="text-sm text-gray-700">{selectedOrder.recipient_address}</span>
@@ -451,20 +441,11 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                 <FaTruck className="mr-2" /> Pathao Delivery
                                             </h5>
                                             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                                {selectedOrder.pathao_city_name && (
-                                                    <p className="text-sm"><span className="font-medium">City:</span> {selectedOrder.pathao_city_name}</p>
-                                                )}
-                                                {selectedOrder.pathao_zone_name && (
-                                                    <p className="text-sm"><span className="font-medium">Zone:</span> {selectedOrder.pathao_zone_name}</p>
-                                                )}
-                                                {selectedOrder.pathao_area_name && (
-                                                    <p className="text-sm"><span className="font-medium">Area:</span> {selectedOrder.pathao_area_name}</p>
-                                                )}
+                                                <p className="text-sm"><span className="font-medium">City ID:</span> {selectedOrder.recipient_city}</p>
+                                                <p className="text-sm"><span className="font-medium">Zone ID:</span> {selectedOrder.recipient_zone}</p>
+                                                <p className="text-sm"><span className="font-medium">Area ID:</span> {selectedOrder.recipient_area}</p>
                                                 {selectedOrder.tracking_number && (
                                                     <p className="text-sm"><span className="font-medium">Tracking:</span> {selectedOrder.tracking_number}</p>
-                                                )}
-                                                {selectedOrder.estimated_delivery && (
-                                                    <p className="text-sm"><span className="font-medium">Est. Delivery:</span> {formatDate(selectedOrder.estimated_delivery)}</p>
                                                 )}
                                                 {selectedOrder.delivery_type && (
                                                     <p className="text-sm"><span className="font-medium">Delivery Type:</span> {selectedOrder.delivery_type} hours</p>
@@ -477,46 +458,48 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                     )}
 
                                     {/* Order Items with Images */}
-                                    <div className="mb-6">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                            <FaBox className="mr-2" /> Order Items ({selectedOrder.order_items?.length || 0})
-                                        </h5>
-                                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                                            {selectedOrder.order_items?.map((item: OrderItem) => (
-                                                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <div className="flex items-center">
-                                                        <div className="relative mr-3">
-                                                            {item.product_image ? (
-                                                                <img
-                                                                    src={getImageUrl(item.product_image)}
-                                                                    alt={item.product_name}
-                                                                    className="w-14 h-14 rounded-lg object-cover border border-gray-200"
-                                                                    onError={(e) => {
-                                                                        (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <div className="w-14 h-14 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                                    <FaImage className="h-6 w-6 text-gray-400" />
+                                    {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
+                                        <div className="mb-6">
+                                            <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                                <FaBox className="mr-2" /> Order Items ({selectedOrder.order_items.length})
+                                            </h5>
+                                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                                {selectedOrder.order_items.map((item) => (
+                                                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                        <div className="flex items-center">
+                                                            <div className="relative mr-3">
+                                                                {item.product_image ? (
+                                                                    <img
+                                                                        src={getImageUrl(item.product_image)}
+                                                                        alt={item.product_name}
+                                                                        className="w-14 h-14 rounded-lg object-cover border border-gray-200"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-14 h-14 rounded-lg bg-gray-200 flex items-center justify-center">
+                                                                        <FaImage className="h-6 w-6 text-gray-400" />
+                                                                    </div>
+                                                                )}
+                                                                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
+                                                                    {item.quantity}
                                                                 </div>
-                                                            )}
-                                                            <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
-                                                                {item.quantity}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-gray-800 text-sm">{item.product_name}</p>
+                                                                <p className="text-xs text-gray-500">Price: {formatCurrency(item.price)}</p>
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="font-medium text-gray-800 text-sm">{item.product_name}</p>
-                                                            <p className="text-xs text-gray-500">Price: {formatCurrency(item.price)}</p>
+                                                        <div className="text-right">
+                                                            <p className="font-medium text-gray-800">{formatCurrency(item.total)}</p>
+                                                            <p className="text-xs text-gray-500">{formatCurrency(item.price)} × {item.quantity}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <p className="font-medium text-gray-800">{formatCurrency(item.total)}</p>
-                                                        <p className="text-xs text-gray-500">{formatCurrency(item.price)} × {item.quantity}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Order Summary */}
                                     <div className="border-t border-gray-200 pt-4">
@@ -529,12 +512,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                 <span className="text-gray-600">Delivery Charge</span>
                                                 <span className="font-medium">{formatCurrency(selectedOrder.delivery_charge)}</span>
                                             </div>
-                                            {selectedOrder.cod_charge > 0 && (
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">COD Charge</span>
-                                                    <span className="font-medium">{formatCurrency(selectedOrder.cod_charge)}</span>
-                                                </div>
-                                            )}
                                             {selectedOrder.discount_amount > 0 && (
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-gray-600">Discount</span>
@@ -564,16 +541,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                         {selectedOrder.coupon_code && (
                                             <div className="flex items-center">
                                                 <FaTag className="mr-1" /> Coupon: {selectedOrder.coupon_code}
-                                            </div>
-                                        )}
-                                        {selectedOrder.shipped_at && (
-                                            <div className="flex items-center">
-                                                <FaCalendarAlt className="mr-1" /> Shipped: {formatDate(selectedOrder.shipped_at)}
-                                            </div>
-                                        )}
-                                        {selectedOrder.delivered_at && (
-                                            <div className="flex items-center">
-                                                <FaCheckCircle className="mr-1" /> Delivered: {formatDate(selectedOrder.delivered_at)}
                                             </div>
                                         )}
                                     </div>

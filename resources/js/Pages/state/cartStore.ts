@@ -1,103 +1,43 @@
-import { CartItem, citytypes, zonetypes, areatypes, Orders } from '@/types'
+import { citytypes, zonetypes, areatypes, CartItem, storeType } from '@/types'
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 export interface OrderData {
-    // Customer Info
-    customer_name: string;
-    customer_email: string;
-    customer_phone: string;
-    customer_address: string;
-    notes?: string;
-    payment_method: 'cash_on_delivery' | 'bikash';
+    user_id: string;
+    sender_name: string;
+    sender_email: string;
+    sender_phone: string;
 
-    // Pathao fields (for frontend use)
-    pathao_city?: string;
+    // Recipient Info
+    recipient_name: string;
+    recipient_phone: string;
+    recipient_email: string;
+    recipient_address: string;
+
+    // Pathao fields
+    pathao_city: string;
     pathao_city_name?: string;
-    pathao_zone?: string;
+    pathao_zone: string;
     pathao_zone_name?: string;
     pathao_area?: string;
     pathao_area_name?: string;
+
+    // Additional
+    notes?: string;
+    payment_method: 'cash_on_delivery' | 'bikash';
 }
 
 export interface PathaoCharges {
     delivery_charge: number;
 }
 
-
-export type OrderPayload = {
-
-    store_id: string;
-
-    merchant_order_id?: string | null;
-    order_number: string;
-
-    // Sender Info
-    sender_name: string;
-    sender_phone: string;
-
-    // Recipient Info
-    recipient_name: string;
-    recipient_phone: string;
-    recipient_address: string;
-    recipient_city: number;
-    recipient_zone: number;
-    recipient_area: number;
-
-    // Pathao Settings
-    delivery_type: number;
-    item_type: number;
-    special_instruction?: string | null;
-
-    // Order Details
-    item_quantity: number;
-    item_weight: number;
-    amount_to_collect: number;
-    item_description: string;
-    store_name: string;
-
-    // Financials
-    subtotal: number;
-    delivery_charge: number;
-    total: number;
-    coupon_code?: string | null;
-    discount_amount?: number;
-
-    // Tracking
-    tracking_number?: string | null;
-    shipping_method: string;
-
-    // Status
-    payment_method: string;
-    payment_status: string;
-    order_status: string;
-
-    // Additional
-    notes?: string | null;
-    items: Array<{
-        product_id: string;
-        name: string;
-        quantity: number;
-        price: number;
-        total: number;
-        store_id: string;
-        item_weight: number;
-    }>;
-
-    // Customer info (for reference)
-    customer_name?: string;
-    customer_email?: string;
-    customer_phone?: string;
-    customer_address?: string;
-}
-
 type Store = {
     // Cart state
     cart: CartItem[];
 
-    // Shipping state - only Pathao now
+    // Shipping state
     pathaoCharges: PathaoCharges | null;
     selectedCity: string;
     selectedZone: string;
@@ -107,7 +47,7 @@ type Store = {
     areas: areatypes[];
 
     // Cart actions
-    addToCart: (product: CartItem, quantity?: number) => void;
+    addToCart: (product: CartItem, store: storeType, quantity?: number) => void;
     removeFromCart: (id: string) => void;
     clearCart: () => void;
     getTotalItems: () => number;
@@ -136,6 +76,9 @@ type Store = {
         price: number;
         total: number;
         store_id: string;
+        store_name: string;
+        store_phone: string;
+        store_email: string;
         item_weight: number;
     }>;
 
@@ -149,7 +92,8 @@ type Store = {
         discount?: number;
     };
 
-    processCheckout: (orderData: OrderData, store: { name: string; phone?: string; mobile?: string; id: string }) => Promise<void>;
+    processCheckout: (orderData: OrderData) => Promise<void>;
+
     resetShippingState: () => void;
     getItemById: (id: string) => CartItem | undefined;
 
@@ -177,7 +121,8 @@ export const useStore = create<Store>()(
                 couponCode: null,
                 discountAmount: 0,
 
-                addToCart: (product, quantity = 1) =>
+                // Updated addToCart to accept store parameter
+                addToCart: (product, store, quantity = 1) =>
                     set((state) => {
                         const existing = state.cart.find(
                             (item) => item.id === product.id
@@ -200,12 +145,13 @@ export const useStore = create<Store>()(
                             };
                         }
 
+                        // Create cart item with store information
                         const cartItem: CartItem = {
                             ...product,
+                            store: store, // Store the full store object
                             cartQty: quantity,
-                            store_name: product.store?.name || product.store_name,
-                            store_slug: product.store?.slug || product.store_slug,
                             item_weight: product.item_weight || 0.5,
+                            store_id: store.id, // Ensure store_id is set
                         };
 
                         toast.success(`${product.name} added to cart`);
@@ -371,6 +317,7 @@ export const useStore = create<Store>()(
                         selectedArea: ''
                     }),
 
+                // Updated to include store information
                 getFormattedCartItems: () => {
                     const cart = get().cart;
                     return cart.map(item => {
@@ -379,12 +326,15 @@ export const useStore = create<Store>()(
                         const weight = item.item_weight || 0.5;
 
                         return {
-                            product_id: item.id, // Use item.id as product_id
+                            product_id: item.id,
                             name: item.name,
                             quantity: quantity,
                             price: price,
                             total: price * quantity,
-                            store_id: item.store_id,
+                            store_id: item.store_id || item.store?.id || '',
+                            store_name: item.store?.name || '',
+                            store_phone: item.store?.mobile,
+                            store_email: item.store?.email || '',
                             item_weight: weight,
                         };
                     });
@@ -414,7 +364,7 @@ export const useStore = create<Store>()(
                     };
                 },
 
-                processCheckout: async (orderData: OrderData, store: { name: string; phone?: string; mobile?: string; id: string }) => {
+                processCheckout: async (orderData: OrderData) => {
                     const state = get();
 
                     if (state.cart.length === 0) {
@@ -424,6 +374,13 @@ export const useStore = create<Store>()(
 
                     const formattedItems = state.getFormattedCartItems();
                     const summary = state.getOrderSummary();
+
+                    // Get store information from cart items (assuming all items are from same store)
+                    const storeInfo = state.cart[0]?.store;
+                    if (!storeInfo) {
+                        toast.error('Store information missing');
+                        return Promise.reject('Store information missing');
+                    }
 
                     // Validate items
                     for (const item of formattedItems) {
@@ -438,14 +395,21 @@ export const useStore = create<Store>()(
                     }
 
                     // Validate Pathao data
-                    if (!state.selectedCity || !state.selectedZone || !state.selectedArea || !state.pathaoCharges) {
-                        toast.error('Please complete all delivery information');
+                    if (!state.selectedCity || !state.selectedZone) {
+                        toast.error('Please select city and zone');
                         return Promise.reject('Incomplete delivery info');
+                    }
+
+                    if (!state.pathaoCharges) {
+                        toast.error('Please calculate shipping charges');
+                        return Promise.reject('Shipping charges are required');
                     }
 
                     const selectedCityData = state.cities.find(c => c.city_id === parseInt(state.selectedCity));
                     const selectedZoneData = state.zones?.find(z => z.zone_id === parseInt(state.selectedZone));
-                    const selectedAreaData = state.areas?.find(a => a.area_id === parseInt(state.selectedArea));
+                    const selectedAreaData = state.selectedArea
+                        ? state.areas?.find(a => a.area_id === parseInt(state.selectedArea))
+                        : null;
 
                     const generateOrderNumber = () => {
                         const prefix = 'ORD';
@@ -455,7 +419,7 @@ export const useStore = create<Store>()(
                     };
 
                     const generateTrackingNumber = () => {
-                        const prefix = 'PA-THAO';
+                        const prefix = 'TRK';
                         const timestamp = Date.now().toString().slice(-8);
                         const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
                         return `${prefix}-${timestamp}-${random}`;
@@ -464,26 +428,34 @@ export const useStore = create<Store>()(
                     const orderNumber = generateOrderNumber();
                     const trackingNumber = generateTrackingNumber();
 
-                    // Build payload matching your Orders interface (without product_id)
-                    const orderPayload = {
-                        // Store ID
-                        store_id: store.id,
+                    // Create order payload
+                    const orderPayload: any = {
+                        // Store ID (from store)
+                        store_id: storeInfo.id,
+                        // User ID from orderData
+                        user_id: orderData.user_id,
 
                         // Order Identifiers
                         order_number: orderNumber,
                         merchant_order_id: orderNumber,
 
-                        // Sender Info
-                        sender_name: store.name,
-                        sender_phone: store.phone || store.mobile || '',
+                        // Sender Info - FROM THE STORE (store owner)
+                        sender_name: storeInfo.name,
+                        sender_phone: storeInfo.mobile || '',
+                        sender_email: storeInfo.email || '',
 
-                        // Recipient Info
-                        recipient_name: orderData.customer_name,
-                        recipient_phone: orderData.customer_phone,
-                        recipient_address: `${orderData.customer_address}, ${selectedAreaData?.area_name || ''}, ${selectedZoneData?.zone_name || ''}, ${selectedCityData?.city_name || ''}`,
+                        // Recipient Info - FROM THE CUSTOMER (person ordering)
+                        recipient_name: orderData.recipient_name,
+                        recipient_phone: orderData.recipient_phone,
+                        recipient_email: orderData.recipient_email,
+                        recipient_address: selectedAreaData
+                            ? `${orderData.recipient_address}, ${selectedAreaData.area_name}, ${selectedZoneData?.zone_name}, ${selectedCityData?.city_name}`
+                            : `${orderData.recipient_address}, ${selectedZoneData?.zone_name}, ${selectedCityData?.city_name}`,
                         recipient_city: parseInt(state.selectedCity),
                         recipient_zone: parseInt(state.selectedZone),
-                        recipient_area: parseInt(state.selectedArea),
+
+                        // Only include recipient_area if area is selected
+                        ...(state.selectedArea && { recipient_area: parseInt(state.selectedArea) }),
 
                         // Pathao Settings
                         delivery_type: 48,
@@ -495,7 +467,7 @@ export const useStore = create<Store>()(
                         item_weight: summary.total_weight,
                         amount_to_collect: summary.total,
                         item_description: 'Products order',
-                        store_name: store.name,
+                        store_name: storeInfo.name,
 
                         // Financials
                         subtotal: summary.subtotal,
@@ -515,13 +487,8 @@ export const useStore = create<Store>()(
 
                         // Additional
                         notes: orderData.notes || null,
+                        // Keep items as array
                         items: formattedItems,
-
-                        // Customer info (for reference)
-                        customer_name: orderData.customer_name,
-                        customer_email: orderData.customer_email,
-                        customer_phone: orderData.customer_phone,
-                        customer_address: orderData.customer_address,
                     };
 
                     console.log('📦 Order Payload:', JSON.stringify(orderPayload, null, 2));
@@ -554,6 +521,7 @@ export const useStore = create<Store>()(
                 partialize: (state) => ({
                     cart: state.cart.map(item => ({
                         ...item,
+                        store: item.store,
                         item_weight: item.item_weight || 0.5,
                     })),
                     pathaoCharges: state.pathaoCharges,

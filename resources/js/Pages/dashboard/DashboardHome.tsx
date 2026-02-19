@@ -1,10 +1,10 @@
 import DashboardLayout from '@/Layouts/DashboardLayout'
 import { Head, Link } from '@inertiajs/react'
 import { FiDollarSign, FiPackage, FiShoppingCart, FiTrendingUp, FiUsers } from 'react-icons/fi'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { PageProps } from '@/types'
 
-// Remove the props interface since we're using fake data
+
 const DashboardHome = ({auth}: PageProps) => {
   // Fake data for stats
   const [stats, setStats] = useState({

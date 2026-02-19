@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import {
   FaLock,
   FaArrowLeft,
   FaMoneyBill,
-  FaTruck,
   FaUser,
   FaShieldAlt,
   FaShoppingCart,
@@ -12,11 +11,12 @@ import {
   FaCheckCircle,
   FaMapMarkerAlt,
   FaBox,
-  FaTag,
   FaClock,
   FaPhone,
   FaEnvelope,
-  FaHome
+  FaCreditCard,
+  FaMoneyBillWave,
+  FaStore
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore, OrderData } from '../state/cartStore';
@@ -29,8 +29,10 @@ interface CheckoutProps {
   store: {
     id: string;
     name: string;
+    email?: string;
     phone?: string;
     mobile?: string;
+    logo?: string;
     pathao_store_id?: number;
   };
 }
@@ -52,12 +54,18 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
+  // Debug auth user
+  console.log('Auth user:', auth.user);
+  console.log('Auth user available fields:', Object.keys(auth.user || {}));
+
+  // Form state
   const { data, setData, processing } = useForm({
-    customer_name: auth.user?.name || '',
-    customer_email: auth.user?.email || '',
-    customer_phone: '',
-    customer_address: '',
+    recipient_name: auth.user?.name || '',
+    recipient_phone: '',
+    recipient_email: auth.user?.email || '',
+    recipient_address: '',
     notes: '',
     payment_method: 'cash_on_delivery' as 'cash_on_delivery' | 'bikash'
   });
@@ -78,20 +86,20 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
       const parsed = JSON.parse(images);
       const imageName = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed;
       if (imageName) {
-        return `${window.location.origin}/product_images/${imageName}`;
+        return `/product_images/${imageName}`;
       }
     } catch {
       if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
-          return `${window.location.origin}/product_images/${matches[1]}`;
+          return `/product_images/${matches[1]}`;
         }
         if (images && !images.includes('"')) {
-          return `${window.location.origin}/product_images/${images}`;
+          return `/product_images/${images}`;
         }
       }
     }
-    return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+    return '/placeholder-image.jpg';
   };
 
   const getSelectedCityName = () => {
@@ -105,15 +113,9 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   };
 
   const getSelectedAreaName = () => {
+    if (!selectedArea) return '';
     const area = areas.find(a => a.area_id === parseInt(selectedArea));
     return area?.area_name || '';
-  };
-
-  const getFullAddress = () => {
-    if (selectedCity && selectedZone && selectedArea) {
-      return `${data.customer_address}, ${getSelectedAreaName()}, ${getSelectedZoneName()}, ${getSelectedCityName()}`;
-    }
-    return data.customer_address;
   };
 
   const getEstimatedDelivery = () => {
@@ -126,18 +128,16 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!data.customer_name.trim()) errors.customer_name = 'Full name is required';
-    if (!data.customer_email.trim()) errors.customer_email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(data.customer_email)) errors.customer_email = 'Email is invalid';
-    if (!data.customer_phone.trim()) errors.customer_phone = 'Phone number is required';
-    else if (!/^01[3-9]\d{8}$/.test(data.customer_phone)) errors.customer_phone = 'Phone number must be 11 digits and start with 01';
-    if (!data.customer_address.trim()) errors.customer_address = 'Delivery address is required';
-
-    // Pathao validation
+    if (!data.recipient_name.trim()) errors.recipient_name = 'Recipient name is required';
+    if (!data.recipient_phone.trim()) errors.recipient_phone = 'Recipient phone number is required';
+    else if (!/^01[3-9]\d{8}$/.test(data.recipient_phone)) errors.recipient_phone = 'Phone number must be 11 digits and start with 01';
+    if (!data.recipient_email.trim()) errors.recipient_email = 'Recipient email is required';
+    else if (!/\S+@\S+\.\S+/.test(data.recipient_email)) errors.recipient_email = 'Email is invalid';
+    if (!data.recipient_address.trim()) errors.recipient_address = 'Delivery address is required';
     if (!selectedCity) errors.pathao_city = 'Please select a city';
     if (!selectedZone) errors.pathao_zone = 'Please select a zone';
-    if (!selectedArea) errors.pathao_area = 'Please select an area';
     if (!pathaoCharges) errors.pathao_charges = 'Please calculate shipping charges';
+    if (!termsAccepted) errors.terms = 'You must accept the terms and conditions';
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -147,65 +147,77 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
     }
 
     setIsProcessing(true);
     setError('');
     setValidationErrors({});
 
-    // Ensure we have all required Pathao data
-    if (!selectedCity || !selectedZone || !selectedArea || !pathaoCharges) {
-      toast.error('Please complete all delivery information');
-      setIsProcessing(false);
-      return;
+    if (!selectedCity || !selectedZone || !pathaoCharges) {
+        toast.error('Please select city and zone');
+        setIsProcessing(false);
+        return;
     }
 
-    // Check if user is authenticated
     if (!auth.user) {
-      toast.error('Please login to continue');
-      setIsProcessing(false);
-      return;
+        toast.error('Please login to continue');
+        setIsProcessing(false);
+        return;
+    }
+
+    // IMPORTANT: Get the correct user ID (UUID)
+    // Try different possible field names for the UUID
+    const userId = auth.user.uuid || auth.user.id || auth.user.user_id;
+
+    console.log('Using user ID:', userId);
+
+    if (!userId) {
+        toast.error('User ID not found');
+        setIsProcessing(false);
+        return;
     }
 
     const orderData: OrderData = {
-      customer_name: data.customer_name,
-      customer_email: data.customer_email,
-      customer_phone: data.customer_phone,
-      customer_address: data.customer_address,
-      notes: data.notes,
-      payment_method: data.payment_method,
+        user_id: userId,
 
-      // Pathao fields
-      pathao_city: selectedCity,
-      pathao_city_name: getSelectedCityName(),
-      pathao_zone: selectedZone,
-      pathao_zone_name: getSelectedZoneName(),
-      pathao_area: selectedArea,
-      pathao_area_name: getSelectedAreaName(),
+        // Sender Info (Store info - will be populated from cart store)
+        sender_name: '',
+        sender_email: '',
+        sender_phone: '',
+
+        // Recipient Info (Customer info from form)
+        recipient_name: data.recipient_name,
+        recipient_phone: data.recipient_phone,
+        recipient_email: data.recipient_email,
+        recipient_address: data.recipient_address,
+
+        notes: data.notes,
+        payment_method: data.payment_method,
+        pathao_city: selectedCity,
+        pathao_city_name: getSelectedCityName(),
+        pathao_zone: selectedZone,
+        pathao_zone_name: getSelectedZoneName(),
+        ...(selectedArea && {
+            pathao_area: selectedArea,
+            pathao_area_name: getSelectedAreaName(),
+        }),
     };
 
-    try {
-      // Pass both orderData and store to processCheckout
-      await processCheckout(orderData, {
-        id: store.id,
-        name: store.name,
-        phone: store.phone,
-        mobile: store.mobile
-      });
+    console.log('Order Data being sent:', orderData);
 
-      // Success! The store will clear cart and redirect
-      // The onSuccess in router.post handles redirection
+    try {
+        await processCheckout(orderData);
     } catch (err: any) {
-      console.error('Checkout error:', err);
-      if (err && typeof err === 'object') {
-        setValidationErrors(err);
-        setError('Please fix the validation errors below');
-      } else {
-        setError('Failed to process checkout. Please try again.');
-      }
-      setIsProcessing(false);
+        console.error('Checkout error:', err);
+        if (err && typeof err === 'object') {
+            setValidationErrors(err);
+            setError('Please fix the validation errors below');
+        } else {
+            setError('Failed to process checkout. Please try again.');
+        }
+        setIsProcessing(false);
     }
   };
 
@@ -254,9 +266,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                   <p className="text-xs text-gray-500">Review items</p>
                 </div>
               </div>
-
               <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-green-500 mx-4"></div>
-
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-green-500 text-white flex items-center justify-center font-semibold shadow-lg">
                   2
@@ -266,9 +276,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                   <p className="text-xs text-gray-500">Shipping & Payment</p>
                 </div>
               </div>
-
               <div className="w-24 h-1 bg-gray-300 mx-4"></div>
-
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-gray-300 text-gray-500 flex items-center justify-center font-semibold">
                   3
@@ -304,13 +312,59 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Forms */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Shipping Information */}
+                {/* Store Information (Sender) - Read Only */}
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
+                    <h2 className="text-xl font-bold text-white flex items-center">
+                      <FaStore className="h-5 w-5 mr-2" />
+                      Store Information
+                    </h2>
+                    <p className="text-purple-100 text-sm mt-1">Items will be shipped from this store</p>
+                  </div>
+                  <div className="p-6">
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <img
+                          src={`/store_images/${store.logo}`}
+                          alt={store.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
+                          onError={(e) => {
+                            e.currentTarget.src = '/default-store-logo.png';
+                          }}
+                        />
+                        <div>
+                          <h3 className="font-semibold text-purple-900 text-lg">{store.name}</h3>
+                          <p className="text-sm text-purple-700 flex items-center gap-1">
+                            <FaCheckCircle className="h-3 w-3" />
+                            Verified Store
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-purple-800 mt-3 pt-3 border-t border-purple-200">
+                        <p className="flex items-center gap-2">
+                          <FaPhone className="h-3 w-3" />
+                          <span className="font-medium">Phone:</span> {store.mobile || store.phone || 'Not available'}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <FaEnvelope className="h-3 w-3" />
+                          <span className="font-medium">Email:</span> {store.email || 'Not available'}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      This store will fulfill and ship your order
+                    </p>
+                  </div>
+                </div>
+
+                {/* Recipient Information (Customer) */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
                   <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                     <h2 className="text-xl font-bold text-white flex items-center">
-                      <FaHome className="h-5 w-5 mr-2" />
-                      Shipping Information
+                      <FaUser className="h-5 w-5 mr-2" />
+                      Recipient Information
                     </h2>
+                    <p className="text-blue-100 text-sm mt-1">Who will receive this order?</p>
                   </div>
 
                   <div className="p-6 space-y-6">
@@ -318,22 +372,22 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           <FaUser className="h-4 w-4 inline mr-1 text-blue-600" />
-                          Full Name *
+                          Recipient Name *
                         </label>
                         <input
                           type="text"
                           required
-                          value={data.customer_name}
-                          onChange={e => setData('customer_name', e.target.value)}
+                          value={data.recipient_name}
+                          onChange={e => setData('recipient_name', e.target.value)}
                           className={`w-full px-4 py-3 border ${
-                            validationErrors.customer_name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                            validationErrors.recipient_name ? 'border-red-500 bg-red-50' : 'border-gray-300'
                           } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                          placeholder="Enter your full name"
+                          placeholder="Enter recipient's full name"
                         />
-                        {validationErrors.customer_name && (
+                        {validationErrors.recipient_name && (
                           <p className="text-red-500 text-sm mt-1 flex items-center">
                             <FaExclamationCircle className="h-3 w-3 mr-1" />
-                            {validationErrors.customer_name}
+                            {validationErrors.recipient_name}
                           </p>
                         )}
                       </div>
@@ -341,46 +395,47 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           <FaPhone className="h-4 w-4 inline mr-1 text-blue-600" />
-                          Phone Number *
+                          Recipient Phone *
                         </label>
                         <input
                           type="tel"
                           required
-                          value={data.customer_phone}
-                          onChange={e => setData('customer_phone', e.target.value)}
+                          value={data.recipient_phone}
+                          onChange={e => setData('recipient_phone', e.target.value)}
                           className={`w-full px-4 py-3 border ${
-                            validationErrors.customer_phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                            validationErrors.recipient_phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
                           } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                           placeholder="01XXXXXXXXX"
                         />
-                        {validationErrors.customer_phone && (
+                        {validationErrors.recipient_phone && (
                           <p className="text-red-500 text-sm mt-1 flex items-center">
                             <FaExclamationCircle className="h-3 w-3 mr-1" />
-                            {validationErrors.customer_phone}
+                            {validationErrors.recipient_phone}
                           </p>
                         )}
                       </div>
                     </div>
 
+                    {/* Recipient Email Field */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <FaEnvelope className="h-4 w-4 inline mr-1 text-blue-600" />
-                        Email Address *
+                        Recipient Email *
                       </label>
                       <input
                         type="email"
                         required
-                        value={data.customer_email}
-                        onChange={e => setData('customer_email', e.target.value)}
+                        value={data.recipient_email}
+                        onChange={e => setData('recipient_email', e.target.value)}
                         className={`w-full px-4 py-3 border ${
-                          validationErrors.customer_email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                            validationErrors.recipient_email ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                        placeholder="your@email.com"
+                        placeholder="recipient@email.com"
                       />
-                      {validationErrors.customer_email && (
+                      {validationErrors.recipient_email && (
                         <p className="text-red-500 text-sm mt-1 flex items-center">
                           <FaExclamationCircle className="h-3 w-3 mr-1" />
-                          {validationErrors.customer_email}
+                          {validationErrors.recipient_email}
                         </p>
                       )}
                     </div>
@@ -388,35 +443,36 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <FaMapMarkerAlt className="h-4 w-4 inline mr-1 text-blue-600" />
-                        Street Address *
+                        Delivery Address *
                       </label>
                       <textarea
                         required
                         rows={2}
-                        value={data.customer_address}
-                        onChange={e => setData('customer_address', e.target.value)}
+                        value={data.recipient_address}
+                        onChange={e => setData('recipient_address', e.target.value)}
                         className={`w-full px-4 py-3 border ${
-                          validationErrors.customer_address ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          validationErrors.recipient_address ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                        placeholder="House #, Road #"
+                        placeholder="House #, Road #, Area"
                       />
-                      {validationErrors.customer_address && (
+                      {validationErrors.recipient_address && (
                         <p className="text-red-500 text-sm mt-1 flex items-center">
                           <FaExclamationCircle className="h-3 w-3 mr-1" />
-                          {validationErrors.customer_address}
+                          {validationErrors.recipient_address}
                         </p>
                       )}
                     </div>
 
                     {/* Pathao Location Summary */}
-                    {selectedCity && selectedZone && selectedArea && pathaoCharges && (
+                    {selectedCity && selectedZone && pathaoCharges && (
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
                         <div className="flex items-start">
                           <FaCheckCircle className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                           <div>
                             <p className="font-semibold text-green-800">Pathao Delivery Location</p>
                             <p className="text-sm text-green-700 mt-1">
-                              {getSelectedAreaName()}, {getSelectedZoneName()}, {getSelectedCityName()}
+                              {getSelectedZoneName()}, {getSelectedCityName()}
+                              {selectedArea && `, ${getSelectedAreaName()}`}
                             </p>
                             <div className="flex items-center justify-between mt-2">
                               <p className="text-xs text-green-600">
@@ -429,16 +485,6 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {/* Pathao Location Validation Errors */}
-                    {(!selectedCity || !selectedZone || !selectedArea) && (
-                      <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                        <p className="text-sm text-yellow-700 flex items-center">
-                          <FaExclamationCircle className="h-4 w-4 mr-2" />
-                          Please select city, zone, and area in the cart page before checkout
-                        </p>
                       </div>
                     )}
 
@@ -459,7 +505,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
 
                 {/* Payment Method */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
                     <h2 className="text-xl font-bold text-white flex items-center">
                       <FaMoneyBill className="h-5 w-5 mr-2" />
                       Payment Method
@@ -468,79 +514,54 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
 
                   <div className="p-6">
                     <div className="space-y-4">
-                      <label className={`block p-5 border-2 rounded-xl cursor-pointer transition-all ${
+                      <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${
                         data.payment_method === 'cash_on_delivery'
-                          ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 shadow-md'
-                          : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            name="payment_method"
-                            value="cash_on_delivery"
-                            checked={data.payment_method === 'cash_on_delivery'}
-                            onChange={e => setData('payment_method', 'cash_on_delivery')}
-                            className="h-5 w-5 text-green-600"
-                          />
-                          <div className="ml-3 flex-grow">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                <FaMoneyBill className="h-5 w-5 text-green-600 mr-2" />
-                                <p className="font-bold text-gray-900">Cash on Delivery (COD)</p>
-                              </div>
-                              {data.payment_method === 'cash_on_delivery' && (
-                                <FaCheckCircle className="h-5 w-5 text-green-600" />
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Pay with cash when your order is delivered to your doorstep
-                            </p>
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value="cash_on_delivery"
+                          checked={data.payment_method === 'cash_on_delivery'}
+                          onChange={() => setData('payment_method', 'cash_on_delivery')}
+                          className="h-5 w-5 text-green-600"
+                        />
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-center">
+                            <FaMoneyBillWave className="h-6 w-6 text-green-600 mr-2" />
+                            <span className="font-medium text-gray-900">Cash on Delivery</span>
                           </div>
+                          <p className="text-sm text-gray-500 mt-1">Pay with cash when you receive your order</p>
                         </div>
                       </label>
 
-                      <label className={`block p-5 border-2 rounded-xl cursor-not-allowed transition-all ${
+                      <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${
                         data.payment_method === 'bikash'
-                          ? 'border-pink-500 bg-gradient-to-r from-pink-50 to-red-50'
-                          : 'border-gray-200 bg-gray-50'
+                          ? 'border-pink-500 bg-pink-50'
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            name="payment_method"
-                            value="bikash"
-                            checked={data.payment_method === 'bikash'}
-                            onChange={e => setData('payment_method', 'bikash')}
-                            className="h-5 w-5 text-pink-600"
-                            disabled
-                          />
-                          <div className="ml-3 flex-grow">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-pink-100 rounded flex items-center justify-center mr-2">
-                                <span className="text-pink-600 font-bold text-xs">bKash</span>
-                              </div>
-                              <p className="font-bold text-gray-900">bKash (Coming Soon)</p>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Pay securely with bKash mobile banking
-                            </p>
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value="bikash"
+                          checked={data.payment_method === 'bikash'}
+                          onChange={() => setData('payment_method', 'bikash')}
+                          className="h-5 w-5 text-pink-600"
+                        />
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-center">
+                            <FaCreditCard className="h-6 w-6 text-pink-600 mr-2" />
+                            <span className="font-medium text-gray-900">bKash</span>
                           </div>
+                          <p className="text-sm text-gray-500 mt-1">Pay via bKash mobile banking</p>
                         </div>
                       </label>
                     </div>
 
-                    {/* Secure Payment Badge */}
-                    <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                      <div className="flex items-center">
-                        <FaShieldAlt className="h-6 w-6 text-blue-600 mr-3" />
-                        <div>
-                          <p className="font-semibold text-blue-800">100% Secure Payment</p>
-                          <p className="text-xs text-blue-600">
-                            Your payment information is encrypted and secure
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    {validationErrors.payment_method && (
+                      <p className="text-red-500 text-sm mt-2">{validationErrors.payment_method}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -552,126 +573,75 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                   <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
                     <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
                       <h2 className="text-xl font-bold text-white flex items-center">
-                        <FaShoppingCart className="h-5 w-5 mr-2" />
+                        <FaBox className="h-5 w-5 mr-2" />
                         Order Summary
                       </h2>
                     </div>
 
                     <div className="p-6">
-                      {/* Cart Items Preview */}
-                      <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2">
-                        {cartItems.map((item) => {
-                          const imageUrl = getFirstImage(item.images);
-                          const quantity = item.cartQty || 1;
-                          const price = item.sale_price || item.regular_price;
-
-                          return (
-                            <div key={item.id} className="flex items-center space-x-3">
-                              <div className="flex-shrink-0">
-                                <div className="relative">
-                                  <img
-                                    src={imageUrl}
-                                    alt={item.name}
-                                    className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
-                                    }}
-                                  />
-                                  <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                    {quantity}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex-grow">
-                                <p className="font-medium text-gray-900 text-sm line-clamp-2">
-                                  {item.name}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {formatPrice(price)} each
-                                </p>
-                              </div>
-                              <p className="font-semibold text-gray-900">
-                                {formatPrice(price * quantity)}
+                      {/* Cart Items */}
+                      <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
+                        {cartItems.map((item) => (
+                          <div key={item.id} className="flex gap-3">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={getFirstImage(item.images)}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder-image.jpg';
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                                {item.name}
+                              </h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Qty: {item.cartQty || 1}
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 mt-1">
+                                {formatPrice((item.sale_price || item.regular_price) * (item.cartQty || 1))}
                               </p>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
 
                       {/* Price Breakdown */}
-                      <div className="space-y-3 border-t border-gray-200 pt-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 flex items-center">
-                            <FaBox className="h-4 w-4 mr-1 text-gray-500" />
-                            Subtotal ({summary.item_count} items)
-                          </span>
+                      <div className="space-y-3 pt-4 border-t border-gray-200">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Subtotal</span>
                           <span className="font-medium text-gray-900">{formatPrice(summary.subtotal)}</span>
                         </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 flex items-center">
-                            <FaTruck className="h-4 w-4 mr-1 text-blue-500" />
-                            Shipping (Pathao)
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {pathaoCharges ? (
-                              <div className="text-right">
-                                <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
-                                <div className="text-xs text-green-600">Includes +20 BDT</div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">Not calculated</span>
-                            )}
-                          </span>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Shipping</span>
+                          <span className="font-medium text-gray-900">{formatPrice(summary.shipping)}</span>
                         </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 flex items-center">
-                            <FaTag className="h-4 w-4 mr-1 text-orange-500" />
-                            Tax (10%)
-                          </span>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Tax (10%)</span>
                           <span className="font-medium text-gray-900">{formatPrice(summary.tax)}</span>
                         </div>
-
-                        <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                          <span className="text-lg font-bold text-gray-900">Total</span>
-                          <div className="text-right">
-                            <span className="text-2xl font-bold text-green-600">
-                              {formatPrice(summary.total)}
-                            </span>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Including VAT
-                            </p>
+                        {summary.discount && summary.discount > 0 ? (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Discount</span>
+                            <span className="font-medium text-green-600">-{formatPrice(summary.discount)}</span>
                           </div>
+                        ) : null}
+                        <div className="flex justify-between text-base font-bold pt-3 border-t border-gray-200">
+                          <span className="text-gray-900">Total</span>
+                          <span className="text-blue-600">{formatPrice(summary.total)}</span>
                         </div>
                       </div>
-
-                      {/* Delivery Info */}
-                      {selectedCity && selectedZone && selectedArea && pathaoCharges && (
-                        <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                          <div className="flex items-start">
-                            <FaClock className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
-                            <div>
-                              <p className="font-semibold text-gray-900">Estimated Delivery</p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {getEstimatedDelivery()}
-                              </p>
-                              <p className="text-xs text-blue-600 mt-2 flex items-center">
-                                <FaCheckCircle className="h-3 w-3 mr-1" />
-                                Pathao Express Delivery
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
 
                       {/* Terms and Place Order */}
                       <div className="mt-6">
                         <div className="flex items-start mb-4">
                           <input
                             type="checkbox"
-                            required
                             id="terms"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
                             className="h-4 w-4 text-blue-600 mt-1 rounded border-gray-300 focus:ring-blue-500"
                           />
                           <label htmlFor="terms" className="ml-2 text-xs text-gray-600">
@@ -682,10 +652,13 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                             and confirm that the order information is correct
                           </label>
                         </div>
+                        {validationErrors.terms && (
+                          <p className="text-red-500 text-xs mb-2">{validationErrors.terms}</p>
+                        )}
 
                         <button
                           type="submit"
-                          disabled={processing || isProcessing || cartItems.length === 0 || !selectedCity || !selectedZone || !selectedArea || !pathaoCharges}
+                          disabled={processing || isProcessing || cartItems.length === 0 || !selectedCity || !selectedZone || !pathaoCharges || !termsAccepted}
                           className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg"
                         >
                           <FaLock className="h-5 w-5 mr-2" />
@@ -714,46 +687,30 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                     </div>
                   </div>
 
-                  {/* Customer Support Card */}
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
-                    <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                        <FaPhone className="h-6 w-6 text-white" />
+                  {/* Secure Checkout Badge */}
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <div className="flex items-center gap-3">
+                      <FaShieldAlt className="h-8 w-8 text-blue-600" />
+                      <div>
+                        <h4 className="font-semibold text-blue-900">Secure Checkout</h4>
+                        <p className="text-xs text-blue-700">Your information is encrypted and secure</p>
                       </div>
-                      <div className="ml-4">
-                        <h3 className="text-lg font-semibold">Need help?</h3>
-                        <p className="text-blue-100 text-sm">24/7 Customer Support</p>
-                      </div>
-                    </div>
-                    <p className="text-blue-100 text-sm mb-4">
-                      Our support team is available 24/7 to assist you with your order
-                    </p>
-                    <div className="space-y-2">
-                      <a
-                        href="tel:1234567890"
-                        className="block w-full py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors text-center"
-                      >
-                        Call Us
-                      </a>
-                      <a
-                        href="/contact"
-                        className="block w-full py-2.5 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors text-center"
-                      >
-                        Contact Support
-                      </a>
                     </div>
                   </div>
 
-                  {/* Secure Checkout Badge */}
-                  <div className="bg-white rounded-xl shadow p-4 border border-gray-200">
-                    <div className="flex items-center justify-center space-x-4">
-                      <FaLock className="h-5 w-5 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700">Secure SSL Checkout</span>
-                      <FaShieldAlt className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <p className="text-xs text-gray-500 text-center mt-2">
-                      Your information is protected by 256-bit SSL encryption
+                  {/* Need Help */}
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Need Help?</h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Contact our customer support for assistance
                     </p>
+                    <a
+                      href="tel:+880123456789"
+                      className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-2"
+                    >
+                      <FaPhone className="h-3 w-3" />
+                      +880 1234-56789
+                    </a>
                   </div>
                 </div>
               </div>

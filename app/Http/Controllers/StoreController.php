@@ -68,6 +68,7 @@ class StoreController extends Controller
             $store = Store::create([
                 'user_id' => auth()->id(),
                 'name' => $validated['name'],
+                'email' => auth()->user()->email,
                 'storetype' => $validated['storetype'],
                 'license' => $validated['license'] ?? null,
                 'address' => $validated['address'],

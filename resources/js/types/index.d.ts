@@ -18,36 +18,32 @@ export type CartItem = {
     id: string;
     user_id: string;
     store_id: string;
-    product_id: string;
-    store_name?: string;
-    store_slug?: string;
     name: string;
     images: string;
     slug: string;
     category: string;
+    subcategory: string;
     quantity: number;
     regular_price: number;
-    sale_price: number | null;
+    sale_price: number;
     description: string;
-    color?: string;
+    color: string;
     product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
     inStock: boolean;
     rating: number;
     item_weight: number;
-    store?: {
-        id: string;
-        name: string;
-        slug: string;
-    };
+    store: storeType;
+    review?: number;
+    cartQty?: number;
     created_at: string;
     updated_at: string;
-    cartQty?: number;
 }
 
 
 export interface storeType {
     id: string;
     name: string;
+    email: string;
     logo: string;
     storetype: string;
     license: string;
@@ -98,8 +94,10 @@ export interface Orders {
     user_id: string;
     merchant_order_id: string;
     sender_name: string;
+    sender_email: string;
     sender_phone: string;
     recipient_name: string;
+    recipient_email: string;
     recipient_phone: string;
     recipient_address: string;
     recipient_city: number;
@@ -126,7 +124,8 @@ export interface Orders {
     order_status: string;
     notes: string;
     items: string;
-
+    created_at: string;
+    updated_at: string;
     order_items?: OrderItem[];
 }
 

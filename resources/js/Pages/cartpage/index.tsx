@@ -32,10 +32,9 @@ interface CartPageProps {
   auth: {
     user: any;
   };
-  pathaoStoreId?: number | null;
 }
 
-const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
+const CartPage = ({ auth }: CartPageProps) => {
   const {
     cart: cartItems,
     removeFromCart,
@@ -75,14 +74,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
   const [areas, setAreas] = useState<areatypes[]>([]);
   const [loadingPathao, setLoadingPathao] = useState(false);
 
-  const storeId = pathaoStoreId || 367082;
-
-  // Log for debugging
-  useEffect(() => {
-    console.log('CartPage mounted with storeId:', storeId);
-    console.log('Cart items:', cartItems);
-    console.log('Cart items length:', cartItems?.length);
-  }, []);
 
   useEffect(() => {
     fetchCities();
@@ -151,78 +142,63 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     }
   }
 
-  const calculatePathaoPrice = async (cityId: string, zoneId: string, areaId: string) => {
-    if (!cityId || !zoneId || !areaId) {
-        toast.error('Please select all delivery locations');
-        return;
-    }
+    const calculatePathaoPrice = async (cityId: string, zoneId: string, areaId?: string) => {
+        if (!cityId || !zoneId) {
+            toast.error('Please select city and zone');
+            return;
+        }
 
-    setLoadingPathao(true);
-    try {
-        const subtotal = getSubTotal();
-        const itemCount = getTotalItems();
-        const items = getFormattedCartItems();
+        setLoadingPathao(true);
+        try {
+            const subtotal = getSubTotal();
+            const itemCount = getTotalItems();
+            const items = getFormattedCartItems();
 
-        console.log('💰 Price Calculation Debug:', {
-            storeId: 367082,
-            subtotal,
-            itemCount,
-            items,
-            cityId,
-            zoneId,
-            areaId
-        });
+            const totalWeight = items.reduce((sum, item) => {
+                return sum + ((item.item_weight || 0.5) * item.quantity);
+            }, 0);
 
-        const totalWeight = items.reduce((sum, item) => {
-            return sum + ((item.item_weight || 0.5) * item.quantity);
-        }, 0);
-
-        const priceRequest = {
-            store_id: 367082,
-            sender_city: 2,
-            recipient_city: parseInt(cityId),
-            recipient_zone: parseInt(zoneId),
-            recipient_area: parseInt(areaId),
-            item_type: 2,
-            item_weight: Math.max(0.5, totalWeight),
-            item_quantity: itemCount,
-            amount_to_collect: subtotal,
-            delivery_type: 48
-        };
-
-        const response = await axios.post('/api/pathao/calculate-price', priceRequest);
-
-        console.log('📨 Price Calculation Response:', response.data);
-
-        if (response.data?.data?.data) {
-            const priceData = response.data.data.data;
-            console.log('✅ Pathao Price Data:', priceData);
-
-            // Get base delivery charge from API and add 20 BDT
-            const baseDeliveryCharge = priceData.price || priceData.final_price || 0;
-            const totalDeliveryCharge = baseDeliveryCharge + 20;
-
-            // Simple charges object with just the total delivery charge
-            const charges = {
-                delivery_charge: totalDeliveryCharge // API charge + 20
+            // Build request without area if not provided
+            const priceRequest: any = {
+                store_id: 367082,
+                sender_city: 2,
+                recipient_city: parseInt(cityId),
+                recipient_zone: parseInt(zoneId),
+                item_type: 2,
+                item_weight: Math.max(0.5, totalWeight),
+                item_quantity: itemCount,
+                amount_to_collect: subtotal,
+                delivery_type: 48
             };
 
-            setPathaoCharges(charges);
-            toast.success(`Shipping price: ${formatPrice(totalDeliveryCharge)}`);
-        } else {
-            console.error('❌ Invalid response structure:', response.data);
-            throw new Error('Invalid response from server');
+            // Only add area if provided
+            if (areaId) {
+                priceRequest.recipient_area = parseInt(areaId);
+            }
+
+            const response = await axios.post('/api/pathao/calculate-price', priceRequest);
+
+            if (response.data?.data?.data) {
+                const priceData = response.data.data.data;
+                const baseDeliveryCharge = priceData.price || priceData.final_price || 0;
+                const totalDeliveryCharge = baseDeliveryCharge + 20;
+
+                setPathaoCharges({ delivery_charge: totalDeliveryCharge });
+                toast.success(`Shipping price: ${formatPrice(totalDeliveryCharge)}`);
+            }
+        } catch (error: any) {
+            // If error says area is required, show message to select area
+            if (error.response?.data?.message?.includes('area')) {
+                toast.error('Please select an area to calculate shipping');
+            } else {
+                toast.error(error.response?.data?.message || 'Failed to calculate shipping price');
+            }
+            setPathaoCharges(null);
+        } finally {
+            setLoadingPathao(false);
         }
-    } catch (error: any) {
-        console.error('❌ Error calculating Pathao price:', error);
-        console.error('Error response:', error.response?.data);
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to calculate shipping price';
-        toast.error(errorMessage);
-        setPathaoCharges(null);
-    } finally {
-        setLoadingPathao(false);
-    }
-  };
+    };
+
 
   const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cityId = e.target.value;
@@ -238,26 +214,30 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     }
   };
 
-  const handleZoneChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const zoneId = e.target.value;
-    setSelectedZone(zoneId);
-    setSelectedArea('');
-    setAreas([]);
-    setPathaoCharges(null);
+    const handleZoneChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const zoneId = e.target.value;
+        setSelectedZone(zoneId);
+        setSelectedArea('');
+        setAreas([]);
+        setPathaoCharges(null);
 
-    if (zoneId) {
-      await fetchArea(zoneId);
-    }
-  };
+        if (zoneId) {
+            await fetchArea(zoneId);
 
-  const handleAreaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const areaId = e.target.value;
-    setSelectedArea(areaId);
+            if (selectedCity) {
+                await calculatePathaoPrice(selectedCity, zoneId);
+            }
+        }
+    };
 
-    if (selectedCity && selectedZone && areaId) {
-      await calculatePathaoPrice(selectedCity, selectedZone, areaId);
-    }
-  };
+    const handleAreaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const areaId = e.target.value;
+        setSelectedArea(areaId);
+
+        if (selectedCity && selectedZone) {
+            await calculatePathaoPrice(selectedCity, selectedZone, areaId);
+        }
+    };
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
@@ -404,9 +384,9 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
     return city?.city_name || '';
   };
 
-  const isCheckoutDisabled = () => {
-    return !selectedCity || !selectedZone || !selectedArea || !pathaoCharges || loadingPathao;
-  };
+    const isCheckoutDisabled = () => {
+        return !selectedCity || !selectedZone || !pathaoCharges || loadingPathao;
+    };
 
   // Check if cart is empty or undefined
   if (!cartItems || cartItems.length === 0) {
@@ -838,14 +818,14 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                                 onChange={handleAreaChange}
                                 className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                                 disabled={!selectedZone || loadingPathao}
-                              >
-                                <option value="">Select Area</option>
+                            >
+                                <option value="">Select Area (Optional)</option>
                                 {areas.map((area) => (
-                                  <option key={area.area_id} value={area.area_id}>
-                                    {area.area_name}
-                                  </option>
+                                    <option key={area.area_id} value={area.area_id}>
+                                        {area.area_name}
+                                    </option>
                                 ))}
-                              </select>
+                            </select>
                             </div>
                           </div>
 
@@ -887,16 +867,6 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                                     pathaoCharges ? formatPrice(pathaoCharges.delivery_charge) : '---'
                                   )}
                                 </p>
-                                {pathaoCharges && (
-                                  <p className="text-xs text-green-600 mt-1">
-                                    Includes +20 BDT service fee
-                                  </p>
-                                )}
-                                {!selectedArea && (
-                                  <p className="text-xs text-gray-600 mt-2">
-                                    Select area to calculate shipping rate
-                                  </p>
-                                )}
                               </div>
 
                               {/* Estimated Delivery */}
@@ -905,8 +875,8 @@ const CartPage = ({ auth, pathaoStoreId = null }: CartPageProps) => {
                                   <p className="text-xs text-purple-700 flex items-center">
                                     <FaTruck className="h-3 w-3 mr-1" />
                                     Estimated delivery: {
-                                      getSelectedCityName().toLowerCase().includes('dhaka') ? '1-2' :
-                                      getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-5'
+                                      getSelectedCityName().toLowerCase().includes('dhaka') ? '3-5' :
+                                      getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-4'
                                     } business days
                                   </p>
                                 </div>
