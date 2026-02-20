@@ -15,6 +15,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
 use App\Models\Categories;
 use App\Models\Products;
+use App\Models\Store;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,7 +33,8 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     $categories = Categories::all();
-    $products = Products::all();
+    $products = Products::with('store')->get();
+    $stores = Store::all();
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -40,6 +42,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
         'categories' => $categories,
         'products' => $products,
+        'stores' => $stores,
     ]);
 });
 

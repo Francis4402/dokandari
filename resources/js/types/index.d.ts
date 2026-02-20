@@ -32,7 +32,7 @@ export type CartItem = {
     inStock: boolean;
     rating: number;
     item_weight: number;
-    store: storeType;
+    store?: storeType;
     review?: number;
     cartQty?: number;
     created_at: string;

@@ -1,21 +1,29 @@
 import { CartItem, storeType } from '@/types'
 import { FaShoppingCart } from 'react-icons/fa'
+import { toast } from 'sonner'
 import { useStore } from '../state/cartStore'
 
 interface addButtonProps {
     product: CartItem,
-    store: storeType
+    store?: storeType | null
 }
 
-const AddtoCartButton = ({product, store}: addButtonProps) => {
+const AddtoCartButton = ({ product, store }: addButtonProps) => {
 
     const addtoCart = useStore((state) => state.addToCart)
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // Pass both product and store to addToCart
-        addtoCart(product, store);
+        // Resolve store from prop first, fallback to product.store
+        const resolvedStore = store ?? product.store;
+
+        if (!resolvedStore || !resolvedStore.id) {
+            toast.error('Store information is unavailable');
+            return;
+        }
+
+        addtoCart(product, resolvedStore);
     };
 
     return (

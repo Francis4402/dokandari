@@ -9,9 +9,10 @@ import { Link } from "@inertiajs/react";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
+  store: storeType
 }
 
-const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
+const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
@@ -325,7 +326,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     </div>
 
                     {/* Add to Cart Button */}
-                    <AddtoCartButton product={product} />
+                    <AddtoCartButton product={product} store={store} />
                   </div>
                 </div>
               </div>

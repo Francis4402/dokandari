@@ -1,4 +1,4 @@
-import { citytypes, zonetypes, areatypes, CartItem, storeType } from '@/types'
+import { citytypes, zonetypes, areatypes, CartItem, storeType, Product } from '@/types'
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { create } from 'zustand'
@@ -47,7 +47,7 @@ type Store = {
     areas: areatypes[];
 
     // Cart actions
-    addToCart: (product: CartItem, store: storeType, quantity?: number) => void;
+    addToCart: (product: CartItem | Product, store: storeType, quantity?: number) => void; // ✅ FIXED
     removeFromCart: (id: string) => void;
     clearCart: () => void;
     getTotalItems: () => number;
@@ -121,9 +121,14 @@ export const useStore = create<Store>()(
                 couponCode: null,
                 discountAmount: 0,
 
-                // Updated addToCart to accept store parameter
+                // ✅ FIXED: now accepts CartItem | Product
                 addToCart: (product, store, quantity = 1) =>
                     set((state) => {
+                        if (!store || !store.id) {
+                            toast.error('Store information is missing');
+                            return state;
+                        }
+
                         const existing = state.cart.find(
                             (item) => item.id === product.id
                         );
@@ -147,11 +152,11 @@ export const useStore = create<Store>()(
 
                         // Create cart item with store information
                         const cartItem: CartItem = {
-                            ...product,
-                            store: store, // Store the full store object
+                            ...product,       // spreads all Product fields
+                            store: store,
                             cartQty: quantity,
                             item_weight: product.item_weight || 0.5,
-                            store_id: store.id, // Ensure store_id is set
+                            store_id: store.id,
                         };
 
                         toast.success(`${product.name} added to cart`);
@@ -317,7 +322,6 @@ export const useStore = create<Store>()(
                         selectedArea: ''
                     }),
 
-                // Updated to include store information
                 getFormattedCartItems: () => {
                     const cart = get().cart;
                     return cart.map(item => {
@@ -333,7 +337,7 @@ export const useStore = create<Store>()(
                             total: price * quantity,
                             store_id: item.store_id || item.store?.id || '',
                             store_name: item.store?.name || '',
-                            store_phone: item.store?.mobile,
+                            store_phone: item.store?.mobile || '',
                             store_email: item.store?.email || '',
                             item_weight: weight,
                         };
@@ -375,14 +379,12 @@ export const useStore = create<Store>()(
                     const formattedItems = state.getFormattedCartItems();
                     const summary = state.getOrderSummary();
 
-                    // Get store information from cart items (assuming all items are from same store)
                     const storeInfo = state.cart[0]?.store;
                     if (!storeInfo) {
                         toast.error('Store information missing');
                         return Promise.reject('Store information missing');
                     }
 
-                    // Validate items
                     for (const item of formattedItems) {
                         if (!item.quantity || item.quantity < 1) {
                             toast.error(`Invalid quantity for item: ${item.name}`);
@@ -394,7 +396,6 @@ export const useStore = create<Store>()(
                         }
                     }
 
-                    // Validate Pathao data
                     if (!state.selectedCity || !state.selectedZone) {
                         toast.error('Please select city and zone');
                         return Promise.reject('Incomplete delivery info');
@@ -428,23 +429,14 @@ export const useStore = create<Store>()(
                     const orderNumber = generateOrderNumber();
                     const trackingNumber = generateTrackingNumber();
 
-                    // Create order payload
                     const orderPayload: any = {
-                        // Store ID (from store)
                         store_id: storeInfo.id,
-                        // User ID from orderData
                         user_id: orderData.user_id,
-
-                        // Order Identifiers
                         order_number: orderNumber,
                         merchant_order_id: orderNumber,
-
-                        // Sender Info - FROM THE STORE (store owner)
                         sender_name: storeInfo.name,
                         sender_phone: storeInfo.mobile || '',
                         sender_email: storeInfo.email || '',
-
-                        // Recipient Info - FROM THE CUSTOMER (person ordering)
                         recipient_name: orderData.recipient_name,
                         recipient_phone: orderData.recipient_phone,
                         recipient_email: orderData.recipient_email,
@@ -453,41 +445,26 @@ export const useStore = create<Store>()(
                             : `${orderData.recipient_address}, ${selectedZoneData?.zone_name}, ${selectedCityData?.city_name}`,
                         recipient_city: parseInt(state.selectedCity),
                         recipient_zone: parseInt(state.selectedZone),
-
-                        // Only include recipient_area if area is selected
                         ...(state.selectedArea && { recipient_area: parseInt(state.selectedArea) }),
-
-                        // Pathao Settings
                         delivery_type: 48,
                         item_type: 2,
                         special_instruction: orderData.notes || null,
-
-                        // Order Details
                         item_quantity: summary.item_count,
                         item_weight: summary.total_weight,
                         amount_to_collect: summary.total,
                         item_description: 'Products order',
                         store_name: storeInfo.name,
-
-                        // Financials
                         subtotal: summary.subtotal,
                         delivery_charge: state.pathaoCharges.delivery_charge,
                         total: summary.total,
                         coupon_code: state.couponCode || null,
                         discount_amount: state.discountAmount || 0,
-
-                        // Tracking
                         tracking_number: trackingNumber,
                         shipping_method: 'pathao',
-
-                        // Status
                         payment_method: orderData.payment_method,
                         payment_status: 'pending',
                         order_status: 'pending',
-
-                        // Additional
                         notes: orderData.notes || null,
-                        // Keep items as array
                         items: formattedItems,
                     };
 
