@@ -7,6 +7,7 @@ use App\Models\Categories;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Intervention\Image\ImageManager;
@@ -64,7 +65,7 @@ class ProductsController extends Controller
             'description' => 'required|string',
             'inStock' => 'boolean',
             'color' => 'nullable|max:20',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
             'images' => 'max:5',
             'item_weight' => 'required|numeric',
         ]);
@@ -87,24 +88,34 @@ class ProductsController extends Controller
 
         if ($request->hasFile('images')) {
             $images = [];
-            $path = public_path('product_images');
 
-            if (!file_exists($path)) {
-                mkdir($path, 0755, true);
-            }
+            // Organize by date for better management
+            $directory = 'product_images';
 
             foreach ($request->file('images') as $index => $file) {
-                // Generate unique filename
-                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                // Get original extension
+                $extension = $file->getClientOriginalExtension();
 
+                // Generate unique filename
+                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $extension;
+
+                $filePath = $directory . '/' . $filename;
+
+                // Process image with Intervention
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($file->getRealPath());
 
                 // Resize and optimize
                 $img->scale(width: 800);
-                $img->save($path . '/' . $filename, quality: 85);
 
-                $images[] = $filename;
+
+                $encodedImage = (string) $img->encodeByExtension($extension, quality: 85);
+
+                // Save to storage
+                Storage::disk('public')->put($filePath, $encodedImage);
+
+
+                $images[] = $filePath;
             }
 
             $product->images = json_encode($images);
@@ -226,13 +237,8 @@ class ProductsController extends Controller
 
             if (is_array($images)) {
                 foreach ($images as $imagePath) {
-
-                    $filename = basename($imagePath);
-                    $fullPath = public_path('product_images/' . $filename);
-
-                    if (File::exists($fullPath)) {
-                        File::delete($fullPath);
-                    }
+                    $relativePath = str_replace('storage/', '', $imagePath);
+                    Storage::disk('public')->delete($relativePath);
                 }
             }
         }

@@ -18,7 +18,7 @@ import {
 import { Product, storeType } from "@/types";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 
 interface ProductDetailsPageProps {
   product: Product;
@@ -45,7 +45,7 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
 
       return [product.images];
     }
-    return ['/placeholder-image.jpg'];
+    return ['https://placehold.net/600x600.png'];
   })();
 
 
@@ -141,12 +141,12 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
               {/* Main Image */}
               <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-square">
                 <img
-                  src={`/product_images/${currentImage}`}
+                  src={`/storage/${currentImage}`}
                   alt={product.name}
                   className="w-full h-full object-contain p-8"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder-image.jpg';
+                    target.src = 'https://placehold.net/600x600.png';
                   }}
                 />
 
@@ -220,9 +220,9 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="flex items-center space-x-2">
                     <FaStore className="w-5 h-5 text-gray-500" />
-                    <a href={`/store/${store.id}`} className="text-lg font-semibold text-blue-600 hover:underline">
+                    <Link href={`/store/${store.id}`} className="text-lg font-semibold text-blue-600 hover:underline">
                       {store.name}
-                    </a>
+                    </Link>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <span className="mx-2">•</span>

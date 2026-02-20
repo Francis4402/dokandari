@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class ProfileController extends Controller
 {
@@ -37,7 +39,7 @@ class ProfileController extends Controller
             if ($user->images) {
                 Storage::disk('public')->delete($user->images);
             }
-            $user->images = $request->file('image')->store('profile_images', 'public');
+            $user->images = $this->processAndStoreImage($request->file('image'));
         }
 
         if ($request->user()->isDirty('email')) {
@@ -60,6 +62,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->images) {
+            Storage::disk('public')->delete($user->images);
+        }
+
         Auth::logout();
 
         $user->delete();
@@ -68,5 +74,28 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    private function processAndStoreImage($image): string
+    {
+        $manager = new ImageManager(new Driver());
+
+        // Read image from uploaded file
+        $img = $manager->read($image);
+
+        // Resize image while maintaining aspect ratio
+        $img->resize(800, 800, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+
+        // Generate unique filename
+        $filename = 'profile_' . uniqid() . '.jpg';
+        $path = 'profile_images/' . $filename;
+
+        // Save processed image
+        Storage::disk('public')->put($path, (string) $img->encode());
+
+        return $path;
     }
 }

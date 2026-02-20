@@ -222,14 +222,14 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
                 <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
                   <div className="aspect-square p-6">
                     <img
-                      src={`/product_images/${imageSrc}`}
+                      src={`/storage/${imageSrc}`}
                       alt={product.name || 'Product image'}
                       className="w-full h-full object-contain transition-transform duration-300"
                       draggable="false"
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder-image.jpg';
+                        target.src = 'https://placehold.net/600x600.png';
                       }}
                     />
                   </div>
