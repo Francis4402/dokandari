@@ -352,7 +352,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                         {/* Product Image */}
                         <div className="relative h-48 overflow-hidden">
                         <img
-                            src={mainImage ? `/product_images/${mainImage}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Product'}
+                            src={mainImage ? `/storage/${mainImage}` : 'https://placehold.net/600x600.png'}
                             alt={product.name}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         />
