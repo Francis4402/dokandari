@@ -20,7 +20,6 @@ import {
   FiCreditCard,
   FiMessageSquare,
   FiUser,
-  FiSettings,
   FiHelpCircle
 } from 'react-icons/fi';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -53,24 +52,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       icon: FiPackage,
       current: url.startsWith('/dashboard/products')
     },
-    {
-      name: 'Categories',
-      href: '/dashboard/categories',
-      icon: FiGrid,
-      current: url.startsWith('/dashboard/categories')
-    },
+    ...((user.role === 'admin' || user.role === 'superadmin') ? [{
+            name: 'Categories',
+            href: '/dashboard/categories',
+            icon: FiGrid,
+            current: url.startsWith('/dashboard/categories')
+        }] : []),
     {
       name: 'Orders',
       href: '/dashboard/orders',
       icon: FiShoppingCart,
       current: url.startsWith('/dashboard/orders')
     },
-    {
-      name: 'Customers',
-      href: '/dashboard/customers',
-      icon: FiUsers,
-      current: url.startsWith('/dashboard/customers')
-    },
+    ...((user.role === 'admin' || user.role === 'superadmin') ? [{
+            name: 'Customers',
+        href: '/dashboard/customers',
+        icon: FiUsers,
+        current: url.startsWith('/dashboard/customers')
+        }] : []),
     {
       name: 'Stores',
       href: '/dashboard/stores',
@@ -303,7 +302,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                 <Menu as="div" className="relative">
                     <Menu.Button className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full transition-all duration-200 hover:ring-2 hover:ring-blue-300">
                     <img
-                        src={`/storage/${user.images}`}
+                        src={user.images ? `/storage/${user.images}` : 'https://github.com/shadcn.png'}
                         alt="User profile"
                         className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white transition-transform hover:scale-105"
                     />

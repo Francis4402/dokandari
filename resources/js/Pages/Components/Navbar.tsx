@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState, useRef, useEffect } from "react"
+import { PropsWithChildren, useState, useRef, useEffect, Fragment } from "react"
 import { Link } from "@inertiajs/react"
 import { useGSAP } from "@gsap/react"
 import React from "react"
@@ -283,7 +283,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                 </Link>
               </div>
 
-              {/* User Dropdown */}
+              {/* User Dropdown with Transition */}
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -293,7 +293,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                     {
                         user ? (
                             <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                                <img src={`/storage/${user.images}`} alt="i" />
+                                <img src={user.images ? `/storage/${user.images}` : 'https://github.com/shadcn.png'} alt="i" />
                             </div>
                         ) : <div>
                                 <FiUser className="h-4 w-4" />
@@ -302,8 +302,17 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                   </div>
                 </button>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-2 duration-100">
+                <Transition
+                  show={userMenuOpen}
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <div className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50">
                     {user ? (
                       <>
                         <div className="px-4 py-3">
@@ -382,7 +391,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                       </div>
                     )}
                   </div>
-                )}
+                </Transition>
               </div>
             </div>
 
@@ -431,14 +440,14 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
       </header>
 
       {/* Mobile Menu Drawer using Headless UI */}
-      <Transition.Root show={isMobileMenuOpen} as={React.Fragment}>
+      <Transition.Root show={isMobileMenuOpen} as={Fragment}>
         <Dialog
           as="div"
           className="relative z-50 lg:hidden"
           onClose={setIsMobileMenuOpen}
         >
           <Transition.Child
-            as={React.Fragment}
+            as={Fragment}
             enter="ease-in-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
@@ -453,7 +462,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
             <div className="absolute inset-0 overflow-hidden">
               <div className="pointer-events-none fixed inset-y-0 left-0 flex max-w-full pr-10">
                 <Transition.Child
-                  as={React.Fragment}
+                  as={Fragment}
                   enter="transform transition ease-in-out duration-300"
                   enterFrom="-translate-x-full"
                   enterTo="translate-x-0"

@@ -36,19 +36,22 @@ class ProfileController extends Controller
         $user->fill($request->validated());
 
         if ($request->hasFile('image')) {
+            // Delete old image if exists
             if ($user->images) {
                 Storage::disk('public')->delete($user->images);
             }
+
+            // Process and store new image
             $user->images = $this->processAndStoreImage($request->file('image'));
         }
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
-        return Redirect::route('profile.edit');
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
@@ -80,21 +83,20 @@ class ProfileController extends Controller
     {
         $manager = new ImageManager(new Driver());
 
-        // Read image from uploaded file
+
         $img = $manager->read($image);
 
-        // Resize image while maintaining aspect ratio
-        $img->resize(800, 800, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
 
-        // Generate unique filename
+        $img->scale(width: 800);
+
+
         $filename = 'profile_' . uniqid() . '.jpg';
         $path = 'profile_images/' . $filename;
 
-        // Save processed image
-        Storage::disk('public')->put($path, (string) $img->encode());
+
+        $encoded = $img->toJpeg(quality: 85);
+
+        Storage::disk('public')->put($path, (string) $encoded);
 
         return $path;
     }

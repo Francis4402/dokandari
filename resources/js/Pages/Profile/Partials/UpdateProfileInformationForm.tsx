@@ -1,7 +1,7 @@
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
-import { FaUserEdit, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { Fragment, useState, useRef } from 'react';
+import { FaUserEdit, FaCheckCircle, FaExclamationTriangle, FaCamera } from 'react-icons/fa';
 import { User } from '@/types';
 
 interface Props {
@@ -12,17 +12,52 @@ interface Props {
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, user }: Props) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    user.images ? `/storage/${user.images}` : null
+  );
+  const [imageError, setImageError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+  const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
+    _method: 'PATCH',
     name: user.name,
     email: user.email,
+    image: null as File | null,
   });
+
+  const getProfileImageUrl = () => {
+    if (imagePreview) return imagePreview;
+    if (user.images && !imageError) return `/storage/${user.images}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=256`;
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image size should be less than 2MB');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    setData('image', file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(route('profile.update'), {
+    post(route('profile.update'), {
+      forceFormData: true,
+      preserveScroll: true,
       onSuccess: () => {
         setShowSuccessModal(true);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setTimeout(() => setShowSuccessModal(false), 2000);
       }
     });
@@ -41,6 +76,48 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, user
       </div>
 
       <form onSubmit={submit} className="space-y-6">
+        {/* Profile Image Upload */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-4">Profile Picture</h4>
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 ring-4 ring-white shadow-lg">
+                <img
+                  src={getProfileImageUrl()}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={processing}
+                className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
+              >
+                <FaCamera className="w-3.5 h-3.5" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleImageChange}
+                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                className="hidden"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Upload new picture</p>
+              <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF, WEBP up to 2MB</p>
+              {data.image && (
+                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                  <FaCheckCircle className="w-3 h-3" />
+                  {data.image.name}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Name Field */}
         <div className="group">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -105,10 +182,10 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, user
               <div>
                 <p className="text-sm font-medium text-amber-800">Email verification required</p>
                 <p className="text-sm text-amber-700 mt-1">
-                  Your email address is unverified. Please check your inbox for the verification link.
+                  Your email address is unverified.
                   <button
                     type="button"
-                    onClick={() => route('verification.send')}
+                    onClick={() => post(route('verification.send'))}
                     className="ml-2 font-medium underline hover:text-amber-900"
                   >
                     Resend verification email

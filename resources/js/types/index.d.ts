@@ -10,7 +10,7 @@ export interface User {
     name: string;
     images: string;
     email: string;
-    role: string;
+    role: 'superadmin'| 'admin' | 'agent' | 'deliveryman' | 'user';
     email_verified_at: string;
 }
 

@@ -14,7 +14,7 @@ import {
   FaExclamationCircle,
   FaTimes
 } from 'react-icons/fa';
-import { PageProps } from '@/types';
+
 
 interface Customer {
   id: string;
@@ -167,7 +167,7 @@ const Customers: React.FC<PageTypes> = ({ customers: initialCustomers, auth }) =
                             <div className="flex-shrink-0">
                               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
                                 <img
-                                  src={customer.images || `https://ui-avatars.com/api/?name=${encodeURIComponent(customer.name)}&background=random`}
+                                  src={customer.images ? `/storage/${customer.images}` : 'https://github.com/shadcn.png'}
                                   alt={customer.name}
                                   className="w-full h-full object-cover"
                                 />
