@@ -247,16 +247,10 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                             </div>
 
                             {/* Social Login */}
-                            <div className="mt-6 grid grid-cols-2 gap-4">
+                            <div className="mt-6 grid max-w-sm mx-auto gap-4">
                                 <button
                                     type="button"
-                                    className="flex items-center justify-center py-3 px-4 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-all"
-                                >
-                                    <FaFacebookF className="h-5 w-5 mr-3 text-blue-600" />
-                                    Facebook
-                                </button>
-                                <button
-                                    type="button"
+                                    onClick={() => window.location.href = route('auth.google')}
                                     className="flex items-center justify-center py-3 px-4 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-red-500 hover:bg-red-50 hover:text-red-700 transition-all"
                                 >
                                     <FaGoogle className="h-5 w-5 mr-3 text-red-600" />

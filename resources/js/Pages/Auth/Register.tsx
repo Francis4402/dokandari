@@ -13,7 +13,9 @@ import {
   FaUser,
   FaCheck,
   FaCamera,
-  FaTimes
+  FaTimes,
+  FaFacebookF,
+  FaGoogle
 } from 'react-icons/fa';
 import { toast } from 'sonner';
 
@@ -40,7 +42,6 @@ export default function Register() {
     }, []);
 
     useEffect(() => {
-        // Calculate password strength
         let strength = 0;
         if (data.password.length >= 8) strength += 1;
         if (/[A-Z]/.test(data.password)) strength += 1;
@@ -60,7 +61,7 @@ export default function Register() {
                 return;
             }
 
-            // Validate file size (2MB max)
+
             if (file.size > 2 * 1024 * 1024) {
                 alert('Image size must be less than 2MB');
                 return;
@@ -92,7 +93,7 @@ export default function Register() {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Create FormData for file upload
+
         const formData = new FormData();
         formData.append('name', data.name);
         formData.append('email', data.email);
@@ -102,7 +103,6 @@ export default function Register() {
             formData.append('image', data.image);
         }
 
-        // Use Inertia's post with FormData
         post(route('register'), {
             onSuccess: () => {
                 toast.success('Registration Succesfull')
@@ -467,6 +467,31 @@ export default function Register() {
                                 )}
                             </button>
                         </form>
+
+                        <div className="mt-10 mb-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-300"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-4 bg-white text-gray-500 font-medium">
+                                        Or continue with
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Social Login */}
+                            <div className="mt-6 grid max-w-sm mx-auto gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.href = route('auth.google')}
+                                    className="flex items-center justify-center py-3 px-4 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-red-500 hover:bg-red-50 hover:text-red-700 transition-all"
+                                >
+                                    <FaGoogle className="h-5 w-5 mr-3 text-red-600" />
+                                    Google
+                                </button>
+                            </div>
+                        </div>
 
                         {/* Login Link */}
                         <div className="mt-6 text-center">

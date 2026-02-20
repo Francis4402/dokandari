@@ -19,44 +19,47 @@ interface PageProps {
 }
 
 export default function Edit({ auth, mustVerifyEmail, status }: PageProps) {
-  const [memberSince, setMemberSince] = useState('');
-  const [activeTab, setActiveTab] = useState(0);
+    const [memberSince, setMemberSince] = useState('');
+    const [activeTab, setActiveTab] = useState(0);
 
-  useEffect(() => {
-    if (auth.user.created_at) {
-      const date = new Date(auth.user.created_at);
-      setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-    }
-  }, [auth.user.created_at]);
 
-  const getProfileImageUrl = () => {
-    if (auth.user.images) return `/storage/${auth.user.images}`;
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=3b82f6&color=fff&size=256`;
-  };
+    const [useStorage, setUseStorage] = useState(true);
 
-  const tabs = [
-    {
-      name: 'Profile',
-      icon: <FaUserCircle className="h-5 w-5" />,
-      content: (
-        <UpdateProfileInformation
-          mustVerifyEmail={mustVerifyEmail}
-          status={status}
-          user={auth.user}
-        />
-      )
-    },
-    {
-      name: 'Password',
-      icon: <FaKey className="h-5 w-5" />,
-      content: <UpdatePasswordForm />
-    },
-    {
-      name: 'Account',
-      icon: <FaTrash className="h-5 w-5" />,
-      content: <DeleteUserForm />
-    }
-  ];
+    useEffect(() => {
+        if (auth.user.created_at) {
+        const date = new Date(auth.user.created_at);
+        setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        }
+    }, [auth.user.created_at]);
+
+    const getProfileImageUrl = () => {
+        if (useStorage && auth.user.images) return `/storage/${auth.user.images}`;
+        return `https://github.com/shadcn.png`;
+    };
+
+    const tabs = [
+        {
+            name: 'Profile',
+            icon: <FaUserCircle className="h-5 w-5" />,
+            content: (
+                <UpdateProfileInformation
+                    mustVerifyEmail={mustVerifyEmail}
+                    status={status}
+                    user={auth.user}
+                />
+            )
+        },
+        {
+            name: 'Password',
+            icon: <FaKey className="h-5 w-5" />,
+            content: <UpdatePasswordForm />
+        },
+        {
+            name: 'Account',
+            icon: <FaTrash className="h-5 w-5" />,
+            content: <DeleteUserForm />
+        }
+    ];
 
   return (
     <DashboardLayout user={auth.user}>
@@ -84,6 +87,7 @@ export default function Edit({ auth, mustVerifyEmail, status }: PageProps) {
                           src={getProfileImageUrl()}
                           alt={auth.user.name}
                           className="w-16 h-16 rounded-full ring-4 ring-blue-100 object-cover"
+                          onError={() => setUseStorage(false)}
                         />
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
                           <span className="animate-ping absolute inset-0 bg-green-400 rounded-full opacity-75"></span>

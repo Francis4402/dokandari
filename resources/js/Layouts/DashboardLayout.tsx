@@ -46,60 +46,96 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       icon: FiHome,
       current: url === '/dashboard'
     },
-    {
-      name: 'Products',
-      href: '/dashboard/products',
-      icon: FiPackage,
-      current: url.startsWith('/dashboard/products')
-    },
-    ...((user.role === 'admin' || user.role === 'superadmin') ? [{
+    ...((user.role === 'admin') ? [
+        {
+            name: 'Customers',
+            href: '/dashboard/customers',
+            icon: FiUsers,
+            current: url.startsWith('/dashboard/customers')
+        },
+    ] : []),
+
+    ...(user.role === 'admin' || user.role === 'superadmin' || user.role === 'agent' ? [
+        {
+            name: 'Products',
+            href: '/dashboard/products',
+            icon: FiPackage,
+            current: url.startsWith('/dashboard/products')
+        },
+        {
             name: 'Categories',
             href: '/dashboard/categories',
             icon: FiGrid,
             current: url.startsWith('/dashboard/categories')
-        }] : []),
-    {
-      name: 'Orders',
-      href: '/dashboard/orders',
-      icon: FiShoppingCart,
-      current: url.startsWith('/dashboard/orders')
-    },
-    ...((user.role === 'admin' || user.role === 'superadmin') ? [{
-            name: 'Customers',
-        href: '/dashboard/customers',
-        icon: FiUsers,
-        current: url.startsWith('/dashboard/customers')
-        }] : []),
-    {
-      name: 'Stores',
-      href: '/dashboard/stores',
-      icon: FiShoppingBag,
-      current: url.startsWith('/dashboard/stores')
-    },
-    {
-      name: 'Shipping',
-      href: '/dashboard/shipping',
-      icon: FiTruck,
-      current: url.startsWith('/dashboard/shipping')
-    },
-    {
+        },
+        {
+            name: 'Orders',
+            href: '/dashboard/orders',
+            icon: FiShoppingCart,
+            current: url.startsWith('/dashboard/orders')
+        },
+        {
+            name: 'Stores',
+            href: '/dashboard/stores',
+            icon: FiShoppingBag,
+            current: url.startsWith('/dashboard/stores')
+        },
+        {
+            name: 'Shipping',
+            href: '/dashboard/shipping',
+            icon: FiTruck,
+            current: url.startsWith('/dashboard/shipping')
+        },
+        {
+            name: 'Payments',
+            href: '/dashboard/payments',
+            icon: FiCreditCard,
+            current: url.startsWith('/dashboard/payments')
+        },
+        {
+            name: 'Analytics',
+            href: '/dashboard/analytics',
+            icon: FiBarChart2,
+            current: url.startsWith('/dashboard/analytics')
+        }
+    ] : []),
+    ...((user.role === 'deliveryman') ? [{
+        name: 'Shipping',
+        href: '/dashboard/shipping',
+        icon: FiTruck,
+        current: url.startsWith('/dashboard/shipping')
+    }, {
       name: 'Payments',
       href: '/dashboard/payments',
       icon: FiCreditCard,
       current: url.startsWith('/dashboard/payments')
-    },
-    {
-      name: 'Messages',
-      href: '/dashboard/messages',
-      icon: FiMessageSquare,
-      current: url.startsWith('/dashboard/messages')
-    },
-    {
-      name: 'Analytics',
-      href: '/dashboard/analytics',
-      icon: FiBarChart2,
-      current: url.startsWith('/dashboard/analytics')
-    },
+    }] : []),
+    ...((user.role === 'user') ? [
+        {
+            name: 'Payments',
+            href: '/dashboard/payments',
+            icon: FiCreditCard,
+            current: url.startsWith('/dashboard/payments')
+        },
+        {
+            name: 'Orders',
+            href: '/dashboard/orders',
+            icon: FiShoppingCart,
+            current: url.startsWith('/dashboard/orders')
+        },
+        {
+            name: 'Messages',
+            href: '/dashboard/messages',
+            icon: FiMessageSquare,
+            current: url.startsWith('/dashboard/messages')
+        },
+        {
+            name: 'Shipping',
+            href: '/dashboard/shipping',
+            icon: FiTruck,
+            current: url.startsWith('/dashboard/shipping')
+        },
+    ] : []),
   ];
 
   const handleLogout = (e: React.FormEvent) => {
@@ -302,9 +338,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                 <Menu as="div" className="relative">
                     <Menu.Button className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full transition-all duration-200 hover:ring-2 hover:ring-blue-300">
                     <img
-                        src={user.images ? `/storage/${user.images}` : 'https://github.com/shadcn.png'}
-                        alt="User profile"
+                        src={
+                            user.images
+                                ? user.images.startsWith('http')
+                                    ? user.images
+                                    : `/storage/${user.images}`
+                                : 'https://github.com/shadcn.png'
+                        }
+                        alt={user.name}
                         className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white transition-transform hover:scale-105"
+                        onError={() => 'https://github.com/shadcn.png'}
                     />
                     </Menu.Button>
 

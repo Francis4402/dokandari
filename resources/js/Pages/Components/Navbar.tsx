@@ -293,7 +293,17 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                     {
                         user ? (
                             <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                                <img src={user.images ? `/storage/${user.images}` : 'https://github.com/shadcn.png'} alt="i" />
+                                <img
+                                    src={
+                                        user.images
+                                            ? user.images.startsWith('http')
+                                                ? user.images
+                                                : `/storage/${user.images}`
+                                            : 'https://github.com/shadcn.png'
+                                    }
+                                    alt={user.name}
+                                    onError={() => 'https://github.com/shadcn.png'}
+                                />
                             </div>
                         ) : <div>
                                 <FiUser className="h-4 w-4" />

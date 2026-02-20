@@ -11,6 +11,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
 use App\Models\Categories;
@@ -101,7 +102,10 @@ Route::get('/products/{id}', [ProductsController::class, 'show'])->name('product
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 
-
+Route::controller(SocialiteController::class)->group(function () {
+    Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');
+    Route::get('/auth/google-callback', 'googleAuthentication')->name('auth.google-callback');
+});
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

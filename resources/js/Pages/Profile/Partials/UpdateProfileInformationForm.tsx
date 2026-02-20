@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useRef } from 'react';
-import { FaUserEdit, FaCheckCircle, FaExclamationTriangle, FaCamera } from 'react-icons/fa';
+import { FaUserEdit, FaCheckCircle, FaExclamationTriangle, FaCamera, FaUser } from 'react-icons/fa';
 import { User } from '@/types';
 
 interface Props {
@@ -15,21 +15,35 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, user
   const [imagePreview, setImagePreview] = useState<string | null>(
     user.images ? `/storage/${user.images}` : null
   );
-  const [imageError, setImageError] = useState(false);
+
+    const [useStorage, setUseStorage] = useState(true);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
+  const { data, setData, post, errors, processing, recentlySuccessful, reset } = useForm({
     _method: 'PATCH',
     name: user.name,
     email: user.email,
     image: null as File | null,
   });
 
-  const getProfileImageUrl = () => {
-    if (imagePreview) return imagePreview;
-    if (user.images && !imageError) return `/storage/${user.images}`;
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=256`;
-  };
+    const getProfileImageUrl = () => {
+        // Priority 1: Image preview during upload
+        if (imagePreview) return imagePreview;
+
+        // Priority 2: Try storage path first
+        if (useStorage && user.images) {
+            return `/storage/${user.images}`;
+        }
+
+        // Priority 3: If storage failed but user.images exists (maybe it's a URL)
+        if (!useStorage && user.images) {
+            return user.images;
+        }
+
+        // No image available
+        return 'https://github.com/shadcn.png';
+    };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,6 +75,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, user
         setTimeout(() => setShowSuccessModal(false), 2000);
       }
     });
+    reset();
   };
 
   return (
@@ -82,12 +97,16 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, user
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 ring-4 ring-white shadow-lg">
-                <img
-                  src={getProfileImageUrl()}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                  onError={() => setImageError(true)}
-                />
+                {user.images && useStorage ? (
+                    <img
+                        src={getProfileImageUrl()}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                        onError={() => setUseStorage(false)}
+                    />
+                ) : (
+                    <FaUser className="w-full h-full text-gray-400 items-center justify-center p-4" />
+                )}
               </div>
               <button
                 type="button"
