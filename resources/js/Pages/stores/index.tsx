@@ -41,19 +41,19 @@ const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
   const storesRef = useRef<HTMLDivElement>(null);
 
 
-  // Safely extract store types and cities
+
   const storeTypes = Array.from(
     new Set(stores.map((s) => s.storetype).filter(Boolean) as string[])
   );
 
-  // Extract cities from address field (you can customize this logic)
+
   const cities = Array.from(
     new Set(
       stores
         .map((s) => {
-          // Try to extract city from address or use a default
+
           if (s.address) {
-            // This is a simple example - adjust based on your address format
+
             const parts = s.address.split(',');
             return parts[parts.length - 1]?.trim();
           }
@@ -75,16 +75,16 @@ const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
     return matchesSearch && matchesType && matchesCity;
   });
 
-  // Sort filtered stores with safe fallbacks
+
   const sortedStores = [...filteredStores].sort((a, b) => {
     switch (sortBy) {
       case "rating":
         return (b.rating || 0) - (a.rating || 0);
       case "products":
-        // Since storeType doesn't have total_products, sort by name as fallback
+
         return a.name.localeCompare(b.name);
       case "sales":
-        // Since storeType doesn't have total_sales, sort by rating as fallback
+
         return (b.rating || 0) - (a.rating || 0);
       case "newest":
         return (
@@ -257,7 +257,7 @@ const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
                     <div className="h-16 w-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
                     {store.logo ? (
                         <img
-                        src={`/store_images/${store.logo}`}
+                        src={`/storage/${store.logo}`}
                         alt={storeName}
                         className="w-full h-full object-cover"
                         onError={(e) => {

@@ -6,6 +6,7 @@ use App\Models\Orders;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\Products;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -48,7 +49,7 @@ class StoreController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     */
+    */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -56,19 +57,24 @@ class StoreController extends Controller
             'storetype' => 'required|string',
             'license' => 'nullable|string|max:24',
             'address' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'national_id' => 'required|string|unique:stores,national_id|min:10|max:10',
             'mobile' => 'required|string|unique:stores,mobile|min:11|max:11',
         ]);
 
-        DB::beginTransaction();
-
         try {
+
+            $user = Auth::user();
+
+            if (!$user) {
+                throw new \Exception('User not authenticated');
+            }
+
             // Create store first
             $store = Store::create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'name' => $validated['name'],
-                'email' => auth()->user()->email,
+                'email' => $user->email,
                 'storetype' => $validated['storetype'],
                 'license' => $validated['license'] ?? null,
                 'address' => $validated['address'],
@@ -77,36 +83,36 @@ class StoreController extends Controller
                 'logo' => null
             ]);
 
-            // Handle logo if provided
             if ($request->hasFile('logo')) {
+
                 $logo = $request->file('logo');
 
-                // Store in temp location first
-                $tempPath = $logo->storeAs('temp', 'store_' . $store->id . '_' . time(), 'public');
+                $extension = $logo->getClientOriginalExtension();
 
-                // Process image
+                $filename = 'store_' . $store->id . '_' . time() . '_' . Str::random(8) . '.' . $extension;
+
+                $directory = 'store_logos';
+                $filePath = $directory . '/' . $filename;
+
                 $manager = new ImageManager(new Driver());
-                $img = $manager->read(storage_path('app/public/' . $tempPath));
+                $img = $manager->read($logo->getRealPath());
+
                 $img->scaleDown(width: 800);
 
-                // Save to final location
-                $filename = 'store_' . $store->id . '_' . time() . '.webp';
-                $finalPath = public_path('store_images/' . $filename);
-                $img->save($finalPath, quality: 85);
 
-                // Update store
-                $store->update(['logo' => $filename]);
+                Storage::disk('public')->put(
+                    $filePath,
+                    (string) $img->encode()
+                );
 
-                // Clean up temp file
-                Storage::disk('public')->delete($tempPath);
+                $store->update(['logo' => $filePath]);
             }
 
-            DB::commit();
+            $store->save();
 
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             DB::rollBack();
 
-            // Clean up any uploaded files
             if (isset($finalPath) && file_exists($finalPath)) {
                 @unlink($finalPath);
             }
@@ -172,44 +178,52 @@ class StoreController extends Controller
             'remove_logo' => 'nullable|in:true,false,0,1',
         ]);
 
-        // Convert string to boolean
+
         $removeLogo = in_array($validated['remove_logo'] ?? 'false', ['true', '1', 1, true], true);
 
-        // Handle logo
         if ($request->hasFile('logo')) {
+
             $path = public_path('store_images');
 
             if (!file_exists($path)) {
                 mkdir($path, 0755, true);
             }
 
+            // Delete old logo
             if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
                 @unlink(public_path('store_images/' . $store->logo));
             }
 
             $file = $request->file('logo');
-            $filename = 'store_' . $store->id . '_' . time() . '_' . Str::random(8) . '.webp';
+
+
+            $extension = $file->getClientOriginalExtension();
+
+            $filename = 'store_' . $store->id . '_' . time() . '_' . Str::random(8) . '.' . $extension;
 
             $manager = new ImageManager(new Driver());
             $img = $manager->read($file->getRealPath());
 
-            $img->scale(width: 800);
-            $img->save($path . '/' . $filename, quality: 85);
+            $img->scaleDown(width: 800);
+
+
+            $img->save($path . '/' . $filename);
 
             $validated['logo'] = $filename;
 
         } elseif ($removeLogo) {
-            // Remove existing logo
+
             if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
                 @unlink(public_path('store_images/' . $store->logo));
             }
+
             $validated['logo'] = null;
+
         } else {
-            // Keep existing logo
             unset($validated['logo']);
         }
 
-        // Update all fields at once
+
         $store->update([
             'name' => $validated['name'],
             'storetype' => $validated['storetype'],
@@ -219,7 +233,7 @@ class StoreController extends Controller
             'national_id' => $validated['national_id'],
         ]);
 
-        // Update logo if changed
+
         if (isset($validated['logo'])) {
             $store->logo = $validated['logo'];
             $store->save();
@@ -230,8 +244,9 @@ class StoreController extends Controller
     {
         $store = Store::findOrFail($id);
 
-        if ($store->logo && file_exists(public_path('store_images/' . $store->logo))) {
-            @unlink(public_path('store_images/' . $store->logo));
+
+        if ($store->logo && Storage::disk('public')->exists($store->logo)) {
+            Storage::disk('public')->delete($store->logo);
         }
 
 
@@ -241,15 +256,18 @@ class StoreController extends Controller
 
             if ($product->images) {
                 $images = json_decode($product->images, true);
-                    if (is_array($images)) {
-                        foreach ($images as $image) {
-                            if ($image && file_exists(public_path('product_images/' . $image))) {
-                                @unlink(public_path('product_images/' . $image));
-                            }
+
+                if (is_array($images)) {
+
+                    foreach ($images as $image) {
+                        if ($image && Storage::disk('public')->exists($image)) {
+                            Storage::disk('public')->delete($image);
                         }
-                    } else {
-                        if (file_exists(public_path('product_images/' . $product->images))) {
-                            @unlink(public_path('product_images/' . $product->images));
+                    }
+                } else {
+
+                    if ($product->images && Storage::disk('public')->exists($product->images)) {
+                        Storage::disk('public')->delete($product->images);
                     }
                 }
             }

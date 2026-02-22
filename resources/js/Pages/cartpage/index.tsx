@@ -352,13 +352,13 @@ const CartPage = ({ auth }: CartPageProps) => {
       }
 
       if (imageName) {
-        return `${window.location.origin}/product_images/${imageName}`;
+        return `${window.location.origin}/storage/${imageName}`;
       }
     } catch (error) {
       if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
-          return `${window.location.origin}/product_images/${matches[1]}`;
+          return `${window.location.origin}/storage/${matches[1]}`;
         }
       }
     }

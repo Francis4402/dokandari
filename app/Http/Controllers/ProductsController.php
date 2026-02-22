@@ -6,7 +6,6 @@ use App\Models\Products;
 use App\Models\Categories;
 use App\Models\Store;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -89,31 +88,25 @@ class ProductsController extends Controller
         if ($request->hasFile('images')) {
             $images = [];
 
-            // Organize by date for better management
             $directory = 'product_images';
 
             foreach ($request->file('images') as $index => $file) {
-                // Get original extension
+
                 $extension = $file->getClientOriginalExtension();
 
-                // Generate unique filename
+
                 $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $extension;
 
                 $filePath = $directory . '/' . $filename;
 
-                // Process image with Intervention
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($file->getRealPath());
 
-                // Resize and optimize
                 $img->scale(width: 800);
-
 
                 $encodedImage = (string) $img->encodeByExtension($extension, quality: 85);
 
-                // Save to storage
                 Storage::disk('public')->put($filePath, $encodedImage);
-
 
                 $images[] = $filePath;
             }
@@ -131,7 +124,7 @@ class ProductsController extends Controller
      */
     public function show($slug)
     {
-        $product = Products::where('slug', $slug)->firstOrFail();
+        $product = Products::with('store')->where('slug', $slug)->firstOrFail();
         $store = Store::where('id', $product->store_id)->first();
 
         return Inertia::render('productdetails/index', [
@@ -164,15 +157,18 @@ class ProductsController extends Controller
         // ✅ Validate
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255',
             'category' => 'required|string|max:255',
+            'subcategory' => 'required|string',
             'quantity' => 'required|integer|min:0',
             'regular_price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'description' => 'required|string',
             'inStock' => 'boolean',
-            'images.*' => 'nullable|image|max:10240',
+            'color' => 'nullable|max:20',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'images' => 'max:5',
             'images_to_remove' => 'nullable|string',
+            'item_weight' => 'required|numeric',
         ]);
 
         // ✅ Update normal fields (exclude images)
@@ -186,37 +182,39 @@ class ProductsController extends Controller
         $imagesToRemove = json_decode($request->images_to_remove, true) ?? [];
 
         if (!empty($imagesToRemove)) {
-            foreach ($imagesToRemove as $img) {
-                $filePath = public_path('product_images/' . $img);
-
-                if (file_exists($filePath)) {
-                    unlink($filePath);
+            foreach ($imagesToRemove as $imagePath) {
+                if (Storage::disk('public')->exists($imagePath)) {
+                    Storage::disk('public')->delete($imagePath);
                 }
 
-                $existingImages = array_values(
-                    array_diff($existingImages, [$img])
-                );
+                $existingImages = array_values(array_diff($existingImages, [$imagePath]));
             }
         }
 
         if ($request->hasFile('images')) {
-            $path = public_path('product_images');
-
-            if (!file_exists($path)) {
-                mkdir($path, 0755, true);
-            }
+            $directory = 'product_images';
 
             foreach ($request->file('images') as $index => $file) {
-                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                // Get original extension
+                $extension = $file->getClientOriginalExtension();
+
+                // Generate unique filename
+                $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $extension;
+
+                $filePath = $directory . '/' . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($file->getRealPath());
 
-                // Resize & optimize
+                // Resize and optimize
                 $img->scale(width: 800);
-                $img->save($path . '/' . $filename, quality: 85);
 
-                $existingImages[] = $filename;
+                $encodedImage = (string) $img->encodeByExtension($extension, quality: 85);
+
+                // Save to storage
+                Storage::disk('public')->put($filePath, $encodedImage);
+
+                $existingImages[] = $filePath;
             }
         }
 
@@ -237,8 +235,7 @@ class ProductsController extends Controller
 
             if (is_array($images)) {
                 foreach ($images as $imagePath) {
-                    $relativePath = str_replace('storage/', '', $imagePath);
-                    Storage::disk('public')->delete($relativePath);
+                    Storage::disk('public')->delete($imagePath);
                 }
             }
         }
@@ -251,11 +248,8 @@ class ProductsController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $store = Store::where('user_id', auth()->id())->first();
-
         return Inertia::render('products/index', [
             'products' => $products,
-            'store' => $store,
         ]);
     }
 }

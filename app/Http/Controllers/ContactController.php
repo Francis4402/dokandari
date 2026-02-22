@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
-use App\Http\Requests\StoreContactRequest;
+use Illuminate\Http\Request;
 use App\Http\Requests\UpdateContactRequest;
 use Inertia\Inertia;
 
@@ -28,9 +28,22 @@ class ContactController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreContactRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:40',
+            'email' => 'required|string|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:400',
+        ]);
+
+        $contact = new Contact();
+        $contact->name = $validated['name'];
+        $contact->email = $validated['email'];
+        $contact->subject = $validated['subject'];
+        $contact->message = $validated['message'];
+
+        $contact->save();
     }
 
     /**

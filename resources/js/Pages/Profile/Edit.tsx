@@ -5,8 +5,9 @@ import DeleteUserForm from './Partials/DeleteUserForm';
 import { Tab } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
 import {
-  FaUserCircle, FaKey, FaTrash, FaCog, FaCheckCircle,
+  FaUserCircle, FaKey, FaCog, FaCheckCircle,
   FaCalendarAlt, FaEnvelope, FaShieldAlt,
+  FaTrash,
 } from 'react-icons/fa';
 import UpdateProfileInformation from './Partials/UpdateProfileInformationForm';
 
@@ -54,11 +55,13 @@ export default function Edit({ auth, mustVerifyEmail, status }: PageProps) {
             icon: <FaKey className="h-5 w-5" />,
             content: <UpdatePasswordForm />
         },
-        {
-            name: 'Account',
-            icon: <FaTrash className="h-5 w-5" />,
-            content: <DeleteUserForm />
-        }
+        ...(auth.user.role === 'superadmin', [
+            {
+                name: 'Account',
+                icon: <FaTrash className="h-5 w-5" />,
+                content: <DeleteUserForm />
+            }
+        ])
     ];
 
   return (

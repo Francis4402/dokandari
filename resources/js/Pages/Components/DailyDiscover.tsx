@@ -2,17 +2,16 @@ import { Product, storeType } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
-import { FaHeart, FaRegHeart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaEye, FaStar, FaRegStar, FaArrowRight, FaShoppingCart } from "react-icons/fa";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import Addtocartactionbutton from "../buttons/Addtocartactionbutton";
 import { Link } from "@inertiajs/react";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
-  store: storeType
 }
 
-const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
+const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
@@ -38,8 +37,8 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
 
 
   const calculateDiscount = (regularPrice: number, salePrice: number) => {
-    const regular = (regularPrice);
-    const sale = (salePrice);
+    const regular = regularPrice;
+    const sale = salePrice;
 
     if (isNaN(regular) || isNaN(sale) || regular <= 0 || sale >= regular) return 0;
     return Math.round(((regular - sale) / regular) * 100);
@@ -153,15 +152,17 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
     );
   };
 
-  const formatPrice = (price: string): string => {
-    if (!price) return '৳0';
-    const numPrice = parseFloat(price);
-    if (isNaN(numPrice)) return '৳0';
-    return `৳${numPrice.toLocaleString('en-BD')}`;
-  };
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 2
+        }).format(price);
+    };
+
 
   const getImageSrc = (images: string) => {
-    if (!images) return '/placeholder-image.jpg';
+    if (!images) return '/otherplaceholder.jpg';
 
     try {
       const parsedImages = JSON.parse(images);
@@ -173,7 +174,7 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
         return images.trim();
       }
     }
-    return '/placeholder-image.jpg';
+    return '/otherplaceholder.jpg';
   };
 
   return (
@@ -181,10 +182,10 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
       {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-          Daily Discover
+          Top Selling Products
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Explore our handpicked selection of products just for you
+          Get the best products that our customers love the most. Shop now and enjoy great deals!
         </p>
         <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
       </div>
@@ -229,7 +230,7 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = 'https://placehold.net/600x600.png';
+                        target.src = '/otherplaceholder.jpg';
                       }}
                     />
                   </div>
@@ -273,7 +274,13 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
                         <FaRegHeart className="w-4 h-4 text-gray-600" />
                       )}
                     </button>
-                      <Addtocartactionbutton />
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
+                      aria-label="Add to cart"
+                    >
+                      <FaShoppingCart className="w-4 h-4 text-gray-600" />
+                    </button>
                   </div>
                 </div>
 
@@ -281,7 +288,7 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
                 <div className="p-4 flex-grow flex flex-col">
                   <div className="flex-shrink-0 mb-3">
                     <h3 className="text-base font-semibold leading-tight text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[48px]">
-                      {product.name}
+                      {product.name || 'Unnamed Product'}
                     </h3>
                     {product.category && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mt-2">
@@ -309,24 +316,24 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
                   <div className="mt-auto">
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-blue-600">
-                          {product.sale_price || product.regular_price}
+                        <span className="text-2xl font-bold ">
+                          {formatPrice(product.sale_price || product.regular_price)}
                         </span>
                         {hasDiscount && (
                           <span className="text-sm text-gray-500 line-through">
-                            {product.regular_price}
+                            {formatPrice(product.regular_price)}
                           </span>
                         )}
                       </div>
                       {saveAmount > 0 && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          Save {saveAmount.toString()}
+                          Save {saveAmount}
                         </span>
                       )}
                     </div>
 
                     {/* Add to Cart Button */}
-                    <AddtoCartButton product={product} store={store} />
+                    <AddtoCartButton product={product} />
                   </div>
                 </div>
               </div>
@@ -342,7 +349,7 @@ const DailyDiscover = ({ discoverProduct, store }: dailyDiscoverProduct) => {
           <FaArrowRight className="w-4 h-4" />
         </button>
         <p className="text-sm text-gray-500 mt-4">
-          Showing {discoverProduct.length} daily discover products
+          Showing {discoverProduct.length} top selling products
         </p>
       </div>
     </div>

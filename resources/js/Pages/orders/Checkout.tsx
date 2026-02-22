@@ -86,20 +86,20 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
       const parsed = JSON.parse(images);
       const imageName = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed;
       if (imageName) {
-        return `/product_images/${imageName}`;
+        return `/storage/${imageName}`;
       }
     } catch {
       if (typeof images === 'string' && images) {
         const matches = images.match(/"([^"]+)"/);
         if (matches && matches[1]) {
-          return `/product_images/${matches[1]}`;
+          return `/storage/${matches[1]}`;
         }
         if (images && !images.includes('"')) {
-          return `/product_images/${images}`;
+          return `/storage/${images}`;
         }
       }
     }
-    return '/placeholder-image.jpg';
+    return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   };
 
   const getSelectedCityName = () => {
@@ -120,7 +120,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
 
   const getEstimatedDelivery = () => {
     const cityName = getSelectedCityName().toLowerCase();
-    if (cityName.includes('dhaka')) return '1-2 business days';
+    if (cityName.includes('dhaka')) return '3-4 business days';
     if (cityName.includes('chittagong') || cityName.includes('chattogram')) return '2-3 business days';
     return '3-4 business days';
   };
@@ -167,8 +167,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
         return;
     }
 
-    // IMPORTANT: Get the correct user ID (UUID)
-    // Try different possible field names for the UUID
+
     const userId = auth.user.uuid || auth.user.id || auth.user.user_id;
 
     console.log('Using user ID:', userId);
@@ -325,7 +324,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
                     <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                       <div className="flex items-center gap-3 mb-3">
                         <img
-                          src={`/store_images/${store.logo}`}
+                          src={`/storage/${store.logo}`}
                           alt={store.name}
                           className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
                           onError={(e) => {

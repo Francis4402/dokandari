@@ -18,14 +18,13 @@ import {
   FaComments,
   FaQuestionCircle,
   FaArrowLeft,
-
 } from "react-icons/fa";
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -59,6 +58,13 @@ const ContactUsPage = ({auth}: PageProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
+
+  const {data, setData, post, processing, reset} = useForm({
+    name: "",
+    email: "",
+    subject: "",
+    message: ""
+  });
 
   // Contact information
   const contactInfo = {
@@ -173,56 +179,9 @@ const ContactUsPage = ({auth}: PageProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmitError("");
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: ""
-      });
-
-      setSubmitSuccess(true);
-      setShowSuccessModal(true);
-
-      // Auto-hide success message after 5 seconds
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 5000);
-
-    } catch (error) {
-      setSubmitError("Failed to send message. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    console.log(e);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Clear error for this field when user starts typing
-    if (errors[name as keyof ContactForm]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
-    }
-  };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -450,8 +409,8 @@ const ContactUsPage = ({auth}: PageProps) => {
                             type="text"
                             id="name"
                             name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
                             className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
                               errors.name ? 'border-red-300' : 'border-gray-300'
                             }`}
@@ -478,8 +437,8 @@ const ContactUsPage = ({auth}: PageProps) => {
                             type="email"
                             id="email"
                             name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
                             className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
                               errors.email ? 'border-red-300' : 'border-gray-300'
                             }`}
@@ -503,8 +462,8 @@ const ContactUsPage = ({auth}: PageProps) => {
                         type="text"
                         id="subject"
                         name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
+                        value={data.subject}
+                        onChange={(e) => setData('subject', e.target.value)}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
                           errors.subject ? 'border-red-300' : 'border-gray-300'
                         }`}
@@ -525,8 +484,8 @@ const ContactUsPage = ({auth}: PageProps) => {
                       <textarea
                         id="message"
                         name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
+                        value={data.message}
+                        onChange={(e) => setData('message', e.target.value)}
                         rows={6}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors resize-none ${
                           errors.message ? 'border-red-300' : 'border-gray-300'
@@ -540,7 +499,7 @@ const ContactUsPage = ({auth}: PageProps) => {
                         </p>
                       )}
                       <div className="mt-2 text-sm text-gray-500 flex justify-end">
-                        {formData.message.length} characters
+                        {data.message.length} characters
                       </div>
                     </div>
 

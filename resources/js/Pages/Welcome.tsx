@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { categoryType, PageProps, Product, storeType } from '@/types';
+import { categoryType, PageProps, Product } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import HeroSection from './Components/HeroSection';
 import NavRoutes from './Components/NavRoutes';
@@ -11,26 +11,41 @@ import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
 import TopSellingProduct from './Components/TopSellingProduct';
 
+// Define the paginated response type
+interface PaginatedProducts {
+    data: Product[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: any[];
+}
+
+export default function Welcome({ auth, categories, products }: PageProps<{
+    laravelVersion: string,
+    phpVersion: string,
+    categories: categoryType,
+    products: PaginatedProducts
+}>) {
 
 
-export default function Welcome({ auth, categories, products, stores }: PageProps<{ laravelVersion: string, phpVersion: string, categories: categoryType, products: Product[], stores: storeType }>) {
+    const productsData = products.data || [];
 
-    const topSellingProduct = products.filter(product =>
+    const topSellingProduct = productsData.filter(product =>
         product.product_type?.toLowerCase() === 'top-selling'
     );
 
-    const dailyDiscoverProduct = products.filter(product =>
+    const dailyDiscoverProduct = productsData.filter(product =>
         product.product_type?.toLowerCase() === 'regular'
     );
 
-    const featuredProducts = products.filter(product =>
+    const featuredProducts = productsData.filter(product =>
         product.product_type?.toLowerCase() === 'featured'
     );
 
-    const trandingProducts = products.filter(product =>
+    const trandingProducts = productsData.filter(product =>
         product.product_type?.toLowerCase() === 'trending'
     );
-
 
     return (
         <AppLayout user={auth.user}>
@@ -58,8 +73,11 @@ export default function Welcome({ auth, categories, products, stores }: PageProp
                         <TopSellingProduct products = {topSellingProduct} />
                     )
                 }
-
-                <DailyDiscover discoverProduct = {dailyDiscoverProduct} store={stores} />
+                {
+                    dailyDiscoverProduct.length > 0 && (
+                        <DailyDiscover discoverProduct = {dailyDiscoverProduct} />
+                    )
+                }
                 <CategorySection />
             </div>
             <Footer/>

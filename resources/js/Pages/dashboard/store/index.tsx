@@ -382,7 +382,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                             <div className="flex-shrink-0">
                               <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 border-white shadow-md">
                                 <img
-                                  src={store.logo ? `/store_images/${store.logo}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
+                                  src={store.logo ? `/storage/${store.logo}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
                                   alt={store.name}
                                   className="w-full h-full object-cover"
                                 />
@@ -552,7 +552,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                   <div className="text-center mb-4 sm:mb-6">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border-2 sm:border-4 border-white shadow-lg mx-auto mb-3 sm:mb-4">
                         <img
-                            src={selectedStore.logo ? `/store_images/${selectedStore.logo}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
+                            src={selectedStore.logo ? `/storage/${selectedStore.logo}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
                             alt={selectedStore.name}
                             className="w-full h-full object-cover"
                         />
@@ -590,8 +590,8 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                         Store Owner
                       </h5>
                       <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="font-medium text-gray-800 text-center truncate">{(selectedStore as any).user?.name || 'N/A'}</p>
-                        <p className="text-xs text-gray-500 text-center mt-1 truncate">{(selectedStore as any).user?.email || 'No email'}</p>
+                        <p className="font-medium text-gray-800 text-center truncate">Email</p>
+                        <p className="text-xs text-gray-500 text-center mt-1 truncate">{selectedStore.email || 'No email'}</p>
                       </div>
                     </div>
 

@@ -10,39 +10,46 @@ import { CiImageOn } from "react-icons/ci";
 import { FiZap } from 'react-icons/fi';
 import { BiHeart } from 'react-icons/bi';
 import { Product } from '@/types';
+import { Link } from '@inertiajs/react';
 
 
 const OfferedProducts = ({product}: {product: Product[]}) => {
-  const [parsedProducts, setParsedProducts] = useState<Product[]>([]);
+    const [parsedProducts, setParsedProducts] = useState<Product[]>([]);
 
+    useEffect(() => {
+        if (product && product.length > 0) {
+        const parsed = product.map(item => ({
+            ...item,
+            rating: typeof item.rating === 'string' ? parseFloat(item.rating) : Number(item.rating) || 0
+        }));
+        setParsedProducts(parsed);
+        }
+    }, [product]);
 
-  useEffect(() => {
-    if (product && product.length > 0) {
-      const parsed = product.map(item => ({
-        ...item,
-        // Ensure rating is a number
-        rating: typeof item.rating === 'string' ? parseFloat(item.rating) : Number(item.rating) || 0
-      }));
-      setParsedProducts(parsed);
-    }
-  }, [product]);
+    const calculateDiscount = (regularPrice: number, salePrice: number) => {
+        const regular = regularPrice;
+        const sale = salePrice;
+        if (regular <= 0 || sale >= regular) return '0%';
+        const discount = Math.round(((regular - sale) / regular) * 100);
+        return `${discount}%`;
+    };
 
-  const calculateDiscount = (regularPrice: number, salePrice: number) => {
-    const regular = regularPrice;
-    const sale = salePrice;
-    if (regular <= 0 || sale >= regular) return '0%';
-    const discount = Math.round(((regular - sale) / regular) * 100);
-    return `${discount}%`;
-  };
+    const calculateSaveAmount = (regularPrice: number, salePrice: number) => {
+        const regular = regularPrice;
+        const sale = salePrice;
+        const saveAmount = regular - sale;
+        return saveAmount > 0 ? saveAmount.toFixed(0) : '0';
+    };
 
-  const calculateSaveAmount = (regularPrice: number, salePrice: number) => {
-    const regular = regularPrice;
-    const sale = salePrice;
-    const saveAmount = regular - sale;
-    return saveAmount > 0 ? saveAmount.toFixed(0) : '0';
-  };
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 2
+        }).format(price);
+    };
 
-  const renderStars = (rating: number) => {
+    const renderStars = (rating: number) => {
     const normalizedRating = Math.min(Math.max(Number(rating) || 0, 0), 5);
 
     return (
@@ -71,12 +78,12 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
     );
   };
 
-  // Parse images JSON string to array
+
   const parseImages = (imagesString: string): string[] => {
     if (!imagesString) return [];
 
     try {
-      // Remove any extra quotes if they exist
+
       let cleanString = imagesString;
       if (cleanString.startsWith('"') && cleanString.endsWith('"')) {
         cleanString = cleanString.slice(1, -1);
@@ -87,14 +94,14 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
 
       if (Array.isArray(parsed)) {
         return parsed.map(img => {
-          // If image is just a filename, prepend the path
+
           if (img && typeof img === 'string') {
-            // Check if it already has the path
-            if (img.includes('product_images/')) {
+
+            if (img.includes('/')) {
               return img;
             }
             // Add the path
-            return `product_images/${img}`;
+            return `storage/${img}`;
           }
           return '';
         }).filter(img => img !== '');
@@ -107,29 +114,27 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
     }
   };
 
-  // Get first image URL
+
   const getFirstImage = (imagesString: string): string => {
     const images = parseImages(imagesString);
-    console.log('Parsed images:', images); // Debug
+    console.log('Parsed images:', images);
 
     if (images.length > 0) {
-      // Construct full URL
+
       const imagePath = images[0];
       if (imagePath.startsWith('http')) {
         return imagePath;
       } else if (imagePath.startsWith('/')) {
         return imagePath;
       } else {
-        // Add leading slash for relative path
-        return `/${imagePath}`;
+        return `/storage/${imagePath}`;
       }
     }
 
-    // Fallback image
     return 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=400&fit=crop';
   };
 
-  // Display all images for debugging (remove this in production)
+
   const renderAllImages = (imagesString: string) => {
     const images = parseImages(imagesString);
 
@@ -226,14 +231,6 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
               const discount = calculateDiscount(offer.regular_price, offer.sale_price);
               const saveAmount = calculateSaveAmount(offer.regular_price, offer.sale_price);
 
-              // Debug logging
-              console.log('Product:', {
-                name: offer.name,
-                images: offer.images,
-                parsed: parseImages(offer.images),
-                firstImage: getFirstImage(offer.images)
-              });
-
               return (
                 <SwiperSlide key={offer.id || index} className="h-auto">
                   <div className="overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-300 h-full hover:-translate-y-2 hover:shadow-xl group flex flex-col bg-white rounded-lg shadow-md">
@@ -263,10 +260,10 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
 
                       {/* Quick Add to Cart Button */}
                       <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                        <button className="w-full gap-2 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+                        <Link href={`/`} className="w-full gap-2 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
                           <FaShoppingCart className="w-4 h-4" />
-                          Quick Add
-                        </button>
+                          Quick View
+                        </Link>
                       </div>
                     </div>
 
@@ -283,14 +280,14 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
                       </div>
 
                       {/* Price */}
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col items-center justify-between">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-primary">
-                            ৳{(offer.sale_price || offer.regular_price).toFixed(2)}
+                          <span className="text-sm font-bold text-primary">
+                            {formatPrice(offer.sale_price || offer.regular_price)}
                           </span>
                           {discount !== '0%' && (
                             <span className="text-sm text-gray-500 line-through">
-                              ৳{(offer.regular_price).toFixed(2)}
+                              {formatPrice(offer.regular_price)}
                             </span>
                           )}
                         </div>

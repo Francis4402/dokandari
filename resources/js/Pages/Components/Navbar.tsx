@@ -306,8 +306,8 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                 />
                             </div>
                         ) : <div>
-                                <FiUser className="h-4 w-4" />
-                            </div>
+                            <FiUser className="h-4 w-4" />
+                        </div>
                     }
                   </div>
                 </button>
@@ -339,7 +339,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                             Dashboard
                           </Link>
                           <Link
-                            href="/profile"
+                            href="/dashboard/profile"
                             onClick={() => setUserMenuOpen(false)}
                             className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
@@ -564,7 +564,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Dashboard Home
                                 </Link>
                                 <Link
-                                  href="/products"
+                                  href="/dashboard/products"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >
@@ -572,7 +572,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Products
                                 </Link>
                                 <Link
-                                  href="/orders"
+                                  href="/dashboard/orders"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >
@@ -580,7 +580,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                   Orders
                                 </Link>
                                 <Link
-                                  href="/analytics"
+                                  href="/dashboard/analytics"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                                 >
@@ -606,7 +606,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                 Profile Settings
                               </Link>
                               <Link
-                                href="/orders"
+                                href="/track-order"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
                               >

@@ -179,8 +179,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                     className="-m-2.5 p-2.5"
                     onClick={() => setSidebarOpen(false)}
                   >
-
-
                   </button>
                 </div>
 
@@ -363,8 +361,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                     <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-lg shadow-xl border border-gray-200 divide-y divide-gray-100 focus:outline-none z-50">
                         {/* User Info */}
                         <div className="px-4 py-3">
-                        <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
                         </div>
 
                         {/* Menu Items */}

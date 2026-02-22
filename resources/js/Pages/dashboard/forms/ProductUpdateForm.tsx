@@ -24,7 +24,10 @@ import {
   FaShoppingCart,
   FaArrowRight,
   FaChevronDown,
-  FaTrash
+  FaTrash,
+  FaWeightHanging,
+  FaStar,
+  FaList
 } from 'react-icons/fa';
 import {
   HiCheck,
@@ -48,7 +51,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
-  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [availablesubcategory, setAvailablesubcategory] = useState<string[]>([]);
   const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
 
@@ -64,6 +67,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     description: product.description || '',
     color: [] as string[],
     inStock: product.inStock ?? true,
+    item_weight: product.item_weight?.toString() || '0',
     rating: product.rating?.toString() || '0',
     store_id: store.id || ''
   });
@@ -71,8 +75,8 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
-  // Parse subcategories from the selected category
-  const parseSubcategories = (subcategoryString: string | null): string[] => {
+  // Parse subcategory from the selected category
+  const parsesubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
     try {
       return JSON.parse(subcategoryString);
@@ -88,7 +92,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
       try {
         const parsedImages = JSON.parse(product.images);
         setExistingImages(parsedImages);
-        setImagePreviews(parsedImages.map((img: string) => `/product_images/${img}`));
+        setImagePreviews(parsedImages.map((img: string) => `/storage/${img}`));
       } catch (e) {
         console.error('Error parsing product images:', e);
       }
@@ -116,23 +120,23 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     }
   }, [product]);
 
-  // Update available subcategories when category changes
+  // Update available subcategory when category changes
   useEffect(() => {
     if (data.category) {
       const selectedCat = categories.find(cat => cat.categories === data.category);
       if (selectedCat && selectedCat.subcategory) {
-        const subcategories = parseSubcategories(selectedCat.subcategory);
-        setAvailableSubcategories(subcategories);
+        const subcategory = parsesubcategory(selectedCat.subcategory);
+        setAvailablesubcategory(subcategory);
 
-        if (data.subcategory && !subcategories.includes(data.subcategory)) {
+        if (data.subcategory && !subcategory.includes(data.subcategory)) {
           setData('subcategory', '');
         }
       } else {
-        setAvailableSubcategories([]);
+        setAvailablesubcategory([]);
         setData('subcategory', '');
       }
     } else {
-      setAvailableSubcategories([]);
+      setAvailablesubcategory([]);
       setData('subcategory', '');
     }
   }, [data.category, categories]);
@@ -231,18 +235,29 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
     const formData = new FormData();
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'images') {
-        data.images.forEach((file: File, index: number) => {
-          formData.append(`images[${index}]`, file);
-        });
-      } else if (key === 'color') {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value as string);
-      }
+    // Add all form fields
+    formData.append('name', data.name);
+    formData.append('slug', data.slug);
+    formData.append('category', data.category);
+    formData.append('subcategory', data.subcategory);
+    formData.append('quantity', data.quantity);
+    formData.append('regular_price', data.regular_price);
+    if (data.sale_price) {
+      formData.append('sale_price', data.sale_price);
+    }
+    formData.append('description', data.description);
+    formData.append('color', JSON.stringify(data.color));
+    formData.append('inStock', data.inStock ? '1' : '0');
+    formData.append('item_weight', data.item_weight);
+    formData.append('rating', data.rating);
+    formData.append('store_id', data.store_id);
+
+    // Add images
+    data.images.forEach((file: File, index: number) => {
+      formData.append(`images[${index}]`, file);
     });
 
+    // Add images to remove
     formData.append('images_to_remove', JSON.stringify(imagesToRemove));
     formData.append('_method', 'PUT');
 
@@ -254,7 +269,8 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
         reset('images');
         router.visit('/dashboard/products');
       },
-      onError: () => {
+      onError: (errors) => {
+        console.error('Update failed:', errors);
         toast.error('Failed to update product');
       },
     });
@@ -270,6 +286,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
       setData(field, value as any);
     }
   };
+
+  const productTypes = [
+    { value: 'regular', label: 'Regular', color: 'gray' },
+    { value: 'top-selling', label: 'Top Selling', color: 'red' },
+    { value: 'trending', label: 'Trending', color: 'purple' },
+    { value: 'featured', label: 'Featured', color: 'blue' },
+  ];
 
   return (
     <DashboardLayout user={auth.user}>
@@ -462,7 +485,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     {/* Sub Category */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sub Category
+                        Sub Category <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <button
@@ -487,8 +510,8 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                         {data.category && showSubcategoryDropdown && (
                           <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                            {availableSubcategories.length > 0 ? (
-                              availableSubcategories.map((subcat, index) => (
+                            {availablesubcategory.length > 0 ? (
+                              availablesubcategory.map((subcat, index) => (
                                 <button
                                   key={index}
                                   type="button"
@@ -506,7 +529,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                               ))
                             ) : (
                               <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                No subcategories available for this category
+                                No subcategory available for this category
                               </div>
                             )}
                           </div>
@@ -521,13 +544,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     </div>
                   </div>
 
-                  {/* Row 3: Quantity and Colors */}
+                  {/* Row 3: Quantity and Product Type */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Quantity */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                         <FaHashtag className="h-4 w-4" />
-                        Quantity
+                        Quantity <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -546,7 +569,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </p>
                       )}
                     </div>
+                  </div>
 
+                  {/* Row 4: Colors and Item Weight */}
+                  <div className="grid md:grid-cols-2 gap-4">
                     {/* Colors */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -628,6 +654,61 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </p>
                       )}
                     </div>
+
+                    {/* Item Weight */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaWeightHanging className="h-4 w-4" />
+                        Item Weight (g) <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={data.item_weight}
+                          onChange={(e) => handleNumberInput(e, 'item_weight')}
+                          placeholder="0"
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      {errors.item_weight && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.item_weight}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 5: Rating */}
+                  <div className="grid md:grid-cols-1 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <FaStar className="h-4 w-4 text-yellow-500" />
+                        Rating (0-5)
+                      </label>
+                      <div className="relative">
+                        <FaStar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-4 w-4" />
+                        <input
+                          type="number"
+                          min="0"
+                          max="5"
+                          step="0.1"
+                          value={data.rating}
+                          onChange={(e) => handleNumberInput(e, 'rating')}
+                          placeholder="0.0"
+                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      {errors.rating && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.rating}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -644,7 +725,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     {/* Regular Price */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Regular Price <span className="text-red-500 ml-1">*</span>
+                        Regular Price ($) <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
                         <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -671,7 +752,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           <FaPercent className="h-4 w-4" />
-                          Sale Price
+                          Sale Price ($)
                         </label>
                         <div className="flex items-center gap-2">
                           <input
@@ -786,9 +867,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         {existingImages.map((img, i) => (
                           <div key={i} className="relative group">
                             <img
-                              src={`/product_images/${img}`}
+                              src={`/storage/${img}`}
                               alt={`Product ${i + 1}`}
                               className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                              onError={(e) => {
+                                // Fallback if image fails to load
+                                e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
+                              }}
                             />
                             <button
                               type="button"
@@ -1012,6 +1097,18 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </span>
                       </div>
 
+                      {/* Weight and Rating */}
+                      <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <FaWeightHanging className="h-3 w-3" />
+                          {data.item_weight || 0}g
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FaStar className="h-3 w-3 text-yellow-500" />
+                          {parseFloat(data.rating).toFixed(1) || '0.0'}
+                        </span>
+                      </div>
+
                       {data.slug && (
                         <div className="mt-2 text-xs text-gray-500 truncate flex items-center gap-1">
                           <FaLink className="h-3 w-3" />
@@ -1058,6 +1155,24 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </span>
                         <span className="font-medium text-gray-800">
                           {existingImages.length + data.images.length} ({imagesToRemove.length} to remove)
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaWeightHanging className="h-3 w-3" />
+                          Weight
+                        </span>
+                        <span className="font-medium text-gray-800">
+                          {data.item_weight || 0}g
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaStar className="h-3 w-3 text-yellow-500" />
+                          Rating
+                        </span>
+                        <span className="font-medium text-gray-800">
+                          {parseFloat(data.rating).toFixed(1) || '0.0'}
                         </span>
                       </div>
                     </div>

@@ -21,82 +21,78 @@ import { toast } from 'sonner';
 
 interface FormData {
   categories: string;
-  subcategories: string[];
+  subcategory: string[];
   image: File | null;
   remove_image?: boolean;
 }
 
-interface EditFormData extends FormData {
-  id: string;
-  current_image?: string;
-}
 
 const Categories = ({ auth, categories: initialCategories }: PageProps<{ categories: categoryType[] }>) => {
-  const categories = initialCategories || [];
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name-asc');
-  const [selectedCategory, setSelectedCategory] = useState<categoryType | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<categoryType | null>(null);
+    const categories = initialCategories || [];
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('name-asc');
+    const [selectedCategory, setSelectedCategory] = useState<categoryType | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [categoryToEdit, setCategoryToEdit] = useState<categoryType | null>(null);
 
-  const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm<FormData>({
-    categories: '',
-    subcategories: [''],
-    image: null,
-  });
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm<FormData>({
+        categories: '',
+        subcategory: [''],
+        image: null,
+    });
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
 
-  const addSubcategoryField = () => {
-    setData('subcategories', [...data.subcategories, '']);
-  };
+    const addSubcategoryField = () => {
+        setData('subcategory', [...data.subcategory, '']);
+    };
 
-  const removeSubcategoryField = (index: number) => {
-    const newSubcategories = [...data.subcategories];
-    newSubcategories.splice(index, 1);
-    setData('subcategories', newSubcategories.length > 0 ? newSubcategories : ['']);
-  };
+    const removeSubcategoryField = (index: number) => {
+        const newsubcategory = [...data.subcategory];
+        newsubcategory.splice(index, 1);
+        setData('subcategory', newsubcategory.length > 0 ? newsubcategory : ['']);
+    };
 
-  const updateSubcategory = (index: number, value: string) => {
-    const newSubcategories = [...data.subcategories];
-    newSubcategories[index] = value;
-    setData('subcategories', newSubcategories);
-  };
+    const updateSubcategory = (index: number, value: string) => {
+        const newsubcategory = [...data.subcategory];
+        newsubcategory[index] = value;
+        setData('subcategory', newsubcategory);
+    };
 
-  const stats = {
-    totalCategories: categories.length,
-  };
+    const stats = {
+        totalCategories: categories.length,
+    };
 
-  const parseSubcategories = (subcategoryString: string | null): string[] => {
-    if (!subcategoryString) return [];
-    try {
-      return JSON.parse(subcategoryString);
-    } catch (e) {
-      return [];
-    }
-  };
+    const parsesubcategory = (subcategoryString: string | null): string[] => {
+        if (!subcategoryString) return [];
+        try {
+            return JSON.parse(subcategoryString);
+        } catch (e) {
+            return [];
+        }
+    };
 
-  const filteredCategories = categories
-    .filter(category =>
-      category.categories.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCategories = categories
+        .filter(category =>
+            category.categories.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      switch (sortBy) {
+        switch (sortBy) {
         case 'name-asc':
-          return a.categories.localeCompare(b.categories);
+            return a.categories.localeCompare(b.categories);
         case 'name-desc':
-          return b.categories.localeCompare(a.categories);
+            return b.categories.localeCompare(a.categories);
         case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         default:
-          return a.categories.localeCompare(b.categories);
-      }
+            return a.categories.localeCompare(b.categories);
+        }
     });
 
   const getCategoryColor = () => {
@@ -123,24 +119,20 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
     if (!data.categories.trim()) {
       toast.error('Category name is required');
       return;
     }
 
-    // Filter out empty subcategories
-    const filteredSubcategories = data.subcategories.filter(subcat => subcat.trim() !== '');
+    const filteredsubcategory = data.subcategory.filter(subcat => subcat.trim() !== '');
 
-    // Prepare form data for submission
     const formData = new FormData();
     formData.append('categories', data.categories.trim());
 
-
-    if (filteredSubcategories.length > 0) {
-      formData.append('subcategories', JSON.stringify(filteredSubcategories));
+    if (filteredsubcategory.length > 0) {
+      formData.append('subcategory', JSON.stringify(filteredsubcategory));
     } else {
-      formData.append('subcategories', '[]');
+      formData.append('subcategory', '[]');
     }
 
     if (data.image) {
@@ -165,8 +157,8 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
           errorMessage = errors.categories;
         } else if (errors.image) {
           errorMessage = errors.image;
-        } else if (errors.subcategories) {
-          errorMessage = errors.subcategories;
+        } else if (errors.subcategory) {
+          errorMessage = errors.subcategory;
         }
 
         toast.error(errorMessage);
@@ -178,16 +170,16 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
   const handleEdit = (category: categoryType) => {
     setCategoryToEdit(category);
 
-    // Populate form with category data
+    // FIX 1: Parse subcategory and always show at least one empty field
+    const parsed = parsesubcategory(category.subcategory);
     setData({
       categories: category.categories,
-      subcategories: parseSubcategories(category.subcategory),
+      subcategory: parsed.length > 0 ? parsed : [''],
       image: null,
     });
 
-    // Set current image preview
     if (category.image) {
-      setCurrentImagePath(`/category_images/${category.image}`);
+      setCurrentImagePath(`/storage/${category.image}`);
     } else {
       setCurrentImagePath(null);
     }
@@ -196,25 +188,51 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     setShowEditModal(true);
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
 
-    if (!categoryToEdit) return;
+        if (!categoryToEdit) return;
 
-    put(route('dashboard.updatecategory', categoryToEdit.id), {
-        data: {
-            categories: data.categories.trim(),
-            subcategories: data.subcategories.filter(s => s.trim() !== ''),
-        },
-        onSuccess: () => {
-            toast.success('Update successful!');
+        if (!data.categories.trim()) {
+            toast.error('Category name is required');
+            return;
+        }
+
+        const filteredsubcategory = data.subcategory
+            .map(s => s.trim())
+            .filter(s => s !== '');
+
+        // 🚨 REQUIRED CHECK
+        if (filteredsubcategory.length === 0) {
+            toast.error('At least one subcategory is required');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('categories', data.categories.trim());
+        formData.append('subcategory', JSON.stringify(filteredsubcategory));
+
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        router.post(route('dashboard.updatecategory', categoryToEdit.id), formData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+            toast.success('Category updated successfully!');
             setShowEditModal(false);
-        },
-        onError: (errors: any) => {
-            toast.error('Update failed: ' + JSON.stringify(errors));
-        },
-        preserveScroll: true,
-    });
+            setCategoryToEdit(null);
+            reset();
+            setImagePreview(null);
+            setCurrentImagePath(null);
+            clearErrors();
+            },
+            onError: (errors) => {
+            toast.error(errors.subcategory || 'Failed to update category.');
+            },
+        });
     };
 
   const handleDelete = (id: string) => {
@@ -260,7 +278,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     setData('image', null);
     setImagePreview(null);
     if (categoryToEdit) {
-      // Clear current image path for editing
       setCurrentImagePath(null);
     }
   };
@@ -289,7 +306,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
             </div>
           </div>
 
-          {/* Stats Cards - Simplified */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
@@ -303,13 +320,12 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
               </div>
             </div>
 
-            {/* Placeholder stats cards */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Subcategories</p>
+                  <p className="text-sm font-medium text-gray-600">subcategory</p>
                   <p className="text-3xl font-bold text-gray-800 mt-1">
-                    {categories.reduce((total, cat) => total + parseSubcategories(cat.subcategory).length, 0)}
+                    {categories.reduce((total, cat) => total + parsesubcategory(cat.subcategory).length, 0)}
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -427,7 +443,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                             {category.image && (
                               <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                 <img
-                                  src={`/category_images/${category.image}`}
+                                  src={`/storage/${category.image}`}
                                   alt={category.categories}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
@@ -443,9 +459,9 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                               >
                                 {category.categories}
                               </h3>
-                              {parseSubcategories(category.subcategory).length > 0 && (
+                              {parsesubcategory(category.subcategory).length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-2">
-                                  {parseSubcategories(category.subcategory).slice(0, 2).map((subcat, index) => (
+                                  {parsesubcategory(category.subcategory).slice(0, 2).map((subcat, index) => (
                                     <span
                                       key={index}
                                       className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full"
@@ -453,9 +469,9 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                                       {subcat}
                                     </span>
                                   ))}
-                                  {parseSubcategories(category.subcategory).length > 2 && (
+                                  {parsesubcategory(category.subcategory).length > 2 && (
                                     <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
-                                      +{parseSubcategories(category.subcategory).length - 2} more
+                                      +{parsesubcategory(category.subcategory).length - 2} more
                                     </span>
                                   )}
                                 </div>
@@ -512,7 +528,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                     {selectedCategory.image && (
                       <div className="rounded-lg overflow-hidden mb-4">
                         <img
-                          src={`/category_images/${selectedCategory.image}`}
+                          src={`/storage/${selectedCategory.image}`}
                           alt={selectedCategory.categories}
                           className="w-full h-48 object-cover"
                           onError={(e) => {
@@ -528,11 +544,11 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                       </h4>
                     </div>
 
-                    {parseSubcategories(selectedCategory.subcategory).length > 0 && (
+                    {parsesubcategory(selectedCategory.subcategory).length > 0 && (
                       <div className="mb-6">
-                        <h5 className="text-sm font-medium text-gray-700 mb-3">Subcategories:</h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-3">subcategory:</h5>
                         <div className="flex flex-wrap gap-2">
-                          {parseSubcategories(selectedCategory.subcategory).map((subcat, index) => (
+                          {parsesubcategory(selectedCategory.subcategory).map((subcat, index) => (
                             <span
                               key={index}
                               className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-200"
@@ -569,7 +585,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 </div>
               )}
 
-              {/* Recent Categories (replaced Popular Categories) */}
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Categories</h3>
                 <div className="space-y-4">
@@ -621,7 +636,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   </button>
                 </div>
 
-                {/* Category Name */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Name *
@@ -642,11 +656,10 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   )}
                 </div>
 
-                {/* Subcategories Section */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <label className="block text-sm font-medium text-gray-700">
-                      Subcategories
+                      subcategory
                     </label>
                     <button
                       type="button"
@@ -659,7 +672,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   </div>
 
                   <div className="space-y-3">
-                    {data.subcategories.map((subcategory, index) => (
+                    {data.subcategory.map((subcategory, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="flex-1">
                           <input
@@ -670,7 +683,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                         </div>
-                        {data.subcategories.length > 1 && (
+                        {data.subcategory.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeSubcategoryField(index)}
@@ -684,15 +697,14 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                     ))}
                   </div>
 
-                  {errors.subcategories && (
-                    <p className="mt-1 text-sm text-red-600">{errors.subcategories}</p>
+                  {errors.subcategory && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>
                   )}
                   <p className="mt-2 text-sm text-gray-500">
-                    Add subcategories for better product organization
+                    Add subcategory for better product organization
                   </p>
                 </div>
 
-                {/* Image Upload */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Image (Optional)
@@ -701,11 +713,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   {imagePreview ? (
                     <div className="mb-4 relative">
                       <div className="w-full h-48 rounded-lg overflow-hidden">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                       <button
                         type="button"
@@ -722,17 +730,12 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                           <FaUpload className="h-6 w-6 text-gray-400" />
                         </div>
                         <p className="text-gray-600 mb-2">Click to upload image</p>
-                        <p className="text-sm text-gray-500">PNG, JPG, GIF</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, WEBP up to 2MB</p>
                         <label className="cursor-pointer mt-5">
                           <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                             Choose File
                           </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                          />
+                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         </label>
                       </div>
                     </div>
@@ -744,11 +747,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={resetAddForm}
-                    className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium"
-                  >
+                  <button type="button" onClick={resetAddForm} className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium">
                     Cancel
                   </button>
                   <button
@@ -775,16 +774,11 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-800">Edit Category</h3>
-                  <button
-                    type="button"
-                    onClick={resetEditForm}
-                    className="p-1 text-gray-400 hover:text-gray-600"
-                  >
+                  <button type="button" onClick={resetEditForm} className="p-1 text-gray-400 hover:text-gray-600">
                     <FaTimes className="h-5 w-5" />
                   </button>
                 </div>
 
-                {/* Category Name */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Name *
@@ -805,11 +799,10 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   )}
                 </div>
 
-                {/* Subcategories Section */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <label className="block text-sm font-medium text-gray-700">
-                      Subcategories
+                      subcategory
                     </label>
                     <button
                       type="button"
@@ -822,7 +815,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   </div>
 
                   <div className="space-y-3">
-                    {data.subcategories.map((subcategory, index) => (
+                    {data.subcategory.map((subcategory, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="flex-1">
                           <input
@@ -833,7 +826,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                         </div>
-                        {data.subcategories.length > 1 && (
+                        {data.subcategory.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeSubcategoryField(index)}
@@ -847,15 +840,14 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                     ))}
                   </div>
 
-                  {errors.subcategories && (
-                    <p className="mt-1 text-sm text-red-600">{errors.subcategories}</p>
+                  {errors.subcategory && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>
                   )}
                   <p className="mt-2 text-sm text-gray-500">
-                    Add subcategories for better product organization
+                    Add subcategory for better product organization
                   </p>
                 </div>
 
-                {/* Image Upload */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category Image
@@ -864,11 +856,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                   {imagePreview ? (
                     <div className="mb-4 relative">
                       <div className="w-full h-48 rounded-lg overflow-hidden">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                       <button
                         type="button"
@@ -890,17 +878,12 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                           }}
                         />
                       </div>
-                      <div className="flex justify-center space-x-2 mt-2">
+                      <div className="flex justify-center items-center space-x-2 mt-2">
                         <label className="cursor-pointer">
                           <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
                             Change Image
                           </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                          />
+                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         </label>
                         <button
                           type="button"
@@ -918,17 +901,12 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                           <FaUpload className="h-6 w-6 text-gray-400" />
                         </div>
                         <p className="text-gray-600 mb-2">Click to upload image</p>
-                        <p className="text-sm text-gray-500">PNG, JPG, GIF</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, WEBP up to 2MB</p>
                         <label className="cursor-pointer mt-5">
                           <span className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                             Choose File
                           </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                          />
+                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         </label>
                       </div>
                     </div>
@@ -940,11 +918,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={resetEditForm}
-                    className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium"
-                  >
+                  <button type="button" onClick={resetEditForm} className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium">
                     Cancel
                   </button>
                   <button

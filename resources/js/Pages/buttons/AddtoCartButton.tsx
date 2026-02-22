@@ -5,21 +5,20 @@ import { useStore } from '../state/cartStore'
 
 interface addButtonProps {
     product: CartItem,
-    store?: storeType | null
 }
 
-const AddtoCartButton = ({ product, store }: addButtonProps) => {
+const AddtoCartButton = ({ product }: addButtonProps) => {
 
     const addtoCart = useStore((state) => state.addToCart)
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // Resolve store from prop first, fallback to product.store
-        const resolvedStore = store ?? product.store;
+
+        const resolvedStore = product.store;
 
         if (!resolvedStore || !resolvedStore.id) {
-            toast.error('Store information is unavailable');
+            toast.error('Store information unavailable');
             return;
         }
 

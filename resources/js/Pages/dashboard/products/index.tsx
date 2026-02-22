@@ -323,13 +323,26 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
               <p className="text-gray-600 mb-6">
                 {searchTerm ? `No results for "${searchTerm}"` : 'No products match your filters'}
               </p>
-              <Link
-                href={route('dashboard.createproduct')}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all"
-              >
-                <FaPlus className="h-4 w-4 mr-2" />
-                Add Your First Product
-              </Link>
+              {
+                store ?
+                (
+                    <Link
+                        href={route('dashboard.createproduct')}
+                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                    >
+                        <FaPlus className="h-4 w-4 mr-2" />
+                        Add Your First Product
+                    </Link>
+                ) : (
+                    <button
+                        onClick={handleToast}
+                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                    >
+                        <FaPlus className="h-4 w-4 mr-2" />
+                        Add Your First Product
+                    </button>
+                )
+              }
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -352,7 +365,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                         {/* Product Image */}
                         <div className="relative h-48 overflow-hidden">
                         <img
-                            src={mainImage ? `/storage/${mainImage}` : 'https://placehold.net/600x600.png'}
+                            src={mainImage ? `/storage/${mainImage}` : '/otherplaceholder.jpg'}
                             alt={product.name}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         />

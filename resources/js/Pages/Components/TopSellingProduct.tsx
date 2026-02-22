@@ -1,8 +1,10 @@
 import { Product } from "@/types";
 import { useGSAP } from "@gsap/react";
+import { Link } from "@inertiajs/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
+import AddtoCartButton from "../buttons/AddtoCartButton";
 
 interface TopSellingProductProps {
   products: Product[];
@@ -149,15 +151,17 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
     );
   };
 
-  const formatPrice = (price: number) => {
-    if (!price) return '৳0';
-    const numPrice = (price);
-    if (isNaN(numPrice)) return '৳0';
-    return `৳${numPrice.toLocaleString('en-BD')}`;
-  };
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 2
+        }).format(price);
+    };
+
 
   const getImageSrc = (images: string) => {
-    if (!images) return '/placeholder-image.jpg';
+    if (!images) return '/otherplaceholder.jpg';
 
     try {
       const parsedImages = JSON.parse(images);
@@ -169,7 +173,7 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
         return images.trim();
       }
     }
-    return '/placeholder-image.jpg';
+    return '/otherplaceholder.jpg';
   };
 
   return (
@@ -193,7 +197,6 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
           const discount = calculateDiscount(product.regular_price, product.sale_price || 0);
           const hasDiscount = discount > 0;
 
-          // Use actual product quantity - no fake calculations
           const currentStock = product.quantity || 0;
 
           const isInWishlist = wishlist.includes(product.id);
@@ -219,14 +222,14 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
                 <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
                   <div className="aspect-square p-6">
                     <img
-                      src={`/product_images/${imageSrc}`}
+                      src={`/storage/${imageSrc}`}
                       alt={product.name || 'Product image'}
                       className="w-full h-full object-contain transition-transform duration-300"
                       draggable="false"
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder-image.jpg';
+                        target.src = '/otherplaceholder.jpg';
                       }}
                     />
                   </div>
@@ -244,10 +247,12 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="quick-view opacity-0 translate-y-4">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
-                          <FaEye className="w-4 h-4" />
-                          Quick View
-                        </button>
+                        <Link href={`/products/${product.slug}`}>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
+                                <FaEye className="w-4 h-4" />
+                                Quick View
+                            </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -310,35 +315,24 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
                   <div className="mt-auto">
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-blue-600">
-                          {(product.sale_price || product.regular_price)}
+                        <span className="text-2xl font-bold ">
+                          {formatPrice(product.sale_price || product.regular_price)}
                         </span>
                         {hasDiscount && (
                           <span className="text-sm text-gray-500 line-through">
-                            {(product.regular_price)}
+                            {formatPrice(product.regular_price)}
                           </span>
                         )}
                       </div>
                       {saveAmount > 0 && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          Save {saveAmount.toString()}
+                          Save {saveAmount}
                         </span>
                       )}
                     </div>
 
                     {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0 ${
-                        product.inStock && product.quantity > 0
-                          ? 'border border-gray-300 hover:border-blue-400 text-gray-700 hover:text-blue-700 group-hover:border-blue-400 group-hover:text-blue-700 hover:bg-blue-50'
-                          : 'border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                      }`}
-                      disabled={!product.inStock || product.quantity <= 0}
-                    >
-                      <FaShoppingCart className="w-4 h-4" />
-                      {product.inStock && product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
+                    <AddtoCartButton product={product} />
                   </div>
                 </div>
               </div>

@@ -100,7 +100,7 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
 
   useEffect(() => {
     if (store.logo) {
-      setLogoPreview(`/store_images/${store.logo}`);
+      setLogoPreview(`/storage/${store.logo}`);
     }
   }, [store.logo]);
 
@@ -114,7 +114,7 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
       return;
     }
 
-    // Validate file size (10MB max - same as your product images)
+
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Image size should be less than 10MB');
       return;
@@ -126,7 +126,7 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
 
     const preview = URL.createObjectURL(file);
 
-    // Clean up previous preview if it was a blob URL
+
     if (logoPreview && logoPreview.startsWith('blob:')) {
       URL.revokeObjectURL(logoPreview);
     }
@@ -141,7 +141,7 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
     }
 
     // Show original logo if exists, otherwise show upload area
-    const originalPreview = store.logo ? `/store_images/${store.logo}` : null;
+    const originalPreview = store.logo ? `/storage/${store.logo}` : null;
     setLogoPreview(originalPreview);
     setData('logo', null);
     setHasNewLogo(false);
@@ -209,12 +209,12 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
     formData.append('mobile', data.mobile.trim());
     formData.append('remove_logo', data.remove_logo.toString());
 
-    // Only append logo if there's a new file
+
     if (data.logo) {
         formData.append('logo', data.logo);
     }
 
-    // Use router.post instead of put() for FormData
+
     router.post(route('dashboard.storeupdate', { store: store.id }), formData, {
         preserveScroll: true,
         forceFormData: true,

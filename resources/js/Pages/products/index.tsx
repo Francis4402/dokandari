@@ -35,10 +35,9 @@ interface ProductsPageProps {
     auth?: {
         user?: any;
     };
-    store: storeType;
 }
 
-const Products = ({ products, auth, store }: ProductsPageProps) => {
+const Products = ({ products, auth }: ProductsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [wishlist, setWishlist] = useState<number[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -48,8 +47,6 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [productType, setProductType] = useState<string>('all');
 
-    console.log(products);
-    console.log(store);
 
     // Get unique categories
     const categories = useMemo(() => {
@@ -82,9 +79,9 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
     };
 
-    // Render star ratings - FIXED: Handle string or number rating
+
     const renderStars = (rating: number | string | undefined): JSX.Element => {
-        // Convert to number if it's a string
+
         const numericRating = typeof rating === 'string'
             ? parseFloat(rating)
             : typeof rating === 'number'
@@ -150,7 +147,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
         { id: 'price-high', label: 'Sort by price: high to low' },
     ];
 
-    // Apply filtering and sorting
+
     const filteredProducts = useMemo(() => {
         let filtered = [...products];
 
@@ -185,7 +182,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
             return price >= priceRange[0] && price <= priceRange[1];
         });
 
-        // Sorting - FIXED: Handle rating as string
+
         switch (sortBy) {
             case 'price-low':
                 filtered.sort((a, b) => {
@@ -219,7 +216,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
                 });
                 break;
             default:
-                // Default sorting (keep original order)
+
                 break;
         }
 
@@ -228,9 +225,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
 
     // Stats
     const totalProducts = products.length;
-    const onSaleCount = products.filter(p => p.sale_price && p.sale_price < p.regular_price).length;
-    const featuredCount = products.filter(p => p.product_type === 'featured').length;
-    const newArrivalCount = products.filter(p => p.product_type === 'new-arrival').length;
+
 
     return (
         <AppLayout user={auth?.user}>
@@ -505,18 +500,6 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
                                     const isWishlisted = wishlist.includes(parseInt(product.id));
 
 
-                                    const cartProduct = {
-                                        ...product,
-                                        id: product.id,
-                                        name: product.name,
-                                        price: finalPrice,
-                                        regular_price: product.regular_price,
-                                        sale_price: product.sale_price,
-                                        quantity: product.quantity,
-                                        inStock: product.inStock,
-                                        images: product.images,
-                                    };
-
                                     if (viewMode === 'grid') {
                                         return (
                                             <div key={product.id} className="group">
@@ -526,11 +509,11 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
                                                     {/* Image Container */}
                                                     <div className="relative aspect-square overflow-hidden bg-gray-100">
                                                         <img
-                                                            src={`/product_images/${imageSrc}`}
+                                                            src={`/storage/${imageSrc}`}
                                                             alt={product.name}
                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                             onError={(e) => {
-                                                                e.currentTarget.src = '/placeholder-image.jpg';
+                                                                e.currentTarget.src = '/otherplaceholder.jpg';
                                                             }}
                                                         />
 
@@ -563,9 +546,11 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
 
                                                         {/* Quick View Overlay */}
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
-                                                                <BsEye className="inline mr-1" /> Quick View
-                                                            </button>
+                                                            <Link href={`/products/${product.slug}`}>
+                                                                <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
+                                                                    <BsEye className="inline mr-1" /> Quick View
+                                                                </button>
+                                                            </Link>
                                                         </div>
                                                     </div>
 
@@ -604,7 +589,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
                                                             </div>
                                                         </div>
 
-                                                        <AddtoCartButton product={product} store={store} />
+                                                        <AddtoCartButton product={product} />
                                                     </div>
                                                 </div>
                                             </div>
@@ -621,11 +606,11 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
                                                         <div className="md:w-1/4 relative">
                                                             <div className="aspect-square md:h-full overflow-hidden bg-gray-100">
                                                                 <img
-                                                                    src={`/product_images/${imageSrc}`}
+                                                                    src={`/storage/${imageSrc}`}
                                                                     alt={product.name}
                                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                     onError={(e) => {
-                                                                        e.currentTarget.src = '/placeholder-image.jpg';
+                                                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
                                                                     }}
                                                                 />
                                                             </div>
@@ -686,7 +671,7 @@ const Products = ({ products, auth, store }: ProductsPageProps) => {
 
                                                                     {/* Actions - Using AddtoCartButton */}
                                                                     <div className="flex items-center gap-2">
-                                                                        <AddtoCartButton product={product} store={store} />
+                                                                        <AddtoCartButton product={product} />
                                                                         <button
                                                                             onClick={(e) => toggleWishlist(product.id, e)}
                                                                             className="p-2.5 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"

@@ -217,7 +217,7 @@ class OrdersController extends Controller
                         'merchant_order_id' => $order->order_number,
                         'sender_name' => $store->name,
                         'sender_email' => $validated['sender_email'],
-                        'sender_phone' => $store->phone ?? $store->mobile,
+                        'sender_phone' => $store->mobile,
                         'recipient_name' => $validated['recipient_name'],
                         'recipient_phone' => $validated['recipient_phone'],
                         'recipient_address' => $validated['recipient_address'],

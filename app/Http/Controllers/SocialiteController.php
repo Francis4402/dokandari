@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+
+use function Laravel\Prompts\error;
 
 class SocialiteController extends Controller
 {
@@ -16,24 +19,34 @@ class SocialiteController extends Controller
 
     public function googleAuthentication() {
 
-        $googleUser = Socialite::driver('google')->user();
+        try {
+            $googleUser = Socialite::driver('google')->user();
 
-        $user = User::where('google_id', $googleUser->id)
-                    ->orWhere('email', $googleUser->email)
-                    ->first();
+            $user = User::where('google_id', $googleUser->id)
+                        ->orWhere('email', $googleUser->email)
+                        ->first();
 
-        if (!$user) {
-            $user = User::create([
-                'name' => $googleUser->name,
-                'email' => $googleUser->email,
-                'images' => $googleUser->getAvatar(),
-                'google_id' => $googleUser->id,
-                'password' => Hash::make(uniqid()),
-            ]);
+            if (!$user) {
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'images' => $googleUser->getAvatar(),
+                    'google_id' => $googleUser->id,
+                    'password' => Hash::make(uniqid()),
+                ]);
+            }
+
+            Auth::login($user);
+
+            return redirect('dashboard');
+        } catch (\Exception $e) {
+
+            Log::error('Google Login Error: ' . $e->getMessage());
+
+            return redirect('/')
+                ->with('error', 'Google authentication failed. Please try again.');
         }
 
-        Auth::login($user);
 
-        return redirect('dashboard');
     }
 }

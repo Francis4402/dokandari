@@ -98,7 +98,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
-  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [availablesubcategory, setAvailablesubcategory] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
 
   // Rich text editor state
@@ -135,8 +135,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
-  // Parse subcategories from the selected category
-  const parseSubcategories = (subcategoryString: string | null): string[] => {
+  // Parse subcategory from the selected category
+  const parsesubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
     try {
       return JSON.parse(subcategoryString);
@@ -224,18 +224,18 @@ export default function CreateProductForm({auth, store, categories}: productForm
     if (data.category) {
       const selectedCat = categories.find(cat => cat.categories === data.category);
       if (selectedCat && selectedCat.subcategory) {
-        const subcategories = parseSubcategories(selectedCat.subcategory);
-        setAvailableSubcategories(subcategories);
+        const subcategory = parsesubcategory(selectedCat.subcategory);
+        setAvailablesubcategory(subcategory);
 
-        if (data.subcategory && !subcategories.includes(data.subcategory)) {
+        if (data.subcategory && !subcategory.includes(data.subcategory)) {
           setData('subcategory', '');
         }
       } else {
-        setAvailableSubcategories([]);
+        setAvailablesubcategory([]);
         setData('subcategory', '');
       }
     } else {
-      setAvailableSubcategories([]);
+      setAvailablesubcategory([]);
       setData('subcategory', '');
     }
   }, [data.category, categories]);
@@ -338,7 +338,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setImagePreviews([]);
         setShowCategoryDropdown(false);
         setShowSubcategoryDropdown(false);
-        setAvailableSubcategories([]);
+        setAvailablesubcategory([]);
         setColorInputs(['']);
         if (editorRef.current) {
           editorRef.current.innerHTML = '';
@@ -573,8 +573,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                         {data.category && showSubcategoryDropdown && (
                           <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                            {availableSubcategories.length > 0 ? (
-                              availableSubcategories.map((subcat, index) => (
+                            {availablesubcategory.length > 0 ? (
+                              availablesubcategory.map((subcat, index) => (
                                 <button
                                   key={index}
                                   type="button"
@@ -592,7 +592,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               ))
                             ) : (
                               <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                No subcategories available for this category
+                                No subcategory available for this category
                               </div>
                             )}
                           </div>
@@ -951,7 +951,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                   </div>
                 )}
 
-                {/* Description Editor - Using contenteditable div */}
+
                 {editorMode === 'write' ? (
                   <div>
                     <div

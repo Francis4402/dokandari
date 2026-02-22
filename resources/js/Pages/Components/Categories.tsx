@@ -117,7 +117,7 @@ const Categories = ({categorie}: {categorie: any}) => {
                   <div className="relative mb-3 md:mb-5">
                     <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 p-2 md:p-3">
                       <img
-                        src={`category_images/${cat.image}`}
+                        src={`storage/${cat.image}`}
                         alt={cat.categories}
                         className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300 select-none"
                         loading="lazy"

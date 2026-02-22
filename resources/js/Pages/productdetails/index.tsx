@@ -45,7 +45,7 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
 
       return [product.images];
     }
-    return ['https://placehold.net/600x600.png'];
+    return ['/otherplaceholder.jpg'];
   })();
 
 
@@ -57,13 +57,14 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
     return Math.round(((regular - sale) / regular) * 100);
   })();
 
-  // Format price function
-  const formatPrice = (price: string): string => {
-    if (!price) return '৳0';
-    const numPrice = parseFloat(price);
-    if (isNaN(numPrice)) return '৳0';
-    return `৳${numPrice.toLocaleString('en-BD')}`;
-  };
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 2
+        }).format(price);
+    };
 
 
   const renderStars = () => {
@@ -146,7 +147,7 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
                   className="w-full h-full object-contain p-8"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://placehold.net/600x600.png';
+                    target.src = '/otherplaceholder.jpg';
                   }}
                 />
 
@@ -182,7 +183,7 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
                       }`}
                     >
                       <img
-                        src={`/product_images/${image}`}
+                        src={`/storage/${image}`}
                         alt={`${product.name} ${index + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -250,12 +251,12 @@ const ProductDetailsPage = ({ product, store, auth }: ProductDetailsPageProps) =
               <div className="bg-gray-50 p-6 rounded-lg">
                 <div className="flex items-baseline space-x-4 mb-3">
                   <span className="text-4xl font-bold text-blue-600">
-                    {(product.sale_price || product.regular_price)}
+                    {formatPrice(product.sale_price || product.regular_price)}
                   </span>
 
                   {product.sale_price && (
                     <span className="text-2xl text-gray-500 line-through">
-                      {(product.regular_price)}
+                      {formatPrice(product.regular_price)}
                     </span>
                   )}
                 </div>
