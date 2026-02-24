@@ -183,12 +183,7 @@ const ProductDetailsPage = ({
               </li>
               <li className="text-gray-400">/</li>
               <li>
-                <Link
-                  href={`/category/${product.category}`}
-                  className="text-gray-600 hover:text-blue-600 transition-colors"
-                >
-                  {product.category}
-                </Link>
+                {product.category}
               </li>
               <li className="text-gray-400">/</li>
               <li className="flex items-center text-gray-900 font-medium truncate max-w-xs">
@@ -476,17 +471,17 @@ const ProductDetailsPage = ({
                   )}
                 </button>
                 <button
-                  onClick={() => setActiveTab('reviews')}
-                  className={`px-6 py-4 font-medium transition-colors relative whitespace-nowrap ${
-                    activeTab === 'reviews'
-                      ? 'text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Reviews ({totalReviews + totalComments})
-                  {activeTab === 'reviews' && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
-                  )}
+                    onClick={() => setActiveTab('reviews')}
+                    className={`px-6 py-4 font-medium transition-colors relative whitespace-nowrap ${
+                        activeTab === 'reviews'
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    >
+                    Reviews ({comments.length})
+                    {activeTab === 'reviews' && (
+                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
+                    )}
                 </button>
               </div>
 

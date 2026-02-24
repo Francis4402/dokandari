@@ -312,9 +312,31 @@ class ProductsController extends Controller
 
         $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
 
+        $productIds = $products->pluck('id')->toArray();
+
+        $ratings = Comment::whereIn('product_id', $productIds)
+            ->whereNotNull('rating') // Only get comments with ratings
+            ->select('product_id', 'rating')
+            ->get();
+
+        $productRatings = [];
+
+        foreach ($products as $product) {
+            $productRatingData = $ratings->where('product_id', $product->id);
+
+            $averageRating = $productRatingData->avg('rating') ?? 0;
+            $ratingCount = $productRatingData->count();
+
+            $productRatings[$product->id] = [
+                'average' => round($averageRating, 1),
+                'count' => $ratingCount
+            ];
+        }
+
         return Inertia::render('products/index', [
             'products' => $products,
-            'wishlist' => $wishlist
+            'wishlist' => $wishlist,
+            'productRatings' => $productRatings
         ]);
     }
 }

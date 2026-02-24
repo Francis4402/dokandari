@@ -26,9 +26,9 @@ import WishlistCountButton from "../buttons/WishListCountButton"
 const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
   { name: 'Dashboard', href: '/dashboard', icon: FiGrid },
-  { name: 'All Products', href: '/allproducts', hasDropdown: true, icon: FiShoppingBag },
-  { name: 'Deals', href: '/deals', badge: 'HOT', icon: FiTag },
-  { name: 'New Arrivals', href: '/new', icon: FiZap },
+  { name: 'All Products', href: '/products', hasDropdown: true, icon: FiShoppingBag },
+  { name: 'Deals', href: '/', badge: 'HOT', icon: FiTag },
+  { name: 'New Arrivals', href: '/', icon: FiZap },
 ]
 
 const categories = [

@@ -297,11 +297,11 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold ">
-                          {formatPrice(product.sale_price || product.regular_price)}
+                          {formatPrice(product.regular_price)}
                         </span>
-                        {hasDiscount && (
+                        {product.sale_price && (
                           <span className="text-sm text-gray-500 line-through">
-                            {formatPrice(product.regular_price)}
+                            {formatPrice(product.sale_price)}
                           </span>
                         )}
                       </div>

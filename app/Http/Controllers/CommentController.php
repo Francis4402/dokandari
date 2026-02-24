@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
-use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Products;
 use App\Models\Store;
 use App\Models\wishlist;
@@ -94,7 +93,7 @@ class CommentController extends Controller
         $store = Store::where('id', $product->store_id)->first();
         $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
 
-        // Debug: Check what's in the comments
+
         $comments = Comment::with('user')
             ->where('product_id', $product->id)
             ->latest()

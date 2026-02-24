@@ -4,6 +4,7 @@ import { Product } from '@/types';
 import {
   BsStar,
   BsStarFill,
+  BsStarHalf,
   BsFilter,
   BsSearch,
   BsChevronRight,
@@ -28,16 +29,16 @@ import AppLayout from '@/Layouts/AppLayout';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
 
-
 interface ProductsPageProps {
     products: Product[];
     auth?: {
         user?: any;
     };
-    wishlist: any
+    wishlist: any;
+    productRatings?: Record<string, { average: number; count: number }>;
 }
 
-const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
+const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -45,7 +46,6 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
     const [sortBy, setSortBy] = useState('default');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [productType, setProductType] = useState<string>('all');
-
 
     // Get unique categories
     const categories = useMemo(() => {
@@ -78,32 +78,41 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
     };
 
+    // Get product rating (from product object or passed ratings)
+    const getProductRating = (product: Product): { average: number; count: number } => {
+        // If ratings are passed from controller with product ID
+        if (productRatings[product.id]) {
+            return productRatings[product.id];
+        }
 
-    const renderStars = (rating: number | string | undefined): JSX.Element => {
+        // Otherwise, use product.rating and product.review fields
+        const rating = typeof product.rating === 'string'
+            ? parseFloat(product.rating)
+            : (product.rating || 0);
 
-        const numericRating = typeof rating === 'string'
-            ? parseFloat(rating)
-            : typeof rating === 'number'
-                ? rating
-                : 0;
+        const reviewCount = typeof product.review === 'string'
+            ? parseInt(product.review) || 0
+            : (product.review || 0);
 
-        // Ensure it's a valid number
-        const validRating = isNaN(numericRating) ? 0 : numericRating;
+        return { average: rating, count: reviewCount };
+    };
+
+    // Render stars based on average rating
+    const renderStars = (averageRating: number): JSX.Element => {
+        const fullStars = Math.floor(averageRating);
+        const hasHalfStar = averageRating % 1 >= 0.5;
 
         return (
             <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-xs">
-                        {i < Math.floor(validRating) ? (
-                            <BsStarFill className="text-amber-400" />
-                        ) : (
-                            <BsStar className="text-gray-300" />
-                        )}
-                    </span>
-                ))}
-                <span className="ml-1 text-xs text-gray-500">
-                    ({validRating.toFixed(1)})
-                </span>
+                {[...Array(5)].map((_, i) => {
+                    if (i < fullStars) {
+                        return <BsStarFill key={i} className="text-amber-400 text-xs" />;
+                    } else if (i === fullStars && hasHalfStar) {
+                        return <BsStarHalf key={i} className="text-amber-400 text-xs" />;
+                    } else {
+                        return <BsStar key={i} className="text-gray-300 text-xs" />;
+                    }
+                })}
             </div>
         );
     };
@@ -124,7 +133,6 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
         return '/placeholder-image.jpg';
     };
 
-
     // Sort options
     const sortOptions = [
         { id: 'default', label: 'Default sorting' },
@@ -134,7 +142,6 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
         { id: 'price-low', label: 'Sort by price: low to high' },
         { id: 'price-high', label: 'Sort by price: high to low' },
     ];
-
 
     const filteredProducts = useMemo(() => {
         let filtered = [...products];
@@ -170,7 +177,7 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
             return price >= priceRange[0] && price <= priceRange[1];
         });
 
-
+        // Sorting
         switch (sortBy) {
             case 'price-low':
                 filtered.sort((a, b) => {
@@ -188,8 +195,8 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                 break;
             case 'rating':
                 filtered.sort((a, b) => {
-                    const ratingA = typeof a.rating === 'string' ? parseFloat(a.rating) : a.rating || 0;
-                    const ratingB = typeof b.rating === 'string' ? parseFloat(b.rating) : b.rating || 0;
+                    const ratingA = getProductRating(a).average;
+                    const ratingB = getProductRating(b).average;
                     return ratingB - ratingA;
                 });
                 break;
@@ -198,13 +205,12 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                 break;
             case 'popularity':
                 filtered.sort((a, b) => {
-                    const reviewA = a.review || 0;
-                    const reviewB = b.review || 0;
-                    return reviewB - reviewA;
+                    const countA = getProductRating(a).count;
+                    const countB = getProductRating(b).count;
+                    return countB - countA;
                 });
                 break;
             default:
-
                 break;
         }
 
@@ -213,7 +219,6 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
 
     // Stats
     const totalProducts = products.length;
-
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
@@ -484,15 +489,13 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                     const discountPercentage = hasDiscount
                                         ? calculateDiscount(product.regular_price, product.sale_price)
                                         : 0;
-                                    const finalPrice = product.sale_price || product.regular_price;
-
+                                    const displayPrice = product.sale_price || product.regular_price;
+                                    const { average: avgRating, count: reviewCount } = getProductRating(product);
 
                                     if (viewMode === 'grid') {
                                         return (
                                             <div key={product.id} className="group">
-                                                <div
-                                                    className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                                                >
+                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                                                     {/* Image Container */}
                                                     <div className="relative aspect-square overflow-hidden bg-gray-100">
                                                         <img
@@ -520,7 +523,11 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                         </div>
 
                                                         {/* Wishlist Button */}
-                                                        <WishlistButton productId={product.id} />
+                                                        <WishlistButton
+                                                            productId={product.id.toString()}
+                                                            className="absolute top-3 right-3"
+                                                            iconSize={4}
+                                                        />
 
                                                         {/* Quick View Overlay */}
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -547,8 +554,13 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                         </h3>
 
                                                         {/* Rating */}
-                                                        <div className="mb-3">
-                                                            {renderStars(product.rating)}
+                                                        <div className="mb-3 flex items-center">
+                                                            {renderStars(avgRating)}
+                                                            {reviewCount > 0 && (
+                                                                <span className="text-xs text-gray-400 ml-1">
+                                                                    ({reviewCount})
+                                                                </span>
+                                                            )}
                                                         </div>
 
                                                         {/* Price */}
@@ -556,7 +568,7 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                             <div className="flex items-center justify-between">
                                                                 <div>
                                                                     <span className="font-bold text-gray-900">
-                                                                        {formatPrice(finalPrice)}
+                                                                        {formatPrice(displayPrice)}
                                                                     </span>
                                                                     {hasDiscount && (
                                                                         <span className="ml-2 text-sm text-gray-400 line-through">
@@ -576,9 +588,7 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                         // List View
                                         return (
                                             <div key={product.id} className="group">
-                                                <div
-                                                    className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                                                >
+                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                                                     <div className="flex flex-col md:flex-row">
                                                         {/* Image */}
                                                         <div className="md:w-1/4 relative">
@@ -588,7 +598,7 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                                     alt={product.name}
                                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                     onError={(e) => {
-                                                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+                                                                        e.currentTarget.src = '/otherplaceholder.jpg';
                                                                     }}
                                                                 />
                                                             </div>
@@ -597,6 +607,14 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                                     -{discountPercentage}%
                                                                 </span>
                                                             )}
+
+                                                            {/* Wishlist Button in list view */}
+                                                            <div className="absolute top-3 right-3">
+                                                                <WishlistButton
+                                                                    productId={product.id}
+                                                                    iconSize={4}
+                                                                />
+                                                            </div>
                                                         </div>
 
                                                         {/* Product Details */}
@@ -622,7 +640,14 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
 
                                                                     {/* Rating & Stock */}
                                                                     <div className="flex items-center gap-4 mb-4">
-                                                                        {renderStars(product.rating)}
+                                                                        <div className="flex items-center">
+                                                                            {renderStars(avgRating)}
+                                                                            {reviewCount > 0 && (
+                                                                                <span className="text-xs text-gray-400 ml-1">
+                                                                                    ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
                                                                         <div className={`inline-flex items-center gap-1 text-sm ${
                                                                             product.inStock ? 'text-green-600' : 'text-red-600'
                                                                         }`}>
@@ -638,7 +663,7 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                                     {/* Price */}
                                                                     <div className="mb-4">
                                                                         <div className="text-2xl font-bold text-gray-900">
-                                                                            {formatPrice(finalPrice)}
+                                                                            {formatPrice(displayPrice)}
                                                                         </div>
                                                                         {hasDiscount && (
                                                                             <div className="text-sm text-gray-400 line-through">
@@ -647,10 +672,9 @@ const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
                                                                         )}
                                                                     </div>
 
-                                                                    {/* Actions - Using AddtoCartButton */}
+                                                                    {/* Actions */}
                                                                     <div className="flex items-center gap-2">
                                                                         <AddtoCartButton product={product} />
-                                                                        <WishlistButton productId={product.id} />
                                                                     </div>
                                                                 </div>
                                                             </div>
