@@ -245,11 +245,6 @@ export default function CommentsList({
                                                 <h4 className="font-semibold text-gray-900">
                                                     {comment.user?.name || 'Anonymous User'}
                                                 </h4>
-                                                {comment.user?.role && (
-                                                    <span className="text-xs px-2 py-1 bg-gray-200 rounded-full text-gray-600">
-                                                        {comment.user.role}
-                                                    </span>
-                                                )}
                                             </div>
                                             <span className="text-xs text-gray-500 flex items-center">
                                                 <FaClock className="w-3 h-3 mr-1" />

@@ -196,7 +196,7 @@ const ProductDetailsPage = ({
           {/* Main Product Section */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
-              {/* Left Column - Images */}
+
               <div className="space-y-4">
                 {/* Main Image */}
                 <div className="relative overflow-hidden rounded-xl bg-gray-50 aspect-square border border-gray-100">
