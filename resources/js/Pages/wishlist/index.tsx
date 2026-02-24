@@ -4,7 +4,6 @@ import { Product } from '@/types';
 import { Fragment, useState } from 'react';
 import {
     FaHeart,
-    FaShoppingCart,
     FaArrowLeft,
     FaStar,
     FaStarHalfAlt,
@@ -29,8 +28,9 @@ import { BiHeart } from 'react-icons/bi';
 import { MdLocalOffer } from 'react-icons/md';
 import { Menu, Transition, Dialog } from '@headlessui/react';
 import { toast } from 'sonner';
+import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
-import AddtoCartButton from '../buttons/AddtoCartButton'; // Import the AddtoCartButton
+
 
 interface WishlistPageProps {
     wishlistProducts: {
@@ -45,7 +45,7 @@ interface WishlistPageProps {
     }
 }
 
-// Color mapping from the Product interface
+
 const colorMap: Record<string, { bg: string; text: string; border: string; hex: string }> = {
     'red': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', hex: '#EF4444' },
     'blue': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200', hex: '#3B82F6' },
@@ -98,7 +98,6 @@ const productTypeMap: Record<string, { bg: string; text: string; icon: any; labe
 };
 
 export default function WishlistIndex({ wishlistProducts, auth }: WishlistPageProps) {
-    const [isAddingToCart, setIsAddingToCart] = useState<string | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
     const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
@@ -107,9 +106,9 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'BDT',
-        minimumFractionDigits: 2
+            style: 'currency',
+            currency: 'BDT',
+            minimumFractionDigits: 2
         }).format(price);
     };
 
@@ -166,46 +165,16 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
         return stars;
     };
 
-    const handleAddToCart = (product: Product) => {
-        if (!product.inStock) return;
-
-        setIsAddingToCart(product.id);
-
-        router.post('/cart/add', {
-            product_id: product.id,
-            quantity: 1
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setIsAddingToCart(null);
-                toast.success('Added to cart successfully!', {
-                    position: 'top-center',
-                    duration: 3000,
-                });
-            },
-            onError: () => {
-                setIsAddingToCart(null);
-                toast.error('Failed to add to cart', {
-                    position: 'top-center',
-                });
-            }
-        });
-    };
-
     const handleRemoveFromWishlist = (productId: string) => {
         router.post(`/wishlist/toggle/${productId}`, {}, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Removed from wishlist', {
-                    position: 'top-center',
-                });
+                toast.success('Removed from wishlist');
                 setIsRemoveDialogOpen(false);
                 setProductToRemove(null);
             },
             onError: () => {
-                toast.error('Failed to remove from wishlist', {
-                    position: 'top-center',
-                });
+                toast.error('Failed to remove from wishlist');
             }
         });
     };
@@ -281,15 +250,15 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     {selectedProduct.sale_price ? (
                                                         <>
                                                             <span className="text-3xl font-bold text-primary">
-                                                                ৳{selectedProduct.sale_price.toLocaleString()}
+                                                                {formatPrice(selectedProduct.sale_price)}
                                                             </span>
                                                             <span className="text-lg text-gray-400 line-through">
-                                                                ৳{selectedProduct.regular_price.toLocaleString()}
+                                                                {formatPrice(selectedProduct.regular_price)}
                                                             </span>
                                                         </>
                                                     ) : (
                                                         <span className="text-3xl font-bold text-primary">
-                                                            ৳{selectedProduct.regular_price.toLocaleString()}
+                                                            {formatPrice(selectedProduct.regular_price)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -336,9 +305,7 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
 
                                                 {/* Action Buttons */}
                                                 <div className="flex items-center gap-3">
-                                                    <AddtoCartButton
-                                                        product={selectedProduct}
-                                                    />
+                                                    <AddtoCartButton product={selectedProduct} />
                                                     <WishlistButton productId={selectedProduct.id} />
                                                 </div>
                                             </div>
@@ -697,9 +664,7 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
 
                                                 {/* Action Buttons */}
                                                 <div className="flex items-center gap-2">
-                                                    <AddtoCartButton
-                                                        product={product}
-                                                    />
+                                                    <AddtoCartButton product={product} />
                                                     <WishlistButton productId={product.id} />
                                                 </div>
 
@@ -735,7 +700,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                     : 'bg-white text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors'
                                             }`}
-                                            disabled={wishlistProducts.current_page === 1}
                                         >
                                             Previous
                                         </Link>
@@ -781,7 +745,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                     : 'bg-white text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors'
                                             }`}
-                                            disabled={wishlistProducts.current_page === wishlistProducts.last_page}
                                         >
                                             Next
                                         </Link>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
@@ -97,6 +98,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     Route::get('/wishlist/check/{product}', [WishlistController::class, 'check'])->name('wishlist.check');
+
+    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
 
@@ -111,7 +116,7 @@ Route::get('/products/{id}', [ProductsController::class, 'show'])->name('product
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 
-
+Route::get('/products/{product}/comments', [CommentController::class, 'getProductComments']);
 
 Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');

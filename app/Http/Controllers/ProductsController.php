@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Products;
 use App\Models\Categories;
+use App\Models\Comment;
 use App\Models\Store;
 use App\Models\wishlist;
 use Illuminate\Http\Request;
@@ -84,7 +85,6 @@ class ProductsController extends Controller
         $product->color = json_encode($validated['color'] ?? []);
         $product->inStock = $request->boolean('inStock', true);
         $product->item_weight = $validated['item_weight'];
-        $product->rating = 0.0;
 
         if ($request->hasFile('images')) {
             $images = [];
@@ -125,15 +125,75 @@ class ProductsController extends Controller
      */
     public function show($slug)
     {
-        $product = Products::with('store')->where('slug', $slug)->firstOrFail();
+        $product = Products::with('store')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
         $store = Store::where('id', $product->store_id)->first();
-        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
+        $wishlist = Wishlist::where('user_id', auth()->id())
+            ->paginate(12);
+
+        // Get comments with user data
+        $comments = Comment::with('user')
+            ->where('product_id', $product->id)
+            ->latest()
+            ->get()
+            ->map(function ($comment) {
+                return [
+                    'id' => (string) $comment->id,
+                    'user_id' => (string) $comment->user_id,
+                    'product_id' => (string) $comment->product_id,
+                    'store_id' => (string) $comment->store_id,
+                    'comment' => $comment->comment,
+                    'rating' => $comment->rating,
+                    'created_at' => $comment->created_at,
+                    'updated_at' => $comment->updated_at,
+                    'user' => $comment->user ? [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'images' => $comment->user->images ?? '',
+                        'email' => $comment->user->email,
+                        'role' => $comment->user->role ?? 'user',
+                        'email_verified_at' => $comment->user->email_verified_at ?? '',
+                    ] : null,
+                ];
+            });
+
+        // Calculate average rating and review count
+        $ratings = $comments->filter(function($comment) {
+            return $comment['rating'] !== null;
+        });
+
+        $averageRating = $ratings->count() > 0
+            ? $ratings->avg('rating')
+            : 0;
+
+        $reviewCount = $ratings->count();
+
+        // Get user's existing review if logged in
+        $userReview = null;
+        if (auth()->check()) {
+            $userReview = Comment::where('user_id', auth()->id())
+                ->where('product_id', $product->id)
+                ->first();
+        }
+
         return Inertia::render('productdetails/index', [
             'product' => $product,
             'store' => $store,
             'wishlist' => $wishlist,
+            'comments' => $comments,
+            'averageRating' => $averageRating,
+            'reviewCount' => $reviewCount,
+            'userReview' => $userReview ? [
+                'id' => $userReview->id,
+                'comment' => $userReview->comment,
+                'rating' => $userReview->rating,
+            ] : null,
         ]);
     }
+
     /**
      * Show the form for editing the specified resource.
      */

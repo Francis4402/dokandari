@@ -19,7 +19,7 @@ import {
   FiChevronDown,
   FiShoppingCart,
 } from "react-icons/fi"
-import { Dialog, Transition, Disclosure } from "@headlessui/react"
+import { Dialog, Transition } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
 import WishlistCountButton from "../buttons/WishListCountButton"
 

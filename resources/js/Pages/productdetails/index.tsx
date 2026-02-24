@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   FaHeart,
@@ -15,38 +16,57 @@ import {
   FaHeadset,
   FaLeaf,
   FaMinus,
-  FaPlus
+  FaPlus,
+  FaHome
 } from "react-icons/fa";
-import { Product, storeType } from "@/types";
+import { Product, storeType, Comments, User } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { useStore } from "../state/cartStore";
+import CommentsList from "../dashboard/forms/CommentsList";
 
 
 interface ProductDetailsPageProps {
   product: Product;
   store: storeType;
   auth: {
-    user: any;
+    user: any
   };
   wishlist: any;
+  comments?: Comments[];
+  averageRating?: number;
+  reviewCount?: number;
+  userReview?: {
+    id: string;
+    comment: string | null;
+    rating: number | null;
+  } | null;
 }
 
-const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPageProps) => {
+const ProductDetailsPage = ({
+  product,
+  store,
+  auth,
+  wishlist,
+  comments = [],
+  averageRating = 0,
+  reviewCount = 0,
+  userReview = null
+}: ProductDetailsPageProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
   const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'specifications'>('description');
 
-  // Get cart actions from store
+
   const { addToCart, getItemById } = useStore();
 
-  // Check if product is in cart
+
   const cartItem = getItemById(product.id.toString());
   const currentCartQuantity = cartItem?.cartQty || 0;
 
-  // Parse images from JSON string
+
   const productImages = (() => {
     try {
       const parsed = JSON.parse(product.images);
@@ -75,13 +95,8 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
     }).format(price);
   };
 
-  const renderStars = () => {
-    // Convert rating to number safely
-    const ratingNum = typeof product.rating === 'string'
-      ? parseFloat(product.rating)
-      : Number(product.rating);
-
-    const numericRating = isNaN(ratingNum) ? 0 : Math.max(0, Math.min(5, ratingNum));
+  const renderStars = (rating: number = averageRating) => {
+    const numericRating = rating;
     const fullStars = Math.floor(numericRating);
     const hasHalfStar = numericRating % 1 >= 0.5;
 
@@ -100,42 +115,29 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
     );
   };
 
-  // Get rating as number for display
-  const getRatingNumber = () => {
-    const ratingNum = typeof product.rating === 'string'
-      ? parseFloat(product.rating)
-      : Number(product.rating);
-    return isNaN(ratingNum) ? 0 : ratingNum;
-  };
 
-  // Get current image
   const currentImage = productImages[selectedImageIndex] || '/placeholder-image.jpg';
 
-  // Get review count as number
-  const reviewCount = typeof product.review === 'string'
-    ? parseInt(product.review) || 0
-    : Number(product.review) || 0;
 
-  // Handle add to cart with quantity
-  const handleAddToCart = () => {
+  const handleAddToCart = (): void => {
     // Validate stock
     if (!product.inStock || product.quantity === 0) {
       toast.error('Product is out of stock');
       return;
     }
 
-    // Check if adding this quantity would exceed stock
+
     if (currentCartQuantity + quantity > (product.quantity || 0)) {
       toast.error(`Only ${product.quantity} items available in stock`);
       return;
     }
 
-    // Add to cart with store information
+
     addToCart(product, store, quantity);
   };
 
-  // Handle quantity increment
-  const incrementQuantity = () => {
+
+  const incrementQuantity = (): void => {
     const maxAvailable = (product.quantity || 0) - currentCartQuantity;
     if (quantity < maxAvailable) {
       setQuantity(prev => prev + 1);
@@ -144,15 +146,21 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
     }
   };
 
-  // Handle quantity decrement
-  const decrementQuantity = () => {
+
+  const decrementQuantity = (): void => {
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
   };
 
-  // Get max available quantity for purchase
+
   const maxAvailable = (product.quantity || 0) - currentCartQuantity;
+
+
+  const totalReviews = reviewCount;
+
+
+  const totalComments = comments.length;
 
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
@@ -169,18 +177,22 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
             <ol className="flex items-center space-x-2">
               <li>
                 <Link href="/" className="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
-                  <FaShoppingBag className="w-4 h-4 mr-2" />
+                  <FaHome className="w-4 h-4 mr-2" />
                   Home
                 </Link>
               </li>
               <li className="text-gray-400">/</li>
               <li>
-                <div className="text-gray-600 hover:text-blue-600 transition-colors">
+                <Link
+                  href={`/category/${product.category}`}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
                   {product.category}
-                </div>
+                </Link>
               </li>
               <li className="text-gray-400">/</li>
-              <li className="text-gray-900 font-medium truncate max-w-xs">
+              <li className="flex items-center text-gray-900 font-medium truncate max-w-xs">
+                <FaShoppingBag className="w-4 h-4 mr-2 text-gray-500" />
                 {product.name}
               </li>
             </ol>
@@ -234,7 +246,7 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
                 {/* Thumbnails */}
                 {productImages.length > 1 && (
                   <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
-                    {productImages.map((image, index) => (
+                    {productImages.map((image: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImageIndex(index)}
@@ -308,11 +320,11 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
                     <div className="flex items-center space-x-2">
                       {renderStars()}
                       <span className="text-2xl font-bold text-gray-900">
-                        {getRatingNumber().toFixed(1)}
+                        {averageRating.toFixed(1)}
                       </span>
                     </div>
                     <span className="text-gray-500">
-                      ({reviewCount} customer reviews)
+                      ({totalReviews} rating{totalReviews !== 1 ? 's' : ''} • {totalComments} comment{totalComments !== 1 ? 's' : ''})
                     </span>
                   </div>
                 </div>
@@ -436,10 +448,10 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
 
             {/* Tabs Section */}
             <div className="border-t border-gray-200">
-              <div className="flex border-b border-gray-200 bg-gray-50">
+              <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('description')}
-                  className={`px-6 py-4 font-medium transition-colors relative ${
+                  className={`px-6 py-4 font-medium transition-colors relative whitespace-nowrap ${
                     activeTab === 'description'
                       ? 'text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
@@ -452,7 +464,7 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
                 </button>
                 <button
                   onClick={() => setActiveTab('specifications')}
-                  className={`px-6 py-4 font-medium transition-colors relative ${
+                  className={`px-6 py-4 font-medium transition-colors relative whitespace-nowrap ${
                     activeTab === 'specifications'
                       ? 'text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
@@ -465,13 +477,13 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
                 </button>
                 <button
                   onClick={() => setActiveTab('reviews')}
-                  className={`px-6 py-4 font-medium transition-colors relative ${
+                  className={`px-6 py-4 font-medium transition-colors relative whitespace-nowrap ${
                     activeTab === 'reviews'
                       ? 'text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Reviews ({reviewCount})
+                  Reviews ({totalReviews + totalComments})
                   {activeTab === 'reviews' && (
                     <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
                   )}
@@ -571,32 +583,72 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
                   </div>
                 )}
 
-                {/* Reviews Tab */}
+                {/* Reviews Tab - Now includes CommentsList with ratings */}
                 {activeTab === 'reviews' && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
-                    <div className="text-center py-12 bg-gray-50 rounded-xl">
-                      <div className="flex items-center justify-center space-x-4 mb-4">
-                        {renderStars()}
-                        <span className="text-3xl font-bold text-gray-900">
-                          {getRatingNumber().toFixed(1)}
-                        </span>
+                  <div className="space-y-8">
+                    {/* Rating Summary */}
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
+                      <div className="text-center py-8 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-center space-x-4 mb-4">
+                          {renderStars()}
+                          <span className="text-3xl font-bold text-gray-900">
+                            {averageRating.toFixed(1)}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                          Based on {totalReviews} rating{totalReviews !== 1 ? 's' : ''} and {totalComments} comment{totalComments !== 1 ? 's' : ''}
+                        </p>
+
+                        {/* Rating Distribution */}
+                        {totalReviews > 0 && (
+                          <div className="max-w-md mx-auto mb-6 text-left">
+                            {[5, 4, 3, 2, 1].map((star) => {
+                              const count = comments.filter(c => c.rating === star).length;
+                              const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+
+                              return (
+                                <div key={star} className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm font-medium w-8">{star} ★</span>
+                                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-yellow-400 rounded-full"
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-sm text-gray-600 w-12">{count}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {auth.user ? (
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600 mb-3">
+                              {userReview ? 'You have already reviewed this product' : 'Share your experience with this product'}
+                            </p>
+                          </div>
+                        ) : (
+                          <Link
+                            href="/login"
+                            className="inline-block px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                          >
+                            Login to Write a Review
+                          </Link>
+                        )}
                       </div>
-                      <p className="text-gray-600 mb-6">
-                        Based on {reviewCount} customer review{reviewCount !== 1 ? 's' : ''}
-                      </p>
-                      {auth.user ? (
-                        <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-blue-200">
-                          Write a Review
-                        </button>
-                      ) : (
-                        <Link
-                          href="/login"
-                          className="inline-block px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
-                        >
-                          Login to Write a Review
-                        </Link>
-                      )}
+                    </div>
+
+                    {/* Comments Section with Ratings */}
+                    <div className="border-t border-gray-200 pt-8">
+                      <CommentsList
+                        comments={comments}
+                        productId={product.id.toString()}
+                        authUser={auth.user}
+                        isAuthenticated={!!auth.user}
+                        userReview={userReview}
+                      />
                     </div>
                   </div>
                 )}
@@ -653,6 +705,37 @@ const ProductDetailsPage = ({ product, store, auth, wishlist }: ProductDetailsPa
           </div>
         </div>
       </div>
+
+      {/* Add animation styles */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .comment-enter {
+          animation: slideIn 0.3s ease-out;
+        }
+        textarea::-webkit-scrollbar {
+          width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
     </AppLayout>
   );
 };

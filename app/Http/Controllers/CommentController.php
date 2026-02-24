@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Comment;
+use App\Http\Requests\UpdateCommentRequest;
+use App\Models\Products;
+use App\Models\Store;
+use App\Models\wishlist;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+
+class CommentController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'comment' => 'nullable|string|min:3|max:1000',
+            'rating' => 'nullable|integer|min:1|max:5',
+        ]);
+
+
+        if (!$request->comment && !$request->rating) {
+            return redirect()->back()->withErrors(['error' => 'Please provide a comment or rating']);
+        }
+
+        $product = Products::with('store')->findOrFail($request->product_id);
+        $storeId = $product->store_id ?? $product->store?->id;
+
+
+        $existingComment = Comment::where('user_id', Auth::id())
+            ->where('product_id', $request->product_id)
+            ->first();
+
+        if ($existingComment) {
+            // Update existing comment
+            $existingComment->update([
+                'comment' => $request->comment ?? $existingComment->comment,
+                'rating' => $request->rating ?? $existingComment->rating,
+            ]);
+
+            $comment = $existingComment;
+            $message = 'Your review has been updated!';
+        } else {
+            // Create new comment
+            $comment = Comment::create([
+                'user_id' => Auth::id(),
+                'product_id' => $request->product_id,
+                'store_id' => $storeId,
+                'comment' => $request->comment,
+                'rating' => $request->rating,
+            ]);
+
+            $message = 'Your review has been added successfully!';
+        }
+
+
+        $comment->load('user');
+
+        if ($request->wantsJson() || $request->inertia()) {
+            return redirect()->back()->with('success', $message);
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($slug)
+    {
+        $product = Products::with('store')->where('slug', $slug)->firstOrFail();
+        $store = Store::where('id', $product->store_id)->first();
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
+        // Debug: Check what's in the comments
+        $comments = Comment::with('user')
+            ->where('product_id', $product->id)
+            ->latest()
+            ->get();
+
+
+        return Inertia::render('productdetails/index', [
+            'product' => $product,
+            'store' => $store,
+            'wishlist' => $wishlist,
+            'comments' => $comments
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Comment $comment)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Comment $comment)
+    {
+
+        if ($comment->user_id !== Auth::id()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'comment' => 'nullable|string|min:3|max:1000',
+            'rating' => 'nullable|integer|min:1|max:5',
+        ]);
+
+        $comment->update([
+            'comment' => $request->comment,
+            'rating' => $request->rating,
+        ]);
+
+        $comment->load('user');
+
+        return redirect()->back()->with('success', 'Review updated successfully!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Comment $comment)
+    {
+        if ($comment->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $comment->delete();
+
+        return redirect()->back()->with('success', 'Comment deleted successfully!');
+    }
+}

@@ -30,8 +30,6 @@ return new class extends Migration
                   ->default('regular');
             $table->integer('item_weight');
             $table->boolean('inStock')->default(true);
-            $table->decimal('rating')->default(0);
-            $table->bigInteger('review')->nullable();
             $table->timestamps();
         });
     }

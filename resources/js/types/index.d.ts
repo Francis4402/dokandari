@@ -169,6 +169,18 @@ export interface Stats {
   recentOrders: Orders[];
 }
 
+export interface Comments {
+    id: string;
+    user_id: string;
+    product_id: string;
+    store_id: string;
+    comment: string | null;
+    rating: number | null;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+}
+
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: {
