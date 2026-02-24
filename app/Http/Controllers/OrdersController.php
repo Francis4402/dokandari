@@ -138,7 +138,6 @@ class OrdersController extends Controller
             $store = Store::find($firstProduct->store_id);
             if (!$store) return back()->withErrors(['error' => 'Store not found']);
 
-            // Create order - with all required fields
             $order = Orders::create([
                 // IDs
                 'user_id' => $user->id,
@@ -327,25 +326,6 @@ class OrdersController extends Controller
         $orders->delete();
     }
 
-
-    private function generateOrderNumber()
-    {
-        $prefix = 'ORD';
-        $date = date('Ymd');
-
-        $lastOrder = Orders::where('order_number', 'like', $prefix . $date . '%')
-            ->orderBy('order_number', 'desc')
-            ->first();
-
-        if ($lastOrder) {
-            $lastNumber = intval(substr($lastOrder->order_number, -4));
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '0001';
-        }
-
-        return $prefix . $date . $newNumber;
-    }
 
     private function getFirstImage($images): string
     {

@@ -41,7 +41,6 @@ interface DashboardOrderType {
 
 const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
 
-
     const { delete: deleteOrder } = useForm();
 
     const [selectedOrder, setSelectedOrder] = useState<(Orders & { order_items?: OrderItem[] }) | null>(null);
@@ -94,32 +93,45 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
         }
     };
 
-    // Helper function to get image URL from /product_images directory
+
     const getImageUrl = (imagePath: string | null | undefined) => {
         if (!imagePath) {
-            return '/images/placeholder.jpg';
+            return '/otherplaceholder.jpg';
         }
 
-        // If it's a full URL, return as is
-        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-            return imagePath;
+        const cleanPath = imagePath.replace(/\/+/g, '/');
+
+        if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+            return cleanPath;
         }
 
-        // If it's already a full path with /product_images/
-        if (imagePath.includes('/product_images/')) {
-            return imagePath;
+        if (cleanPath.includes('/storage/')) {
+            return cleanPath;
         }
 
-        // If it's just a filename, prepend /product_images/
-        if (!imagePath.includes('/')) {
-            return `/product_images/${imagePath}`;
+
+        const baseUrl = window.location.origin;
+
+
+        if (cleanPath.startsWith('product_images/')) {
+            return `${baseUrl}/storage/${cleanPath}`;
         }
 
-        // For any other path, return as is
-        return imagePath;
+        if (cleanPath.includes('product_images')) {
+            const filename = cleanPath.split('/').pop();
+            return `${baseUrl}/storage/product_images/${filename}`;
+        }
+
+
+        if (!cleanPath.includes('/')) {
+            return `${baseUrl}/storage/product_images/${cleanPath}`;
+        }
+
+
+        return `${baseUrl}/storage/${cleanPath}`;
     };
 
-    // Format currency to BDT
+
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-BD', {
             style: 'currency',
@@ -281,7 +293,7 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                                                         alt={item.product_name}
                                                                                         className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                                                                                         onError={(e) => {
-                                                                                            (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                                                                            (e.target as HTMLImageElement).src = '/otherplaceholder.jpg';
                                                                                         }}
                                                                                     />
                                                                                 ) : (
