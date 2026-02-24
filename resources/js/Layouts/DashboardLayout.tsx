@@ -55,7 +55,47 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
         },
     ] : []),
 
-    ...(user.role === 'admin' || user.role === 'superadmin' || user.role === 'agent' ? [
+
+    ...(user.role === 'agent' ? [
+        {
+            name: 'Products',
+            href: '/dashboard/products',
+            icon: FiPackage,
+            current: url.startsWith('/dashboard/products')
+        },
+        {
+            name: 'Orders',
+            href: '/dashboard/orders',
+            icon: FiShoppingCart,
+            current: url.startsWith('/dashboard/orders')
+        },
+        {
+            name: 'Stores',
+            href: '/dashboard/stores',
+            icon: FiShoppingBag,
+            current: url.startsWith('/dashboard/stores')
+        },
+        {
+            name: 'Shipping',
+            href: '/dashboard/shipping',
+            icon: FiTruck,
+            current: url.startsWith('/dashboard/shipping')
+        },
+        {
+            name: 'Payments',
+            href: '/dashboard/payments',
+            icon: FiCreditCard,
+            current: url.startsWith('/dashboard/payments')
+        },
+        {
+            name: 'Analytics',
+            href: '/dashboard/analytics',
+            icon: FiBarChart2,
+            current: url.startsWith('/dashboard/analytics')
+        }
+    ] : []),
+
+    ...(user.role === 'admin' || user.role === 'superadmin' ? [
         {
             name: 'Products',
             href: '/dashboard/products',

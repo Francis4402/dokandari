@@ -468,7 +468,6 @@ export const useStore = create<Store>()(
                         items: formattedItems,
                     };
 
-                    console.log('📦 Order Payload:', JSON.stringify(orderPayload, null, 2));
 
                     return new Promise<void>((resolve, reject) => {
                         router.post('/orders', orderPayload, {

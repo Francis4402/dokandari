@@ -103,18 +103,26 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     return 'text-base';
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setData('image', file);
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            toast.error('Image size must be less than 5MB');
+            e.target.value = '';
+            return;
+        }
+
+        setData('image', file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +178,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
   const handleEdit = (category: categoryType) => {
     setCategoryToEdit(category);
 
-    // FIX 1: Parse subcategory and always show at least one empty field
+
     const parsed = parsesubcategory(category.subcategory);
     setData({
       categories: category.categories,

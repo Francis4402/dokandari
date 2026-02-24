@@ -117,7 +117,6 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
 
   const getFirstImage = (imagesString: string): string => {
     const images = parseImages(imagesString);
-    console.log('Parsed images:', images);
 
     if (images.length > 0) {
 

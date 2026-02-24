@@ -7,7 +7,6 @@ import {
   FiSearch,
   FiShoppingBag,
   FiHeart,
-  FiBell,
   FiUser,
   FiMenu,
   FiX,
@@ -18,11 +17,11 @@ import {
   FiLogOut,
   FiGrid,
   FiChevronDown,
-  FiChevronRight,
   FiShoppingCart,
 } from "react-icons/fi"
 import { Dialog, Transition, Disclosure } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
+import WishlistCountButton from "../buttons/WishListCountButton"
 
 const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
@@ -41,7 +40,7 @@ const categories = [
   { name: 'Books', href: '/category/books', description: 'Books and magazines' },
 ]
 
-const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
+const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any}>) => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -164,6 +163,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
     setSearchValue("")
   }
 
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -258,17 +258,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
 
               {/* Desktop Action Buttons */}
               <div className="flex items-center gap-1">
-                <Link
-                  href="/wishlist"
-                  className="p-2 rounded-md hover:bg-gray-100 transition-colors relative"
-                >
-                  <FiHeart className="h-5 w-5" />
-                  {wishlistItems > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-xs text-white">
-                      {wishlistItems}
-                    </span>
-                  )}
-                </Link>
+                <WishlistCountButton wishlist={wishlist} />
 
                 <Link
                   href={route('cart.index')}
@@ -613,19 +603,7 @@ const Navbar = ({ user } : PropsWithChildren<{user: any}>) => {
                                 <FiShoppingBag className="h-5 w-5" />
                                 My Orders
                               </Link>
-                              <Link
-                                href="/wishlist"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-                              >
-                                <FiHeart className="h-5 w-5" />
-                                Wishlist
-                                {wishlistItems > 0 && (
-                                  <span className="ml-auto inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                                    {wishlistItems}
-                                  </span>
-                                )}
-                              </Link>
+
                               <Link
                                 href="/logout"
                                 method="post"

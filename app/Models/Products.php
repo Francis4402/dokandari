@@ -17,8 +17,18 @@ class Products extends Model
         return $this->belongsTo(Store::class, 'store_id', 'id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItems::class, 'product_id', 'id');
+    }
+
+    public function wishlistedBy()
+    {
+        return $this->hasMany(Wishlist::class);
     }
 }

@@ -63,15 +63,22 @@ export default function CreateStoreForm({auth}: PageProps) {
     mobile: ''
   });
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-    setData('logo', file);
-    const preview = URL.createObjectURL(file);
-    setLogoPreview(preview);
-    toast.success('Logo uploaded successfully!');
-  };
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Logo must be less than 5MB');
+            e.target.value = '';
+            return;
+        }
+
+        setData('logo', file);
+        const preview = URL.createObjectURL(file);
+        setLogoPreview(preview);
+        toast.success('Logo uploaded successfully!');
+    };
 
   const removeLogo = () => {
     if (logoPreview) URL.revokeObjectURL(logoPreview);

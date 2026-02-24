@@ -6,6 +6,7 @@ use App\Models\Orders;
 use App\Models\OrderItems;
 use App\Models\Products;
 use App\Models\Store;
+use App\Models\wishlist;
 use Enan\PathaoCourier\Requests\PathaoOrderRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -23,9 +24,10 @@ class OrdersController extends Controller
             ->with('orderItems')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
         return Inertia::render('orders/Index', [
-            'orders' => $orders
+            'orders' => $orders,
+            'wishlist' => $wishlist
         ]);
     }
 
@@ -36,7 +38,6 @@ class OrdersController extends Controller
         // Find the store for this user
         $store = Store::where('user_id', $user->id)->first();
 
-        // If no store found, return empty orders array
         if (!$store) {
             return Inertia::render('dashboard/orders/index', [
                 'orders' => [],
@@ -60,9 +61,12 @@ class OrdersController extends Controller
 
         $store = Store::first();
 
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
         return Inertia::render('orders/Checkout', [
             'user' => $user,
             'store' => $store,
+            'wishlist' => $wishlist
         ]);
     }
 
@@ -268,9 +272,10 @@ class OrdersController extends Controller
         }
 
         $order->load(['orderItems', 'store', 'user']);
-
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
         return Inertia::render('orders/Confirmation', [
-            'order' => $order
+            'order' => $order,
+            'wishlist' => $wishlist
         ]);
     }
 
@@ -282,10 +287,11 @@ class OrdersController extends Controller
         $order = Orders::with('orderItems')->findOrFail($id);
 
         $store = Store::find($order->store_id);
-
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
         return Inertia::render('orders/Show', [
             'order' => $order,
-            'store' => $store
+            'store' => $store,
+            'wishlist' => $wishlist
         ]);
     }
 

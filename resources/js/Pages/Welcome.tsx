@@ -11,7 +11,7 @@ import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
 import TopSellingProduct from './Components/TopSellingProduct';
 
-// Define the paginated response type
+
 interface PaginatedProducts {
     data: Product[];
     current_page: number;
@@ -21,11 +21,12 @@ interface PaginatedProducts {
     links: any[];
 }
 
-export default function Welcome({ auth, categories, products }: PageProps<{
+export default function Welcome({ auth, categories, products, wishlist }: PageProps<{
     laravelVersion: string,
     phpVersion: string,
     categories: categoryType,
     products: PaginatedProducts
+    wishlist: any
 }>) {
 
 
@@ -48,7 +49,7 @@ export default function Welcome({ auth, categories, products }: PageProps<{
     );
 
     return (
-        <AppLayout user={auth.user}>
+        <AppLayout user={auth.user} wishlist={wishlist}>
             <Head title='HaatPoint'>
                 <meta name="description" content="Multivendor Store" />
                 <meta name="keywords" content={`shop, products, buy online, shopping`} />

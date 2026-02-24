@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateContactRequest;
+use App\Models\wishlist;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -14,7 +15,10 @@ class ContactController extends Controller
      */
     public function index()
     {
-        return Inertia::render('contactus/index');
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+        return Inertia::render('contactus/index', [
+            'wishlist' => $wishlist
+        ]);
     }
 
     /**

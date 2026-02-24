@@ -122,7 +122,7 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
     return 'bg-gray-100 text-gray-800';
   };
 
-  // Mock data for stats - in real app, this would come from props
+
   const stats = {
     totalShipped: orders.length,
     inTransit: orders.filter(o => o.shipping.status === 'in_transit').length,

@@ -32,9 +32,12 @@ interface CartPageProps {
   auth: {
     user: any;
   };
+  wishlist: any
 }
 
-const CartPage = ({ auth }: CartPageProps) => {
+const CartPage = ({ auth, wishlist }: CartPageProps) => {
+
+
   const {
     cart: cartItems,
     removeFromCart,
@@ -68,7 +71,7 @@ const CartPage = ({ auth }: CartPageProps) => {
     type: 'percentage' | 'fixed';
   } | null>(null);
 
-  // Local state only for API data
+
   const [cities, setLocalCities] = useState<citytypes[]>([]);
   const [zones, setZones] = useState<zonetypes[]>([]);
   const [areas, setAreas] = useState<areatypes[]>([]);
@@ -149,6 +152,7 @@ const CartPage = ({ auth }: CartPageProps) => {
         }
 
         setLoadingPathao(true);
+
         try {
             const subtotal = getSubTotal();
             const itemCount = getTotalItems();
@@ -158,7 +162,7 @@ const CartPage = ({ auth }: CartPageProps) => {
                 return sum + ((item.item_weight || 0.5) * item.quantity);
             }, 0);
 
-            // Build request without area if not provided
+
             const priceRequest: any = {
                 store_id: 367082,
                 sender_city: 2,
@@ -187,7 +191,7 @@ const CartPage = ({ auth }: CartPageProps) => {
                 toast.success(`Shipping price: ${formatPrice(totalDeliveryCharge)}`);
             }
         } catch (error: any) {
-            // If error says area is required, show message to select area
+
             if (error.response?.data?.message?.includes('area')) {
                 toast.error('Please select an area to calculate shipping');
             } else {
@@ -239,159 +243,159 @@ const CartPage = ({ auth }: CartPageProps) => {
         }
     };
 
-  const open = () => setIsOpen(true);
-  const close = () => setIsOpen(false);
+    const open = () => setIsOpen(true);
+    const close = () => setIsOpen(false);
 
-  const confirmClearCart = () => {
-    clearCart();
-    close();
-  };
+    const confirmClearCart = () => {
+        clearCart();
+        close();
+    };
 
-  const calculateTotals = () => {
-    const subtotal = getSubTotal();
-    const tax = getTax();
-    const shipping = getShipping();
-    const item_count = getTotalItems();
+    const calculateTotals = () => {
+        const subtotal = getSubTotal();
+        const tax = getTax();
+        const shipping = getShipping();
+        const item_count = getTotalItems();
 
-    let discount = 0;
-    if (appliedCoupon) {
-      discount = appliedCoupon.type === 'percentage'
-        ? subtotal * (appliedCoupon.discount / 100)
-        : Math.min(appliedCoupon.discount, subtotal);
-    }
-
-    const total = Math.max(0, subtotal + tax + shipping - discount);
-
-    return { subtotal, tax, shipping, discount, total, item_count };
-  };
-
-  const cartTotals = calculateTotals();
-
-  const handleIncreaseQuantity = async (itemId: string) => {
-    const item = getItemById(itemId);
-    if (item && item.cartQty && item.cartQty < item.quantity) {
-      increaseQty(itemId);
-      if (selectedCity && selectedZone && selectedArea) {
-        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
-      }
-    }
-  };
-
-  const handleDecreaseQuantity = async (itemId: string) => {
-    const item = getItemById(itemId);
-    if (item && item.cartQty && item.cartQty > 1) {
-      decreaseQty(itemId);
-      if (selectedCity && selectedZone && selectedArea) {
-        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
-      }
-    } else {
-      removeFromCart(itemId);
-    }
-  };
-
-  const moveToWishlist = (itemId: string) => {
-    const item = cartItems?.find(item => item.id === itemId);
-    if (item) {
-      removeFromCart(itemId);
-      toast.success(`${item.name} moved to wishlist`);
-    }
-  };
-
-  const applyCoupon = () => {
-    if (!couponCode.trim()) return;
-
-    const validCoupons = [
-      { code: 'fdagd', discount: 10, type: 'percentage' as const },
-      { code: 'dsagag', discount: 20, type: 'percentage' as const },
-      { code: 'fegdaf', discount: 5.99, type: 'fixed' as const },
-      { code: 'gdafeagds', discount: 15, type: 'percentage' as const }
-    ];
-
-    const coupon = validCoupons.find(c => c.code === couponCode.toUpperCase());
-
-    if (coupon) {
-      setAppliedCoupon(coupon);
-      setCouponCode('');
-      toast.success(`Coupon ${coupon.code} applied!`);
-    } else {
-      toast.error('Invalid coupon code');
-    }
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    toast.success('Coupon removed');
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 2
-    }).format(price);
-  };
-
-  const calculateDiscountPercentage = (regular: number, sale: number | null) => {
-    if (!sale || sale >= regular) return 0;
-    return Math.round(((regular - sale) / regular) * 100);
-  };
-
-  const getStockStatus = (inStock: boolean) => {
-    if (inStock) return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
-    return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-  };
-
-  const getFirstImage = (images: string) => {
-    try {
-      const parsed = JSON.parse(images);
-      let imageName = '';
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        imageName = parsed[0];
-      } else if (typeof parsed === 'string' && parsed) {
-        imageName = parsed;
-      }
-
-      if (imageName) {
-        return `${window.location.origin}/storage/${imageName}`;
-      }
-    } catch (error) {
-      if (typeof images === 'string' && images) {
-        const matches = images.match(/"([^"]+)"/);
-        if (matches && matches[1]) {
-          return `${window.location.origin}/storage/${matches[1]}`;
+        let discount = 0;
+        if (appliedCoupon) {
+        discount = appliedCoupon.type === 'percentage'
+            ? subtotal * (appliedCoupon.discount / 100)
+            : Math.min(appliedCoupon.discount, subtotal);
         }
-      }
-    }
 
-    return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
-  };
+        const total = Math.max(0, subtotal + tax + shipping - discount);
 
-  const calculateSaleSavings = () => {
-    return (cartItems || []).reduce((sum, item) => {
-      const regular = (item.regular_price);
-      const sale = (item.sale_price);
-      const quantity = item.cartQty || 1;
+        return { subtotal, tax, shipping, discount, total, item_count };
+    };
 
-      if (sale && sale < regular) {
-        return sum + ((regular - sale) * quantity);
-      }
-      return sum;
-    }, 0);
-  };
+    const cartTotals = calculateTotals();
 
-  const getSelectedCityName = () => {
-    const city = cities.find(c => c.city_id === parseFloat(selectedCity));
-    return city?.city_name || '';
-  };
+    const handleIncreaseQuantity = async (itemId: string) => {
+        const item = getItemById(itemId);
+        if (item && item.cartQty && item.cartQty < item.quantity) {
+        increaseQty(itemId);
+        if (selectedCity && selectedZone && selectedArea) {
+            await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+        }
+        }
+    };
+
+    const handleDecreaseQuantity = async (itemId: string) => {
+        const item = getItemById(itemId);
+        if (item && item.cartQty && item.cartQty > 1) {
+        decreaseQty(itemId);
+        if (selectedCity && selectedZone && selectedArea) {
+            await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+        }
+        } else {
+        removeFromCart(itemId);
+        }
+    };
+
+    const moveToWishlist = (itemId: string) => {
+        const item = cartItems?.find(item => item.id === itemId);
+        if (item) {
+        removeFromCart(itemId);
+        toast.success(`${item.name} moved to wishlist`);
+        }
+    };
+
+    const applyCoupon = () => {
+        if (!couponCode.trim()) return;
+
+        const validCoupons = [
+        { code: 'fdagd', discount: 10, type: 'percentage' as const },
+        { code: 'dsagag', discount: 20, type: 'percentage' as const },
+        { code: 'fegdaf', discount: 5.99, type: 'fixed' as const },
+        { code: 'gdafeagds', discount: 15, type: 'percentage' as const }
+        ];
+
+        const coupon = validCoupons.find(c => c.code === couponCode.toUpperCase());
+
+        if (coupon) {
+        setAppliedCoupon(coupon);
+        setCouponCode('');
+        toast.success(`Coupon ${coupon.code} applied!`);
+        } else {
+        toast.error('Invalid coupon code');
+        }
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        toast.success('Coupon removed');
+    };
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 2
+        }).format(price);
+    };
+
+    const calculateDiscountPercentage = (regular: number, sale: number | null) => {
+        if (!sale || sale >= regular) return 0;
+        return Math.round(((regular - sale) / regular) * 100);
+    };
+
+    const getStockStatus = (inStock: boolean) => {
+        if (inStock) return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+        return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
+    };
+
+    const getFirstImage = (images: string) => {
+        try {
+        const parsed = JSON.parse(images);
+        let imageName = '';
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            imageName = parsed[0];
+        } else if (typeof parsed === 'string' && parsed) {
+            imageName = parsed;
+        }
+
+        if (imageName) {
+            return `${window.location.origin}/storage/${imageName}`;
+        }
+        } catch (error) {
+        if (typeof images === 'string' && images) {
+            const matches = images.match(/"([^"]+)"/);
+            if (matches && matches[1]) {
+            return `${window.location.origin}/storage/${matches[1]}`;
+            }
+        }
+        }
+
+        return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+    };
+
+    const calculateSaleSavings = () => {
+        return (cartItems || []).reduce((sum, item) => {
+        const regular = (item.regular_price);
+        const sale = (item.sale_price);
+        const quantity = item.cartQty || 1;
+
+        if (sale && sale < regular) {
+            return sum + ((regular - sale) * quantity);
+        }
+        return sum;
+        }, 0);
+    };
+
+    const getSelectedCityName = () => {
+        const city = cities.find(c => c.city_id === parseFloat(selectedCity));
+        return city?.city_name || '';
+    };
 
     const isCheckoutDisabled = () => {
         return !selectedCity || !selectedZone || !pathaoCharges || loadingPathao;
     };
 
-  // Check if cart is empty or undefined
+
   if (!cartItems || cartItems.length === 0) {
     return (
-      <AppLayout user={auth.user}>
+      <AppLayout user={auth.user} wishlist={wishlist}>
         <Head title="Shopping Cart" />
         <div className="min-h-screen bg-gray-50 py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -420,7 +424,7 @@ const CartPage = ({ auth }: CartPageProps) => {
   }
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Shopping Cart" />
 
       <ClearCartDialog isOpen={isOpen} confirmClearCart={confirmClearCart} />

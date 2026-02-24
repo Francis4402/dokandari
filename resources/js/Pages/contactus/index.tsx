@@ -24,7 +24,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,16 +41,9 @@ interface FAQItem {
   answer: string;
 }
 
-const ContactUsPage = ({auth}: PageProps) => {
-  const [formData, setFormData] = useState<ContactForm>({
-    name: "",
-    email: "",
-    subject: "",
-    message: ""
-  });
+const ContactUsPage = ({ auth, wishlist }: PageProps) => {
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -59,19 +52,22 @@ const ContactUsPage = ({auth}: PageProps) => {
   const formRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
 
-  const {data, setData, post, processing, reset} = useForm({
-    name: "",
-    email: "",
+
+  const { data, setData, post, processing, errors: inertiaErrors, reset } = useForm({
+    name: auth.user?.name || "",
+    email: auth.user?.email || "",
     subject: "",
     message: ""
   });
 
+
+  const isLoggedIn = !!auth.user;
+
   // Contact information
   const contactInfo = {
-    email: "support@multivendor.com",
-    phone: "+880 1234-567890",
-    address: "123 Business Center, Gulshan 1, Dhaka 1212",
-    workingHours: "Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 10:00 AM - 4:00 PM\nSunday: Closed",
+    phone: "01319052507",
+    address: "Chittagong, TeriBazar",
+    workingHours: "Monday - Thursday: 12:00 AM - 8:00 PM\nSaturday: 10:00 AM - 4:00 PM\nFriday: Closed",
     socialMedia: {
       facebook: "https://facebook.com/multivendor",
       twitter: "https://twitter.com/multivendor",
@@ -153,35 +149,58 @@ const ContactUsPage = ({auth}: PageProps) => {
   const validateForm = () => {
     const newErrors: Partial<ContactForm> = {};
 
-    if (!formData.name.trim()) {
+    if (!data.name.trim()) {
       newErrors.name = "Name is required";
     }
 
-    if (!formData.email.trim()) {
+    if (!data.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       newErrors.email = "Please enter a valid email address";
     }
 
-    if (!formData.subject.trim()) {
+    if (!data.subject.trim()) {
       newErrors.subject = "Subject is required";
     }
 
-    if (!formData.message.trim()) {
+    if (!data.message.trim()) {
       newErrors.message = "Message is required";
-    } else if (formData.message.length < 20) {
-      newErrors.message = "Message must be at least 20 characters";
+    } else if (data.message.length < 10) {
+      newErrors.message = "Message must be at least 10 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(e);
-  };
 
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+
+    post(route('contact.store'), {
+      onSuccess: () => {
+        setIsSubmitting(false);
+        setShowSuccessModal(true);
+        reset('subject', 'message');
+        setErrors({});
+      },
+      onError: (errors) => {
+        setIsSubmitting(false);
+        setSubmitError("Failed to send message. Please try again.");
+        console.error('Form submission errors:', errors);
+      },
+      onFinish: () => {
+        setIsSubmitting(false);
+      }
+    });
+  };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -287,7 +306,7 @@ const ContactUsPage = ({auth}: PageProps) => {
   };
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Contact Us">
         <meta name="description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
       </Head>
@@ -375,16 +394,6 @@ const ContactUsPage = ({auth}: PageProps) => {
                     </div>
                   </div>
 
-                  {submitSuccess && !showSuccessModal && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                      <FaCheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-green-800">Message sent successfully!</p>
-                        <p className="text-sm text-green-700">We'll contact you within 24 hours.</p>
-                      </div>
-                    </div>
-                  )}
-
                   {submitError && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
                       <FaExclamationCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
@@ -392,6 +401,17 @@ const ContactUsPage = ({auth}: PageProps) => {
                         <p className="font-medium text-red-800">Error sending message</p>
                         <p className="text-sm text-red-700">{submitError}</p>
                       </div>
+                    </div>
+                  )}
+
+                  {inertiaErrors && Object.keys(inertiaErrors).length > 0 && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      {Object.values(inertiaErrors).map((error, index) => (
+                        <p key={index} className="text-sm text-red-600 flex items-center gap-2">
+                          <FaExclamationCircle className="h-4 w-4" />
+                          {error}
+                        </p>
+                      ))}
                     </div>
                   )}
 
@@ -411,11 +431,15 @@ const ContactUsPage = ({auth}: PageProps) => {
                             name="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
+                            disabled={isLoggedIn}
                             className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
                               errors.name ? 'border-red-300' : 'border-gray-300'
-                            }`}
+                            } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                             placeholder="John Doe"
                           />
+                          {isLoggedIn && (
+                            <p className="mt-1 text-xs text-gray-500">Auto-filled from your account</p>
+                          )}
                         </div>
                         {errors.name && (
                           <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -439,11 +463,15 @@ const ContactUsPage = ({auth}: PageProps) => {
                             name="email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
+                            disabled={isLoggedIn}
                             className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
                               errors.email ? 'border-red-300' : 'border-gray-300'
-                            }`}
+                            } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                             placeholder="john@example.com"
                           />
+                          {isLoggedIn && (
+                            <p className="mt-1 text-xs text-gray-500">Auto-filled from your account</p>
+                          )}
                         </div>
                         {errors.email && (
                           <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -499,17 +527,17 @@ const ContactUsPage = ({auth}: PageProps) => {
                         </p>
                       )}
                       <div className="mt-2 text-sm text-gray-500 flex justify-end">
-                        {data.message.length} characters
+                        {data.message.length} / 400 characters
                       </div>
                     </div>
 
                     <div className="pt-4">
                       <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={processing || isSubmitting}
                         className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isSubmitting ? (
+                        {processing || isSubmitting ? (
                           <>
                             <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             Sending...
@@ -536,17 +564,6 @@ const ContactUsPage = ({auth}: PageProps) => {
                 <h2 className="text-2xl font-bold mb-8">Contact Information</h2>
 
                 <div className="space-y-8 mb-8">
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <FaEnvelope className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg mb-1">Email</h3>
-                      <a href={`mailto:${contactInfo.email}`} className="hover:underline">
-                        {contactInfo.email}
-                      </a>
-                    </div>
-                  </div>
 
                   <div className="flex items-start gap-4">
                     <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">

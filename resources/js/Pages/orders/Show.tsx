@@ -1,10 +1,8 @@
-import AppLayout from '@/Layouts/AppLayout'
-import { PageProps } from '@/types'
 import React from 'react'
 
-const Show = ({auth}: PageProps) => {
+const Show = () => {
   return (
-    <AppLayout user={auth.user}>Show</AppLayout>
+    <div>Show</div>
   )
 }
 

@@ -6,6 +6,7 @@ use App\Models\Orders;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\Products;
+use App\Models\wishlist;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -34,8 +35,10 @@ class StoreController extends Controller
 
     public function storeroute() {
         $stores = Store::all();
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
         return Inertia::render('stores/index', [
-            'stores' => $stores
+            'stores' => $stores,
+            'wishlist' => $wishlist
         ]);
     }
 
@@ -174,7 +177,7 @@ class StoreController extends Controller
                 'digits:11',
                 Rule::unique('stores', 'mobile')->ignore($store->id)
             ],
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'remove_logo' => 'nullable|in:true,false,0,1',
         ]);
 

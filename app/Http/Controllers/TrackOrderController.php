@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TrackOrder;
 use App\Http\Requests\StoreTrackOrderRequest;
 use App\Http\Requests\UpdateTrackOrderRequest;
+use App\Models\wishlist;
 use Inertia\Inertia;
 
 class TrackOrderController extends Controller
@@ -14,7 +15,10 @@ class TrackOrderController extends Controller
      */
     public function index()
     {
-        return Inertia::render('trackorders/index');
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+        return Inertia::render('trackorders/index', [
+            'wishlist' => $wishlist
+        ]);
     }
 
     /**

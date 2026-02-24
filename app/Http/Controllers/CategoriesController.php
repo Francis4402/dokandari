@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Categories;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Intervention\Image\ImageManager;
@@ -40,8 +39,9 @@ class CategoriesController extends Controller
         try {
             $validated = $request->validate([
                 'categories' => 'required|string|max:255',
+                'subcategory'   => 'required|array|min:1',
                 'subcategory.*' => 'required|string|max:255',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             ]);
 
             $category = new Categories();

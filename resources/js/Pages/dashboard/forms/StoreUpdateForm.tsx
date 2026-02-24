@@ -104,36 +104,22 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
     }
   }, [store.logo]);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.match('image.*')) {
-      toast.error('Please select an image file (PNG, JPG, JPEG, WEBP)');
-      return;
-    }
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image size should be less than 10MB');
-      return;
-    }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Logo must be less than 5MB');
+            e.target.value = '';
+            return;
+        }
 
-    setData('logo', file);
-    setData('remove_logo', false);
-    setHasNewLogo(true);
-
-    const preview = URL.createObjectURL(file);
-
-
-    if (logoPreview && logoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(logoPreview);
-    }
-
-    setLogoPreview(preview);
-    toast.success('Logo uploaded successfully! It will be optimized (scaled to 800px, 85% quality)');
-  };
+        setData('logo', file);
+        const preview = URL.createObjectURL(file);
+        setLogoPreview(preview);
+        toast.success('Logo uploaded successfully!');
+    };
 
   const removeLogo = () => {
     if (logoPreview && logoPreview.startsWith('blob:')) {
@@ -223,7 +209,7 @@ export default function StoreUpdateForm({ auth, store }: EditStoreFormProps) {
         router.visit(route('dashboard.store'));
         },
         onError: (errors) => {
-        console.log('Form errors:', errors);
+
         if (errors.name) {
             toast.error(errors.name);
         } else if (errors.national_id) {

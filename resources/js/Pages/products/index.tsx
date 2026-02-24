@@ -1,11 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Product, storeType } from '@/types';
+import { Product } from '@/types';
 import {
   BsStar,
   BsStarFill,
-  BsHeart,
-  BsHeartFill,
   BsFilter,
   BsSearch,
   BsChevronRight,
@@ -28,6 +26,7 @@ import {
 } from 'react-icons/ri';
 import AppLayout from '@/Layouts/AppLayout';
 import AddtoCartButton from '../buttons/AddtoCartButton';
+import WishlistButton from '../buttons/WishlistButton';
 
 
 interface ProductsPageProps {
@@ -35,11 +34,11 @@ interface ProductsPageProps {
     auth?: {
         user?: any;
     };
+    wishlist: any
 }
 
-const Products = ({ products, auth }: ProductsPageProps) => {
+const Products = ({ products, auth, wishlist }: ProductsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [wishlist, setWishlist] = useState<number[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
@@ -125,17 +124,6 @@ const Products = ({ products, auth }: ProductsPageProps) => {
         return '/placeholder-image.jpg';
     };
 
-    // Handle wishlist toggle
-    const toggleWishlist = (productId: string, e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const id = parseInt(productId);
-        setWishlist(prev =>
-            prev.includes(id)
-                ? prev.filter(itemId => itemId !== id)
-                : [...prev, id]
-        );
-    };
 
     // Sort options
     const sortOptions = [
@@ -228,7 +216,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
 
 
     return (
-        <AppLayout user={auth?.user}>
+        <AppLayout user={auth?.user} wishlist={wishlist}>
             <Head title="Products | Shop" />
 
             {/* Page Header */}
@@ -236,7 +224,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Shop</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">All Products</h1>
                             <p className="text-gray-600 text-sm">
                                 Browse our premium collection of {totalProducts} products
                             </p>
@@ -497,7 +485,6 @@ const Products = ({ products, auth }: ProductsPageProps) => {
                                         ? calculateDiscount(product.regular_price, product.sale_price)
                                         : 0;
                                     const finalPrice = product.sale_price || product.regular_price;
-                                    const isWishlisted = wishlist.includes(parseInt(product.id));
 
 
                                     if (viewMode === 'grid') {
@@ -533,16 +520,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
                                                         </div>
 
                                                         {/* Wishlist Button */}
-                                                        <button
-                                                            onClick={(e) => toggleWishlist(product.id, e)}
-                                                            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-sm"
-                                                        >
-                                                            {isWishlisted ? (
-                                                                <BsHeartFill className="text-red-500 text-sm" />
-                                                            ) : (
-                                                                <BsHeart className="text-gray-500 group-hover:text-red-500 text-sm" />
-                                                            )}
-                                                        </button>
+                                                        <WishlistButton productId={product.id} />
 
                                                         {/* Quick View Overlay */}
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -672,16 +650,7 @@ const Products = ({ products, auth }: ProductsPageProps) => {
                                                                     {/* Actions - Using AddtoCartButton */}
                                                                     <div className="flex items-center gap-2">
                                                                         <AddtoCartButton product={product} />
-                                                                        <button
-                                                                            onClick={(e) => toggleWishlist(product.id, e)}
-                                                                            className="p-2.5 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
-                                                                        >
-                                                                            {isWishlisted ? (
-                                                                                <BsHeartFill className="text-red-500" />
-                                                                            ) : (
-                                                                                <BsHeart />
-                                                                            )}
-                                                                        </button>
+                                                                        <WishlistButton productId={product.id} />
                                                                     </div>
                                                                 </div>
                                                             </div>

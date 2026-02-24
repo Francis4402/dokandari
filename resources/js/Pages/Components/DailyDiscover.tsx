@@ -4,8 +4,8 @@ import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaEye, FaStar, FaRegStar, FaArrowRight, FaShoppingCart } from "react-icons/fa";
 import AddtoCartButton from "../buttons/AddtoCartButton";
-import Addtocartactionbutton from "../buttons/Addtocartactionbutton";
 import { Link } from "@inertiajs/react";
+import WishlistButton from "../buttons/WishlistButton";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
@@ -44,13 +44,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     return Math.round(((regular - sale) / regular) * 100);
   };
 
-  const toggleWishlist = (productId: string) => {
-    setWishlist(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
 
   const handleCardEnter = (index: number): void => {
     const card = cardsRef.current[index];
@@ -182,10 +175,10 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
       {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-          Top Selling Products
+          Daily Discover
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Get the best products that our customers love the most. Shop now and enjoy great deals!
+           Explore the products our customers are loving today. Real reviews, real favorites.
         </p>
         <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
       </div>
@@ -235,7 +228,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     />
                   </div>
 
-                  {/* Discount Badge - Only show if there's a discount */}
+
                   {hasDiscount && (
                     <div className="absolute top-3 right-3">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
@@ -260,20 +253,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
 
                   {/* Action Buttons */}
                   <div className="absolute bottom-3 right-3 flex flex-col gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleWishlist(product.id);
-                      }}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
-                      aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-                    >
-                      {isInWishlist ? (
-                        <FaHeart className="w-4 h-4 text-red-500" />
-                      ) : (
-                        <FaRegHeart className="w-4 h-4 text-gray-600" />
-                      )}
-                    </button>
+                    <WishlistButton productId={product.id} />
                     <button
                       onClick={(e) => e.stopPropagation()}
                       className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"

@@ -12,7 +12,7 @@ import { Link } from '@inertiajs/react';
 
 const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) => {
 
-  // ✅ Derive parsed products inline — no need for useEffect + useState
+
   const parsedProducts: Product[] = (trandingproduct ?? []).map(item => ({
     ...item,
     rating: typeof item.rating === 'string' ? parseFloat(item.rating) : Number(item.rating) || 0,
@@ -56,7 +56,7 @@ const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) =
     );
   };
 
-  // ✅ Returns clean paths without double-prepending /storage/
+
   const parseImages = (imagesString: string): string[] => {
     if (!imagesString) return [];
     try {
@@ -79,7 +79,7 @@ const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) =
 
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=400&fit=crop';
 
-  // ✅ No longer double-prepends /storage/
+
   const getFirstImage = (imagesString: string): string => {
     const images = parseImages(imagesString);
     if (!images.length) return FALLBACK_IMAGE;
@@ -88,11 +88,11 @@ const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) =
     if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
       return imagePath;
     }
-    // imagePath is a relative filename like "products/abc.jpg"
+
     return `/storage/${imagePath}`;
   };
 
-  // ✅ BDT isn't supported by Intl.NumberFormat — format manually
+
   const formatPrice = (price: number): string => {
     return `৳${new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,

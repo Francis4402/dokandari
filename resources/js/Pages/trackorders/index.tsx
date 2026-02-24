@@ -117,7 +117,7 @@ interface OrderData {
   trackingEvents: TrackingEvent[];
 }
 
-const TrackOrderPage = ({auth}: PageProps) => {
+const TrackOrderPage = ({auth, wishlist}: PageProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<string>("");
@@ -747,7 +747,7 @@ const TrackOrderPage = ({auth}: PageProps) => {
   };
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Track Order">
         <meta name="description" content="Track your order status and shipping updates" />
       </Head>

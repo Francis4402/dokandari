@@ -35,9 +35,11 @@ interface CheckoutProps {
     logo?: string;
     pathao_store_id?: number;
   };
+
+  wishlist: any
 }
 
-const Checkout = ({ auth, store }: CheckoutProps) => {
+const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
   const {
     cart: cartItems,
     processCheckout,
@@ -56,9 +58,8 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Debug auth user
-  console.log('Auth user:', auth.user);
-  console.log('Auth user available fields:', Object.keys(auth.user || {}));
+
+
 
   // Form state
   const { data, setData, processing } = useForm({
@@ -170,7 +171,6 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
 
     const userId = auth.user.uuid || auth.user.id || auth.user.user_id;
 
-    console.log('Using user ID:', userId);
 
     if (!userId) {
         toast.error('User ID not found');
@@ -180,13 +180,10 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
 
     const orderData: OrderData = {
         user_id: userId,
-
-        // Sender Info (Store info - will be populated from cart store)
         sender_name: '',
         sender_email: '',
         sender_phone: '',
 
-        // Recipient Info (Customer info from form)
         recipient_name: data.recipient_name,
         recipient_phone: data.recipient_phone,
         recipient_email: data.recipient_email,
@@ -203,8 +200,6 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
             pathao_area_name: getSelectedAreaName(),
         }),
     };
-
-    console.log('Order Data being sent:', orderData);
 
     try {
         await processCheckout(orderData);
@@ -223,7 +218,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   // If cart is empty
   if (cartItems.length === 0) {
     return (
-      <AppLayout user={auth.user}>
+      <AppLayout user={auth.user} wishlist={wishlist}>
         <Head title="Checkout" />
         <div className="min-h-screen bg-gray-50 py-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -248,7 +243,7 @@ const Checkout = ({ auth, store }: CheckoutProps) => {
   }
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Checkout - Secure Checkout" />
 
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8">

@@ -31,9 +31,10 @@ interface OrderProps {
   order: Orders & {
     order_items?: OrderItem[];
   };
+  wishlist: any
 }
 
-const Confirmation = ({ auth, order }: OrderProps) => {
+const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('print') === 'true') {
@@ -91,7 +92,7 @@ const Confirmation = ({ auth, order }: OrderProps) => {
   const items = order.order_items || [];
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title={`Order Confirmation - ${order.order_number}`} />
 
       {/* Excel Sheet Print Styles */}

@@ -28,9 +28,10 @@ interface StoreListPageProps {
     user: any;
   };
   stores: storeType[];
+  wishlist: any;
 }
 
-const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
+const StoreListPage = ({ auth, stores, wishlist }: StoreListPageProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
@@ -363,7 +364,7 @@ const StoreListPage = ({ auth, stores }: StoreListPageProps) => {
     };
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Stores">
         <meta name="description" content="Multivendor Store" />
         <meta name="keywords" content="shop, products, buy online, shopping" />

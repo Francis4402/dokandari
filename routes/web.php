@@ -14,8 +14,10 @@ use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
+use App\Http\Controllers\WishlistController;
 use App\Models\Categories;
 use App\Models\Products;
+use App\Models\wishlist;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,6 +36,8 @@ use Inertia\Inertia;
 Route::get('/', function () {
     $categories = Categories::all();
     $products = Products::with('store')->paginate(20);
+    $wishlist = Wishlist::where('user_id', auth()->id())->paginate(12);
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -41,6 +45,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
         'categories' => $categories,
         'products' => $products,
+        'wishlist' => $wishlist,
     ]);
 });
 
@@ -86,6 +91,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/dashboard/orders/{id}', [OrdersController::class, 'destroy'])->name('orders.delete');
 
     Route::post('/post/contact', [ContactController::class, 'store'])->name('contact.store');
+
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+
+    Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    Route::get('/wishlist/check/{product}', [WishlistController::class, 'check'])->name('wishlist.check');
 });
 
 
@@ -99,6 +110,8 @@ Route::get('/products', [ProductsController::class, 'products'])->name('products
 Route::get('/products/{id}', [ProductsController::class, 'show'])->name('products.details');
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
+
+
 
 Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');

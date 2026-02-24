@@ -4,10 +4,11 @@ import { User } from '@/types';
 import Navbar from '@/Pages/Components/Navbar';
 
 
-export default function AppLayout({ user, children }: PropsWithChildren<{ user: User, header?: ReactNode }>) {
+export default function AppLayout({ user, children, wishlist }: PropsWithChildren<{ user: User, header?: ReactNode, wishlist: any }>) {
+
   return (
     <div>
-      <Navbar user={user} />
+      <Navbar user={user} wishlist={wishlist} />
       <main className="flex-1">
         {children}
       </main>

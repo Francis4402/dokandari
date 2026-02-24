@@ -28,7 +28,6 @@ import {
   FaStar,
   FaHeading,
   FaParagraph,
-  FaList,
   FaCode,
   FaBold,
   FaItalic,
@@ -51,7 +50,7 @@ import {
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
 
-// Rich text editor toolbar button types
+
 interface ToolbarButton {
   icon: React.ReactNode;
   command: string;
@@ -67,7 +66,7 @@ interface productFormType {
     categories: categoryType[];
 }
 
-// Product type matching your schema
+
 export interface Product {
     id: string;
     user_id: string;
@@ -105,7 +104,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const [editorMode, setEditorMode] = useState<'write' | 'preview'>('write');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // Product type options matching your schema
+
   const productTypes = [
     { value: 'regular', label: 'Regular' },
     { value: 'featured', label: 'Featured' },
@@ -135,7 +134,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
-  // Parse subcategory from the selected category
+
   const parsesubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
     try {
@@ -162,7 +161,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     { icon: <FaParagraph />, command: 'formatBlock', value: 'p', title: 'Paragraph' },
   ];
 
-  // Initialize editor content from form data
+
   useEffect(() => {
     if (editorRef.current && data.description && editorMode === 'write') {
       editorRef.current.innerHTML = data.description;
@@ -187,7 +186,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
       document.execCommand(button.command, false, undefined);
     }
 
-    // Update the form data with the new HTML content
+
     setData('description', editorRef.current.innerHTML);
   };
 
@@ -209,7 +208,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     setShowEmojiPicker(false);
   };
 
-  // Common emojis for product descriptions
+
   const commonEmojis = [
     '😊', '👍', '⭐', '🔥', '✅', '🎁', '💯', '🚀', '💪', '✨',
     '🎨', '📦', '🛒', '💰', '💎', '🔋', '⚡', '🌟', '💫', '🎯'
@@ -283,11 +282,31 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+
+    if (oversizedFiles.length > 0) {
+
+      toast.error(
+        `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
+        {
+          duration: 5000,
+          position: 'top-center',
+        }
+      );
+      return;
+    }
+
     if (files.length) {
       setData('images', files as any);
       const previews = files.map(file => URL.createObjectURL(file));
       setImagePreviews(previews);
-      toast.success(`${files.length} image(s) uploaded!`);
+      toast.success(`${files.length} image(s) uploaded successfully!`, {
+        duration: 3000,
+        position: 'top-center',
+      });
     }
   };
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Products;
 use App\Models\Categories;
 use App\Models\Store;
+use App\Models\wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -64,7 +65,7 @@ class ProductsController extends Controller
             'description' => 'required|string',
             'inStock' => 'boolean',
             'color' => 'nullable|max:20',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images' => 'max:5',
             'item_weight' => 'required|numeric',
         ]);
@@ -126,10 +127,11 @@ class ProductsController extends Controller
     {
         $product = Products::with('store')->where('slug', $slug)->firstOrFail();
         $store = Store::where('id', $product->store_id)->first();
-
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
         return Inertia::render('productdetails/index', [
             'product' => $product,
             'store' => $store,
+            'wishlist' => $wishlist,
         ]);
     }
     /**
@@ -248,8 +250,11 @@ class ProductsController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
         return Inertia::render('products/index', [
             'products' => $products,
+            'wishlist' => $wishlist
         ]);
     }
 }

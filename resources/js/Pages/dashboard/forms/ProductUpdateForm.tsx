@@ -197,11 +197,31 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+
+    if (oversizedFiles.length > 0) {
+
+      toast.error(
+        `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
+        {
+          duration: 5000,
+          position: 'top-center',
+        }
+      );
+      return;
+    }
+
     if (files.length) {
-      setData('images', [...data.images, ...files]);
+      setData('images', files as any);
       const previews = files.map(file => URL.createObjectURL(file));
-      setImagePreviews([...imagePreviews, ...previews]);
-      toast.success(`${files.length} image(s) added!`);
+      setImagePreviews(previews);
+      toast.success(`${files.length} image(s) uploaded successfully!`, {
+        duration: 3000,
+        position: 'top-center',
+      });
     }
   };
 
