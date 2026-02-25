@@ -25,6 +25,7 @@ import { Head, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { useStore } from "../state/cartStore";
 import CommentsList from "../dashboard/forms/CommentsList";
+import FormatPrice from "../utils/FormatePrice";
 
 
 interface ProductDetailsPageProps {
@@ -87,13 +88,6 @@ const ProductDetailsPage = ({
     return Math.round(((regular - sale) / regular) * 100);
   })();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 2
-    }).format(price);
-  };
 
   const renderStars = (rating: number = averageRating) => {
     const numericRating = rating;
@@ -328,12 +322,12 @@ const ProductDetailsPage = ({
                 <div className="bg-gradient-to-r from-gray-50 to-white p-6 rounded-xl border border-gray-100">
                   <div className="flex items-baseline space-x-4 mb-2">
                     <span className="text-4xl font-bold text-blue-600">
-                      {formatPrice(product.sale_price || product.regular_price)}
+                      <FormatPrice price={product.sale_price || product.regular_price} />
                     </span>
 
                     {product.sale_price && (
                       <span className="text-2xl text-gray-400 line-through">
-                        {formatPrice(product.regular_price)}
+                        <FormatPrice price={product.regular_price} />
                       </span>
                     )}
                   </div>
@@ -341,7 +335,7 @@ const ProductDetailsPage = ({
                   {discount > 0 && (
                     <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-red-50 text-red-700 text-sm font-medium">
                       <FaTag className="w-4 h-4 mr-1.5" />
-                      Save {formatPrice(product.regular_price - product.sale_price)} ({discount}% OFF)
+                      Save <FormatPrice price={product.regular_price - product.sale_price} /> ({discount}% OFF)
                     </div>
                   )}
                 </div>
@@ -525,12 +519,12 @@ const ProductDetailsPage = ({
                             </div>
                             <div className="flex justify-between pb-2 border-b border-gray-200">
                               <span className="text-gray-600">Regular Price</span>
-                              <span className="font-medium text-gray-900">{formatPrice(product.regular_price)}</span>
+                              <span className="font-medium text-gray-900"><FormatPrice price={product.regular_price} /></span>
                             </div>
                             {product.sale_price && (
                               <div className="flex justify-between pb-2 border-b border-gray-200">
                                 <span className="text-gray-600">Sale Price</span>
-                                <span className="font-medium text-green-600">{formatPrice(product.sale_price)}</span>
+                                <span className="font-medium text-green-600"><FormatPrice price={product.sale_price} /></span>
                               </div>
                             )}
                             {product.item_weight && (

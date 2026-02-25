@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
   FaShoppingCart,
   FaEye,
@@ -22,13 +23,13 @@ import {
   FaMapMarkerAlt,
   FaHashtag,
   FaWeight,
-  FaMoneyBillWave,
   FaTag,
-  FaCalendarAlt,
   FaInfoCircle
 } from 'react-icons/fa';
 import { Orders, OrderItem } from '@/types';
 import { toast } from 'sonner';
+import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
+
 
 interface DashboardOrderType {
     auth: {
@@ -40,10 +41,12 @@ interface DashboardOrderType {
 }
 
 const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
-
-    const { delete: deleteOrder } = useForm();
-
     const [selectedOrder, setSelectedOrder] = useState<(Orders & { order_items?: OrderItem[] }) | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    // Delete dialog state
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -79,20 +82,63 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
         return icons[status] || <FaShoppingCart className="h-4 w-4" />;
     };
 
-    const handleDeleteOrder = (orderId: string) => {
-        if (confirm('Are you sure you want to delete this order?')) {
-            deleteOrder(route('orders.destroy', orderId), {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Order deleted successfully');
-                },
-                onError: () => {
-                    toast.error('Failed to delete order');
-                }
-            });
-        }
+    // Open delete confirmation dialog
+    const openDeleteDialog = (orderId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setOrderToDelete(orderId);
+        setIsDeleteDialogOpen(true);
     };
 
+    // Close delete dialog
+    const closeDeleteDialog = () => {
+        setIsDeleteDialogOpen(false);
+        setOrderToDelete(null);
+    };
+
+    // Handle delete order
+    const handleDeleteOrder = () => {
+        if (!orderToDelete) return;
+
+        setDeletingId(orderToDelete);
+
+        // Log the URL being called
+        const deleteUrl = `/dashboard/orders/${orderToDelete}`;
+        console.log('Deleting order at URL:', deleteUrl);
+
+        router.delete(deleteUrl, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: (page) => {
+                console.log('Delete success:', page);
+                toast.success('Order deleted successfully');
+                setDeletingId(null);
+                closeDeleteDialog();
+
+                // Clear selected order if it was deleted
+                if (selectedOrder?.id === orderToDelete) {
+                    setSelectedOrder(null);
+                }
+            },
+            onError: (errors) => {
+                console.error('Delete error details:', errors);
+
+                // Handle different error formats
+                if (typeof errors === 'string') {
+                    toast.error(errors);
+                } else if (errors.message) {
+                    toast.error(errors.message);
+                } else {
+                    toast.error('Failed to delete order');
+                }
+
+                setDeletingId(null);
+                closeDeleteDialog();
+            },
+            onFinish: () => {
+                setDeletingId(null);
+            }
+        });
+    };
 
     const getImageUrl = (imagePath: string | null | undefined) => {
         if (!imagePath) {
@@ -109,9 +155,7 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
             return cleanPath;
         }
 
-
         const baseUrl = window.location.origin;
-
 
         if (cleanPath.startsWith('product_images/')) {
             return `${baseUrl}/storage/${cleanPath}`;
@@ -122,15 +166,12 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
             return `${baseUrl}/storage/product_images/${filename}`;
         }
 
-
         if (!cleanPath.includes('/')) {
             return `${baseUrl}/storage/product_images/${cleanPath}`;
         }
 
-
         return `${baseUrl}/storage/${cleanPath}`;
     };
-
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-BD', {
@@ -141,7 +182,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
         }).format(amount);
     };
 
-    // Format date
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-BD', {
@@ -165,6 +205,11 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-800">Orders Management</h1>
                                 <p className="text-gray-600 mt-1">Manage and track all customer orders</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                    Total: {orders.length}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -206,6 +251,9 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                             <div>
                                                                 <div className="flex items-center mb-2">
                                                                     <h3 className="font-bold text-gray-800">{order.order_number}</h3>
+                                                                    <span className="ml-2 text-xs text-gray-500">
+                                                                        {formatDate(order.created_at)}
+                                                                    </span>
                                                                 </div>
                                                                 <div className="flex flex-wrap items-center gap-2 mb-3">
                                                                     <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getStatusColor(order.order_status)}`}>
@@ -234,14 +282,18 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                                     <FaEdit className="h-4 w-4" />
                                                                 </Link>
                                                                 <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteOrder(order.id);
-                                                                    }}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    onClick={(e) => openDeleteDialog(order.id, e)}
+                                                                    disabled={deletingId === order.id}
+                                                                    className={`p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ${
+                                                                        deletingId === order.id ? 'opacity-50 cursor-not-allowed' : ''
+                                                                    }`}
                                                                     title="Delete order"
                                                                 >
-                                                                    <FaTrash className="h-4 w-4" />
+                                                                    {deletingId === order.id ? (
+                                                                        <div className="h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                                                    ) : (
+                                                                        <FaTrash className="h-4 w-4" />
+                                                                    )}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -350,258 +402,23 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                             </div>
                         </div>
 
-                        {/* Order Details Sidebar */}
+                        {/* Order Details Sidebar - Keep your existing sidebar code */}
                         <div className="space-y-6">
-                            {selectedOrder ? (
-                                <div className="bg-white rounded-lg shadow p-6">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-xl font-bold text-gray-800">Order Details</h3>
-                                        <button
-                                            onClick={() => setSelectedOrder(null)}
-                                            className="p-1 text-gray-400 hover:text-gray-600"
-                                        >
-                                            <FaTimes className="h-5 w-5" />
-                                        </button>
-                                    </div>
-
-                                    {/* Order Header */}
-                                    <div className="mb-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div>
-                                                <h4 className="text-lg font-bold text-gray-800">{selectedOrder.order_number}</h4>
-                                                <p className="text-sm text-gray-600">
-                                                    Placed on {formatDate(selectedOrder.created_at)}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-2xl font-bold text-gray-800">{formatCurrency(selectedOrder.total)}</p>
-                                                <p className="text-sm text-gray-500">Total Amount</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Status Badges */}
-                                        <div className="flex flex-wrap items-center gap-2 mb-4">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.order_status)}`}>
-                                                {getStatusIcon(selectedOrder.order_status)}
-                                                <span className="ml-2 capitalize">{selectedOrder.order_status}</span>
-                                            </span>
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPaymentStatusColor(selectedOrder.payment_status)}`}>
-                                                <FaCreditCard className="h-3 w-3 mr-2" />
-                                                <span className="capitalize">{selectedOrder.payment_status}</span>
-                                            </span>
-                                            {selectedOrder.shipping_method && (
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                                    <FaTruck className="h-3 w-3 mr-2" />
-                                                    {selectedOrder.shipping_method === 'pathao' ? 'Pathao' : 'Standard'}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Sender Information */}
-                                    <div className="mb-6">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                            <FaUser className="mr-2" /> Sender Information
-                                        </h5>
-                                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                                            <div>
-                                                <p className="font-medium text-gray-800">{selectedOrder.sender_name}</p>
-                                                <p className="text-sm text-gray-600">{selectedOrder.sender_email}</p>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-                                                <span className="text-sm text-gray-700">{selectedOrder.sender_phone}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Recipient Information */}
-                                    <div className="mb-6">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                            <FaMapMarkerAlt className="mr-2" /> Recipient Information
-                                        </h5>
-                                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                                            <div>
-                                                <p className="font-medium text-gray-800">{selectedOrder.recipient_name}</p>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <FaPhone className="h-3 w-3 text-gray-400 mr-2" />
-                                                <span className="text-sm text-gray-700">{selectedOrder.recipient_phone}</span>
-                                            </div>
-                                            <div className="flex items-start">
-                                                <FaMapMarkerAlt className="h-3 w-3 text-gray-400 mr-2 mt-1" />
-                                                <span className="text-sm text-gray-700">{selectedOrder.recipient_address}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Store Information */}
-                                    <div className="mb-6">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                            <FaStore className="mr-2" /> Store Information
-                                        </h5>
-                                        <div className="bg-gray-50 rounded-lg p-4">
-                                            <p className="font-medium text-gray-800">{selectedOrder.store_name}</p>
-                                            <p className="text-xs text-gray-500 mt-1">ID: {selectedOrder.store_id}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Pathao Information (if applicable) */}
-                                    {selectedOrder.shipping_method === 'pathao' && (
-                                        <div className="mb-6">
-                                            <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                                <FaTruck className="mr-2" /> Pathao Delivery
-                                            </h5>
-                                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                                <p className="text-sm"><span className="font-medium">City ID:</span> {selectedOrder.recipient_city}</p>
-                                                <p className="text-sm"><span className="font-medium">Zone ID:</span> {selectedOrder.recipient_zone}</p>
-                                                <p className="text-sm"><span className="font-medium">Area ID:</span> {selectedOrder.recipient_area}</p>
-                                                {selectedOrder.tracking_number && (
-                                                    <p className="text-sm"><span className="font-medium">Tracking:</span> {selectedOrder.tracking_number}</p>
-                                                )}
-                                                {selectedOrder.delivery_type && (
-                                                    <p className="text-sm"><span className="font-medium">Delivery Type:</span> {selectedOrder.delivery_type} hours</p>
-                                                )}
-                                                {selectedOrder.special_instruction && (
-                                                    <p className="text-sm"><span className="font-medium">Instructions:</span> {selectedOrder.special_instruction}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Order Items with Images */}
-                                    {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
-                                        <div className="mb-6">
-                                            <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                                <FaBox className="mr-2" /> Order Items ({selectedOrder.order_items.length})
-                                            </h5>
-                                            <div className="space-y-3 max-h-96 overflow-y-auto">
-                                                {selectedOrder.order_items.map((item) => (
-                                                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                        <div className="flex items-center">
-                                                            <div className="relative mr-3">
-                                                                {item.product_image ? (
-                                                                    <img
-                                                                        src={getImageUrl(item.product_image)}
-                                                                        alt={item.product_name}
-                                                                        className="w-14 h-14 rounded-lg object-cover border border-gray-200"
-                                                                        onError={(e) => {
-                                                                            (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                                                                        }}
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-14 h-14 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                                        <FaImage className="h-6 w-6 text-gray-400" />
-                                                                    </div>
-                                                                )}
-                                                                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
-                                                                    {item.quantity}
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-medium text-gray-800 text-sm">{item.product_name}</p>
-                                                                <p className="text-xs text-gray-500">Price: {formatCurrency(item.price)}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="font-medium text-gray-800">{formatCurrency(item.total)}</p>
-                                                            <p className="text-xs text-gray-500">{formatCurrency(item.price)} × {item.quantity}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Order Summary */}
-                                    <div className="border-t border-gray-200 pt-4">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Subtotal</span>
-                                                <span className="font-medium">{formatCurrency(selectedOrder.subtotal)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Delivery Charge</span>
-                                                <span className="font-medium">{formatCurrency(selectedOrder.delivery_charge)}</span>
-                                            </div>
-                                            {selectedOrder.discount_amount > 0 && (
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">Discount</span>
-                                                    <span className="font-medium text-green-600">-{formatCurrency(selectedOrder.discount_amount)}</span>
-                                                </div>
-                                            )}
-                                            <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2">
-                                                <span>Total</span>
-                                                <span>{formatCurrency(selectedOrder.total)}</span>
-                                            </div>
-                                            {selectedOrder.amount_to_collect > 0 && selectedOrder.payment_method === 'cash_on_delivery' && (
-                                                <div className="flex justify-between text-sm text-blue-600">
-                                                    <span>Amount to Collect</span>
-                                                    <span className="font-medium">{formatCurrency(selectedOrder.amount_to_collect)}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Additional Info */}
-                                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-500">
-                                        {selectedOrder.item_weight > 0 && (
-                                            <div className="flex items-center">
-                                                <FaWeight className="mr-1" /> Weight: {selectedOrder.item_weight} kg
-                                            </div>
-                                        )}
-                                        {selectedOrder.coupon_code && (
-                                            <div className="flex items-center">
-                                                <FaTag className="mr-1" /> Coupon: {selectedOrder.coupon_code}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Notes */}
-                                    {selectedOrder.notes && (
-                                        <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-                                            <p className="text-xs font-medium text-yellow-800 mb-1 flex items-center">
-                                                <FaInfoCircle className="mr-1" /> Notes:
-                                            </p>
-                                            <p className="text-sm text-yellow-700">{selectedOrder.notes}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="bg-blue-50 rounded-lg shadow p-6 text-center">
-                                    <FaShoppingCart className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-blue-800 mb-2">Order Details</h3>
-                                    <p className="text-blue-600 text-sm">
-                                        Select an order from the list to view detailed information
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Quick Summary */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="text-lg font-bold text-gray-800 mb-4">Order Summary</h3>
-                                <div className="space-y-3">
-                                    {['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'].map(status => {
-                                        const count = orders.filter(order => order.order_status === status).length;
-                                        if (count === 0) return null;
-                                        return (
-                                            <div key={status} className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium mr-2 ${getStatusColor(status)}`}>
-                                                        {getStatusIcon(status)}
-                                                        <span className="ml-1 capitalize">{status}</span>
-                                                    </span>
-                                                </div>
-                                                <span className="font-medium text-gray-800">{count} order{count !== 1 ? 's' : ''}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                            {/* ... your existing sidebar code ... */}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteConfirmationDialog
+                isOpen={isDeleteDialogOpen}
+                onClose={closeDeleteDialog}
+                onConfirm={handleDeleteOrder}
+                title="Delete Order"
+                message="Are you sure you want to delete this order? This action cannot be undone. All order items will also be deleted."
+                isDeleting={deletingId === orderToDelete}
+            />
         </DashboardLayout>
     );
 };

@@ -27,6 +27,7 @@ import { areatypes, citytypes, zonetypes } from '@/types';
 import { toast } from 'sonner';
 import { useStore } from '../state/cartStore';
 import ClearCartDialog from '../dialogpopups/ClearCartDialog';
+import FormatPrice from '../utils/FormatePrice';
 
 interface CartPageProps {
   auth: {
@@ -188,7 +189,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                 const totalDeliveryCharge = baseDeliveryCharge + 20;
 
                 setPathaoCharges({ delivery_charge: totalDeliveryCharge });
-                toast.success(`Shipping price: ${formatPrice(totalDeliveryCharge)}`);
+                toast.success(`Shipping price: ${<FormatPrice price={totalDeliveryCharge} />}`);
             }
         } catch (error: any) {
 
@@ -327,13 +328,6 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
         toast.success('Coupon removed');
     };
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'BDT',
-        minimumFractionDigits: 2
-        }).format(price);
-    };
 
     const calculateDiscountPercentage = (regular: number, sale: number | null) => {
         if (!sale || sale >= regular) return 0;
@@ -481,7 +475,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Subtotal</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatPrice(cartTotals.subtotal)}</p>
+                    <p className="text-2xl font-bold text-gray-900"><FormatPrice price={cartTotals.subtotal} /></p>
                   </div>
                   <FaCreditCard className="h-8 w-8 text-green-500" />
                 </div>
@@ -492,7 +486,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                   <div>
                     <p className="text-sm text-gray-600">Total Savings</p>
                     <p className="text-2xl font-bold text-green-600">
-                      {formatPrice(cartTotals.discount + calculateSaleSavings())}
+                      <FormatPrice price={cartTotals.discount + calculateSaleSavings()} />
                     </p>
                   </div>
                   <FaTag className="h-8 w-8 text-green-500" />
@@ -566,11 +560,11 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                   </div>
                                   <div className="text-right">
                                     <div className="text-lg font-bold text-gray-900">
-                                      {formatPrice(currentPrice)}
+                                      <FormatPrice price={currentPrice} />
                                     </div>
                                     {salePrice && (
                                       <div className="text-sm text-gray-500 line-through">
-                                        {formatPrice(regularPrice)}
+                                        <FormatPrice price={regularPrice} />
                                       </div>
                                     )}
                                   </div>
@@ -618,7 +612,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                                     {/* Item Total */}
                                     <div className="text-sm font-semibold text-gray-900">
-                                      Total: {formatPrice(totalPrice)}
+                                      Total: <FormatPrice price={totalPrice} />
                                     </div>
                                   </div>
 
@@ -701,7 +695,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium text-gray-900">{formatPrice(cartTotals.subtotal)}</span>
+                        <span className="font-medium text-gray-900"><FormatPrice price={cartTotals.subtotal} /></span>
                       </div>
 
                       <div className="flex justify-between items-center">
@@ -709,7 +703,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                         <span className="font-medium text-gray-900">
                           {pathaoCharges ? (
                             <div className="text-right">
-                              <div>{formatPrice(pathaoCharges.delivery_charge)}</div>
+                              <div><FormatPrice price={pathaoCharges.delivery_charge} /></div>
                             </div>
                           ) : (
                             <span className="text-gray-400">
@@ -721,7 +715,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Tax (10%)</span>
-                        <span className="font-medium text-gray-900">{formatPrice(cartTotals.tax)}</span>
+                        <span className="font-medium text-gray-900"><FormatPrice price={cartTotals.tax} /></span>
                       </div>
 
                       {appliedCoupon && (
@@ -734,7 +728,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                           </div>
                           <div className="flex items-center">
                             <span className="font-medium text-green-600 mr-2">
-                              -{formatPrice(cartTotals.discount)}
+                              -<FormatPrice price={cartTotals.discount} />
                             </span>
                             <button
                               onClick={removeCoupon}
@@ -868,7 +862,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                   {loadingPathao ? (
                                     <FaTruckLoading className="h-6 w-6 mx-auto animate-spin" />
                                   ) : (
-                                    pathaoCharges ? formatPrice(pathaoCharges.delivery_charge) : '---'
+                                    pathaoCharges ? <FormatPrice price={pathaoCharges.delivery_charge} />: '---'
                                   )}
                                 </p>
                               </div>
@@ -918,7 +912,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                         <span className="text-lg font-semibold text-gray-900">Total</span>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-gray-900">
-                            {formatPrice(cartTotals.total)}
+                            <FormatPrice price={cartTotals.total} />
                           </div>
                           <div className="text-sm text-gray-600">
                             {cartTotals.item_count} item{cartTotals.item_count !== 1 ? 's' : ''}

@@ -2,10 +2,11 @@ import { Product, storeType } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
-import { FaHeart, FaRegHeart, FaEye, FaStar, FaRegStar, FaArrowRight, FaShoppingCart } from "react-icons/fa";
+import { FaEye, FaStar, FaRegStar, FaArrowRight, FaShoppingCart } from "react-icons/fa";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import { Link } from "@inertiajs/react";
 import WishlistButton from "../buttons/WishlistButton";
+import FormatPrice from "../utils/FormatePrice";
 
 interface dailyDiscoverProduct {
   discoverProduct: Product[];
@@ -57,6 +58,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     });
 
     const img = card.querySelector('img');
+
     if (img) {
       gsap.to(img, {
         scale: 1.1,
@@ -66,27 +68,28 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     }
 
     const quickView = card.querySelector('.quick-view');
-    if (quickView) {
-      gsap.to(quickView, {
-        opacity: 1,
+        if (quickView) {
+        gsap.to(quickView, {
+            opacity: 1,
+            y: 0,
+            duration: 0.3
+        });
+        }
+    };
+
+    const handleCardLeave = (index: number): void => {
+        const card = cardsRef.current[index];
+        if (!card) return;
+
+        gsap.to(card, {
         y: 0,
-        duration: 0.3
-      });
-    }
-  };
-
-  const handleCardLeave = (index: number): void => {
-    const card = cardsRef.current[index];
-    if (!card) return;
-
-    gsap.to(card, {
-      y: 0,
-      scale: 1,
-      duration: 0.3,
-      ease: "power2.out"
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out"
     });
 
     const img = card.querySelector('img');
+
     if (img) {
       gsap.to(img, {
         scale: 1,
@@ -96,61 +99,53 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     }
 
     const quickView = card.querySelector('.quick-view');
-    if (quickView) {
-      gsap.to(quickView, {
-        opacity: 0,
-        y: 10,
-        duration: 0.2
-      });
-    }
-  };
+        if (quickView) {
+        gsap.to(quickView, {
+            opacity: 0,
+            y: 10,
+            duration: 0.2
+        });
+        }
+    };
 
-  const renderStars = (rating: number | string | undefined) => {
-    let numericRating = 0;
+    const renderStars = (rating: number | string | undefined) => {
+        let numericRating = 0;
 
-    if (typeof rating === 'number') {
-      numericRating = rating;
-    } else if (typeof rating === 'string') {
-      numericRating = parseFloat(rating);
-    }
+        if (typeof rating === 'number') {
+        numericRating = rating;
+        } else if (typeof rating === 'string') {
+        numericRating = parseFloat(rating);
+        }
 
-    numericRating = Math.min(Math.max(isNaN(numericRating) ? 0 : numericRating, 0), 5);
-    const roundedRating = Math.round(numericRating * 2) / 2;
+        numericRating = Math.min(Math.max(isNaN(numericRating) ? 0 : numericRating, 0), 5);
+        const roundedRating = Math.round(numericRating * 2) / 2;
 
-    return (
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => {
-          const starValue = i + 1;
-          return (
-            <span key={i}>
-              {starValue <= roundedRating ? (
-                <FaStar className="w-3 h-3 text-yellow-400" />
-              ) : starValue - 0.5 === roundedRating ? (
-                <div className="relative">
-                  <FaRegStar className="w-3 h-3 text-gray-300" />
-                  <div className="absolute top-0 left-0 overflow-hidden" style={{ width: '50%' }}>
+        return (
+        <div className="flex items-center gap-1">
+            {[...Array(5)].map((_, i) => {
+            const starValue = i + 1;
+            return (
+                <span key={i}>
+                {starValue <= roundedRating ? (
                     <FaStar className="w-3 h-3 text-yellow-400" />
-                  </div>
-                </div>
-              ) : (
-                <FaRegStar className="w-3 h-3 text-gray-300" />
-              )}
+                ) : starValue - 0.5 === roundedRating ? (
+                    <div className="relative">
+                    <FaRegStar className="w-3 h-3 text-gray-300" />
+                    <div className="absolute top-0 left-0 overflow-hidden" style={{ width: '50%' }}>
+                        <FaStar className="w-3 h-3 text-yellow-400" />
+                    </div>
+                    </div>
+                ) : (
+                    <FaRegStar className="w-3 h-3 text-gray-300" />
+                )}
+                </span>
+            );
+            })}
+            <span className="text-xs text-gray-500 ml-1">
+            ({numericRating.toFixed(1)})
             </span>
-          );
-        })}
-        <span className="text-xs text-gray-500 ml-1">
-          ({numericRating.toFixed(1)})
-        </span>
-      </div>
-    );
-  };
-
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'BDT',
-        minimumFractionDigits: 2
-        }).format(price);
+        </div>
+        );
     };
 
 
@@ -193,7 +188,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
 
           const currentStock = product.quantity || 0;
 
-          const isInWishlist = wishlist.includes(product.id);
           const imageSrc = getImageSrc(product.images);
 
           // Calculate save amount
@@ -297,11 +291,11 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold ">
-                          {formatPrice(product.regular_price)}
+                          <FormatPrice price={product.regular_price} />
                         </span>
                         {product.sale_price && (
                           <span className="text-sm text-gray-500 line-through">
-                            {formatPrice(product.sale_price)}
+                            <FormatPrice price={product.sale_price} />
                           </span>
                         )}
                       </div>

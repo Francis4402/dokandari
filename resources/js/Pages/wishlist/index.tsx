@@ -30,6 +30,7 @@ import { Menu, Transition, Dialog } from '@headlessui/react';
 import { toast } from 'sonner';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
+import FormatPrice from '../utils/FormatePrice';
 
 
 interface WishlistPageProps {
@@ -104,13 +105,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
     const [productToRemove, setProductToRemove] = useState<string | null>(null);
     const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'BDT',
-            minimumFractionDigits: 2
-        }).format(price);
-    };
 
     const getImageSrc = (images: string | null) => {
         if (!images) return '/otherplaceholder.jpg';
@@ -250,15 +244,15 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     {selectedProduct.sale_price ? (
                                                         <>
                                                             <span className="text-3xl font-bold text-primary">
-                                                                {formatPrice(selectedProduct.sale_price)}
+                                                                <FormatPrice price={selectedProduct.sale_price} />
                                                             </span>
                                                             <span className="text-lg text-gray-400 line-through">
-                                                                {formatPrice(selectedProduct.regular_price)}
+                                                                <FormatPrice price={selectedProduct.regular_price} />
                                                             </span>
                                                         </>
                                                     ) : (
                                                         <span className="text-3xl font-bold text-primary">
-                                                            {formatPrice(selectedProduct.regular_price)}
+                                                            <FormatPrice price={selectedProduct.regular_price} />
                                                         </span>
                                                     )}
                                                 </div>
@@ -627,15 +621,15 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     {product.sale_price ? (
                                                         <>
                                                             <span className="text-xl font-bold text-primary">
-                                                                {formatPrice(product.sale_price)}
+                                                                <FormatPrice price={product.sale_price} />
                                                             </span>
                                                             <span className="text-sm text-gray-400 line-through">
-                                                                {formatPrice(product.regular_price)}
+                                                                <FormatPrice price={product.regular_price} />
                                                             </span>
                                                         </>
                                                     ) : (
                                                         <span className="text-xl font-bold text-primary">
-                                                            {formatPrice(product.regular_price)}
+                                                            <FormatPrice price={product.regular_price} />
                                                         </span>
                                                     )}
                                                 </div>

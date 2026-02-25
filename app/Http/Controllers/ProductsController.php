@@ -171,8 +171,9 @@ class ProductsController extends Controller
 
         $reviewCount = $ratings->count();
 
-        // Get user's existing review if logged in
+
         $userReview = null;
+
         if (auth()->check()) {
             $userReview = Comment::where('user_id', auth()->id())
                 ->where('product_id', $product->id)
@@ -216,7 +217,6 @@ class ProductsController extends Controller
     {
         $product = Products::where('slug', $slug)->firstOrFail();
 
-        // ✅ Validate
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -257,10 +257,9 @@ class ProductsController extends Controller
             $directory = 'product_images';
 
             foreach ($request->file('images') as $index => $file) {
-                // Get original extension
+
                 $extension = $file->getClientOriginalExtension();
 
-                // Generate unique filename
                 $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $extension;
 
                 $filePath = $directory . '/' . $filename;
@@ -315,7 +314,7 @@ class ProductsController extends Controller
         $productIds = $products->pluck('id')->toArray();
 
         $ratings = Comment::whereIn('product_id', $productIds)
-            ->whereNotNull('rating') // Only get comments with ratings
+            ->whereNotNull('rating')
             ->select('product_id', 'rating')
             ->get();
 
@@ -337,6 +336,18 @@ class ProductsController extends Controller
             'products' => $products,
             'wishlist' => $wishlist,
             'productRatings' => $productRatings
+        ]);
+    }
+
+    public function hotdeals() {
+        $products = Products::with('store')->paginate(20);
+
+        $wishlist = Wishlist::where('user_id', auth()->id())
+            ->paginate(12);
+
+        return Inertia::render('hotdeals/index', [
+            'products' => $products,
+            'wishlist' => $wishlist
         ]);
     }
 }

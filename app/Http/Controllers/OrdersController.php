@@ -35,23 +35,51 @@ class OrdersController extends Controller
     {
         $user = Auth::user();
 
-        // Find the store for this user
-        $store = Store::where('user_id', $user->id)->first();
+        if ($user->role === 'superadmin' || $user->role === 'admin') {
+            $orders = Orders::with(['orderItems', 'store', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        if (!$store) {
             return Inertia::render('dashboard/orders/index', [
-                'orders' => [],
+                'orders' => $orders,
+                'userRole' => $user->role,
             ]);
         }
 
-        // Get orders for this store
-        $orders = Orders::where('store_id', $store->id)
-            ->with('orderItems')
+
+        if ($user->role === 'agent') {
+
+            $store = Store::where('user_id', $user->id)->first();
+
+            if (!$store) {
+                return Inertia::render('dashboard/orders/index', [
+                    'orders' => [],
+                    'userRole' => $user->role,
+                    'message' => 'No store found for this agent',
+                ]);
+            }
+
+            $orders = Orders::where('store_id', $store->id)
+                ->with(['orderItems', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return Inertia::render('dashboard/orders/index', [
+                'orders' => $orders,
+                'userRole' => $user->role,
+                'store' => $store,
+            ]);
+        }
+
+        // Regular user - see orders by user_id
+        $orders = Orders::where('user_id', $user->id)
+            ->with(['orderItems', 'store'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('dashboard/orders/index', [
             'orders' => $orders,
+            'userRole' => $user->role,
         ]);
     }
 
@@ -321,9 +349,103 @@ class OrdersController extends Controller
      */
     public function destroy($id)
     {
-        $orders = Orders::where('id', $id)->first();
+        try {
+            Log::info('Attempting to delete order: ' . $id);
 
-        $orders->delete();
+            $order = Orders::find($id);
+
+            if (!$order) {
+                Log::error('Order not found with ID: ' . $id);
+
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Order not found'
+                    ], 404);
+                }
+
+                return redirect()->back()->with('error', 'Order not found');
+            }
+
+            $user = Auth::user();
+            Log::info('User role: ' . $user->role . ', User ID: ' . $user->id);
+
+            // Check permissions
+            $canDelete = false;
+
+            if ($user->role === 'superadmin' || $user->role === 'admin') {
+                $canDelete = true;
+                Log::info('Admin/Superadmin - can delete');
+            }
+            else if ($user->role === 'agent') {
+                $store = Store::where('user_id', $user->id)->first();
+                Log::info('Agent store: ' . ($store ? $store->id : 'none') . ', Order store: ' . $order->store_id);
+
+                if ($store && $order->store_id === $store->id) {
+                    $canDelete = true;
+                    Log::info('Agent - can delete');
+                }
+            }
+            else if ($user->role === 'user') {
+                Log::info('User order check - Order user_id: ' . $order->user_id . ', Auth user_id: ' . $user->id);
+
+                if ($order->user_id === $user->id) {
+                    $canDelete = true;
+                    Log::info('User - can delete');
+                }
+            }
+
+            if (!$canDelete) {
+                Log::warning('Permission denied for user ' . $user->id . ' to delete order ' . $id);
+
+                $message = 'You do not have permission to delete this order';
+
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 403);
+                }
+
+                return redirect()->back()->with('error', $message);
+            }
+
+            // Delete related order items first
+            if (method_exists($order, 'orderItems') && $order->orderItems()->exists()) {
+                Log::info('Deleting order items for order: ' . $id);
+                $order->orderItems()->delete();
+            }
+
+            // Delete the order
+            Log::info('Deleting order: ' . $id);
+            $order->delete();
+
+            Log::info('Order deleted successfully: ' . $id);
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order deleted successfully'
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Order deleted successfully');
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting order: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            $message = 'Failed to delete order: ' . $e->getMessage();
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', $message);
+        }
     }
 
 

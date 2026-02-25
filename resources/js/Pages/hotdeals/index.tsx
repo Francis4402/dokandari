@@ -1,3 +1,5 @@
+// pages/HotDeals.tsx
+
 import { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Product } from '@/types';
@@ -10,27 +12,22 @@ import {
   BsChevronRight,
   BsGrid3X3Gap,
   BsEye,
-  BsLightning
 } from 'react-icons/bs';
 import {
   FiShoppingBag,
-  FiTag,
-  FiStar,
   FiTruck,
-  FiCheck,
-  FiGrid
+  FiClock
 } from 'react-icons/fi';
 import {
   RiFireFill,
-  RiNewspaperLine,
-  RiStarSFill
+  RiFlashlightFill,
+  RiDiscountPercentFill
 } from 'react-icons/ri';
 import AppLayout from '@/Layouts/AppLayout';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
-import FormatPrice from '../utils/FormatePrice';
 
-interface ProductsPageProps {
+interface HotDealsPageProps {
     products: Product[];
     auth?: {
         user?: any;
@@ -39,31 +36,47 @@ interface ProductsPageProps {
     productRatings?: Record<string, { average: number; count: number }>;
 }
 
-const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPageProps) => {
+const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-    const [sortBy, setSortBy] = useState('default');
+    const [sortBy, setSortBy] = useState('discount-high');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const [productType, setProductType] = useState<string>('all');
+    const [selectedDiscount, setSelectedDiscount] = useState<string>('all');
 
-    // Get unique categories
-    const categories = useMemo(() => {
-        const uniqueCategories = new Set(products.map(p => p.category).filter(Boolean));
-        return ['all', ...uniqueCategories];
+
+    const hotDealsProducts = useMemo(() => {
+        return products.filter(product =>
+            product.sale_price &&
+            product.sale_price < product.regular_price
+        );
     }, [products]);
 
-    // Product type options
-    const productTypes = [
-        { id: 'all', label: 'All Products', icon: <FiGrid /> },
-        { id: 'featured', label: 'Featured', icon: <RiStarSFill /> },
-        { id: 'trending', label: 'Trending', icon: <RiFireFill /> },
-        { id: 'top-selling', label: 'Top Selling', icon: <FiStar /> },
-        { id: 'new-arrival', label: 'New Arrivals', icon: <RiNewspaperLine /> },
-        { id: 'on-sale', label: 'On Sale', icon: <FiTag /> },
+
+    const categories = useMemo(() => {
+        const uniqueCategories = new Set(hotDealsProducts.map(p => p.category).filter(Boolean));
+        return ['all', ...uniqueCategories];
+    }, [hotDealsProducts]);
+
+    // Discount filter options
+    const discountOptions = [
+        { id: 'all', label: 'All Discounts' },
+        { id: '10', label: '10% or more' },
+        { id: '20', label: '20% or more' },
+        { id: '30', label: '30% or more' },
+        { id: '40', label: '40% or more' },
+        { id: '50', label: '50% or more' },
     ];
 
+    // Format price
+    const formatPrice = (price: number): string => {
+        return new Intl.NumberFormat('en-BD', {
+            style: 'currency',
+            currency: 'BDT',
+            minimumFractionDigits: 0,
+        }).format(price);
+    };
 
     // Calculate discount percentage
     const calculateDiscount = (regularPrice: number, salePrice?: number): number => {
@@ -71,14 +84,12 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
     };
 
-    // Get product rating (from product object or passed ratings)
+    // Get product rating
     const getProductRating = (product: Product): { average: number; count: number } => {
-        // If ratings are passed from controller with product ID
         if (productRatings[product.id]) {
             return productRatings[product.id];
         }
 
-        // Otherwise, use product.rating and product.review fields
         const rating = typeof product.rating === 'string'
             ? parseFloat(product.rating)
             : (product.rating || 0);
@@ -90,7 +101,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
         return { average: rating, count: reviewCount };
     };
 
-    // Render stars based on average rating
+    // Render stars
     const renderStars = (averageRating: number): JSX.Element => {
         const fullStars = Math.floor(averageRating);
         const hasHalfStar = averageRating % 1 >= 0.5;
@@ -128,16 +139,16 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
 
     // Sort options
     const sortOptions = [
-        { id: 'default', label: 'Default sorting' },
-        { id: 'popularity', label: 'Sort by popularity' },
-        { id: 'rating', label: 'Sort by average rating' },
-        { id: 'date', label: 'Sort by latest' },
-        { id: 'price-low', label: 'Sort by price: low to high' },
-        { id: 'price-high', label: 'Sort by price: high to low' },
+        { id: 'discount-high', label: 'Discount: High to Low' },
+        { id: 'discount-low', label: 'Discount: Low to High' },
+        { id: 'price-low', label: 'Price: Low to High' },
+        { id: 'price-high', label: 'Price: High to Low' },
+        { id: 'rating', label: 'Top Rated' },
+        { id: 'popularity', label: 'Most Popular' },
     ];
 
     const filteredProducts = useMemo(() => {
-        let filtered = [...products];
+        let filtered = [...hotDealsProducts];
 
         // Search filter
         if (searchQuery) {
@@ -153,15 +164,13 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
             filtered = filtered.filter(product => product.category === selectedCategory);
         }
 
-        // Product type filter
-        if (productType !== 'all') {
-            if (productType === 'on-sale') {
-                filtered = filtered.filter(product =>
-                    product.sale_price && product.sale_price < product.regular_price
-                );
-            } else {
-                filtered = filtered.filter(product => product.product_type === productType);
-            }
+        // Discount filter
+        if (selectedDiscount !== 'all') {
+            const minDiscount = parseInt(selectedDiscount);
+            filtered = filtered.filter(product => {
+                const discount = calculateDiscount(product.regular_price, product.sale_price);
+                return discount >= minDiscount;
+            });
         }
 
         // Price range filter
@@ -172,6 +181,20 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
 
         // Sorting
         switch (sortBy) {
+            case 'discount-high':
+                filtered.sort((a, b) => {
+                    const discountA = calculateDiscount(a.regular_price, a.sale_price);
+                    const discountB = calculateDiscount(b.regular_price, b.sale_price);
+                    return discountB - discountA;
+                });
+                break;
+            case 'discount-low':
+                filtered.sort((a, b) => {
+                    const discountA = calculateDiscount(a.regular_price, a.sale_price);
+                    const discountB = calculateDiscount(b.regular_price, b.sale_price);
+                    return discountA - discountB;
+                });
+                break;
             case 'price-low':
                 filtered.sort((a, b) => {
                     const priceA = a.sale_price || a.regular_price;
@@ -193,9 +216,6 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                     return ratingB - ratingA;
                 });
                 break;
-            case 'date':
-                filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                break;
             case 'popularity':
                 filtered.sort((a, b) => {
                     const countA = getProductRating(a).count;
@@ -208,24 +228,69 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
         }
 
         return filtered;
-    }, [products, searchQuery, selectedCategory, productType, priceRange, sortBy]);
+    }, [hotDealsProducts, searchQuery, selectedCategory, selectedDiscount, priceRange, sortBy]);
 
     // Stats
-    const totalProducts = products.length;
+    const totalDeals = hotDealsProducts.length;
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
-            <Head title="Products | Shop" />
+            <Head title="Hot Deals | Shop" />
 
-            {/* Page Header */}
+            {/* Hero Banner */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
+                <div className="container mx-auto px-4 py-12">
+                    <div className="flex flex-col md:flex-row items-center justify-between">
+                        <div className="text-center md:text-left mb-6 md:mb-0">
+                            <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+                                <RiFireFill className="text-4xl animate-pulse" />
+                                <h1 className="text-4xl md:text-5xl font-bold">Hot Deals</h1>
+                            </div>
+                            <p className="text-xl opacity-90 mb-2">
+                                Limited Time Offers! Up to 70% Off
+                            </p>
+                            <p className="text-lg opacity-80">
+                                {totalDeals} products on sale
+                            </p>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 text-center">
+                            <RiFlashlightFill className="text-4xl mx-auto mb-2" />
+                            <p className="text-2xl font-bold">Flash Sale</p>
+                            <p className="text-sm opacity-90">Ends in:</p>
+                            <div className="flex gap-2 mt-2">
+                                <div className="bg-white/30 rounded px-3 py-1">
+                                    <span className="text-xl font-bold">12</span>
+                                    <span className="text-xs ml-1">h</span>
+                                </div>
+                                <div className="bg-white/30 rounded px-3 py-1">
+                                    <span className="text-xl font-bold">45</span>
+                                    <span className="text-xs ml-1">m</span>
+                                </div>
+                                <div className="bg-white/30 rounded px-3 py-1">
+                                    <span className="text-xl font-bold">30</span>
+                                    <span className="text-xs ml-1">s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Page Header with Search */}
             <div className="bg-gray-50 border-b">
                 <div className="container mx-auto px-4 py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">All Products</h1>
-                            <p className="text-gray-600 text-sm">
-                                Browse our premium collection of {totalProducts} products
-                            </p>
+                            {/* Breadcrumb */}
+                            <nav className="text-sm text-gray-600 mb-2">
+                                <ol className="flex items-center space-x-2">
+                                    <li>
+                                        <Link href="/" className="hover:text-blue-600">Home</Link>
+                                    </li>
+                                    <li><BsChevronRight className="text-gray-400 text-xs" /></li>
+                                    <li className="text-gray-900 font-medium">Hot Deals</li>
+                                </ol>
+                            </nav>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -234,10 +299,10 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                 <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                                 <input
                                     type="text"
-                                    placeholder="Search products..."
+                                    placeholder="Search deals..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full md:w-64"
+                                    className="pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 w-full md:w-64"
                                 />
                             </div>
 
@@ -251,41 +316,24 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                             </button>
                         </div>
                     </div>
-
-                    {/* Breadcrumb */}
-                    <nav className="text-sm text-gray-600">
-                        <ol className="flex items-center space-x-2">
-                            <li>
-                                <Link href="/" className="hover:text-blue-600">Home</Link>
-                            </li>
-                            <li><BsChevronRight className="text-gray-400 text-xs" /></li>
-                            <li className="text-gray-900 font-medium">Shop</li>
-                        </ol>
-                    </nav>
                 </div>
             </div>
 
-            {/* Product Type Filter Bar */}
+            {/* Discount Categories */}
             <div className="bg-white border-b">
                 <div className="container mx-auto px-4">
                     <div className="flex overflow-x-auto py-3 gap-2">
-                        {productTypes.map((type) => (
+                        {discountOptions.map((option) => (
                             <button
-                                key={type.id}
-                                onClick={() => setProductType(type.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                                    productType === type.id
-                                        ? 'bg-blue-600 text-white'
+                                key={option.id}
+                                onClick={() => setSelectedDiscount(option.id)}
+                                className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors text-sm font-medium ${
+                                    selectedDiscount === option.id
+                                        ? 'bg-orange-600 text-white'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                             >
-                                <span className="text-sm">{type.icon}</span>
-                                <span className="text-sm font-medium">{type.label}</span>
-                                {type.id === 'all' && (
-                                    <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded">
-                                        {totalProducts}
-                                    </span>
-                                )}
+                                {option.label}
                             </button>
                         ))}
                     </div>
@@ -297,11 +345,16 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                     {/* Sidebar Filters */}
                     <div className={`lg:w-1/4 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
                         <div className="bg-white border border-gray-200 rounded-lg p-5 sticky top-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <RiDiscountPercentFill className="text-orange-500" />
+                                Filter Deals
+                            </h3>
+
                             {/* Categories */}
                             <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
                                     Categories
-                                </h3>
+                                </h4>
                                 <div className="space-y-1">
                                     {categories.map(category => (
                                         <button
@@ -309,14 +362,14 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                             onClick={() => setSelectedCategory(category)}
                                             className={`block w-full text-left py-2 px-3 rounded-md text-sm ${
                                                 selectedCategory === category
-                                                    ? 'bg-blue-50 text-blue-600 font-medium'
-                                                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                                                    ? 'bg-orange-50 text-orange-600 font-medium'
+                                                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <span>{category === 'all' ? 'All Categories' : category}</span>
                                                 <span className="text-xs text-gray-400">
-                                                    ({products.filter(p => category === 'all' || p.category === category).length})
+                                                    ({hotDealsProducts.filter(p => category === 'all' || p.category === category).length})
                                                 </span>
                                             </div>
                                         </button>
@@ -326,9 +379,9 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
 
                             {/* Filter by Price */}
                             <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                                    Filter by Price
-                                </h3>
+                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+                                    Price Range
+                                </h4>
                                 <div className="space-y-3">
                                     <input
                                         type="range"
@@ -337,7 +390,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                         step="100"
                                         value={priceRange[1]}
                                         onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                                        className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+                                        className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-orange-500"
                                     />
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-600">৳{priceRange[0]}</span>
@@ -348,13 +401,13 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
 
                             {/* Sort by */}
                             <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
                                     Sort by
-                                </h3>
+                                </h4>
                                 <select
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full p-2.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    className="w-full p-2.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                 >
                                     {sortOptions.map(option => (
                                         <option key={option.id} value={option.id}>
@@ -364,46 +417,14 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                 </select>
                             </div>
 
-                            {/* Product Status */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                                    Product Status
-                                </h3>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            defaultChecked
-                                            className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-                                        />
-                                        <span className="text-sm text-gray-600">In stock only</span>
-                                    </label>
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setProductType('on-sale');
-                                                } else {
-                                                    setProductType('all');
-                                                }
-                                            }}
-                                            checked={productType === 'on-sale'}
-                                        />
-                                        <span className="text-sm text-gray-600">On sale</span>
-                                    </label>
-                                </div>
-                            </div>
-
                             {/* Clear Filters */}
                             <button
                                 onClick={() => {
                                     setSelectedCategory('all');
+                                    setSelectedDiscount('all');
                                     setPriceRange([0, 10000]);
                                     setSearchQuery('');
-                                    setProductType('all');
-                                    setSortBy('default');
+                                    setSortBy('discount-high');
                                 }}
                                 className="w-full mt-6 py-2.5 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                             >
@@ -411,21 +432,21 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                             </button>
                         </div>
 
-                        {/* Store Info */}
-                        <div className="mt-6 p-5 bg-gray-50 border border-gray-200 rounded-lg">
+                        {/* Deal Info */}
+                        <div className="mt-6 p-5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
                             <div className="flex items-center gap-3 mb-3">
-                                <FiTruck className="text-blue-600" />
-                                <h4 className="font-medium text-gray-900">Free Shipping</h4>
+                                <FiClock className="text-orange-600 text-xl" />
+                                <h4 className="font-medium text-gray-900">Limited Time Offers</h4>
                             </div>
-                            <p className="text-sm text-gray-600 mb-4">
-                                Free shipping on all orders over ৳1000
+                            <p className="text-sm text-gray-600 mb-3">
+                                These deals won't last long! Grab them before they're gone.
                             </p>
                             <div className="flex items-center gap-3">
-                                <FiCheck className="text-green-600" />
-                                <h4 className="font-medium text-gray-900">Secure Payment</h4>
+                                <FiTruck className="text-green-600" />
+                                <h4 className="font-medium text-gray-900">Free Shipping</h4>
                             </div>
                             <p className="text-sm text-gray-600">
-                                100% secure payment with SSL encryption
+                                On all orders over ৳1000
                             </p>
                         </div>
                     </div>
@@ -435,7 +456,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                         {/* Results Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                             <div className="text-gray-600 text-sm">
-                                Showing <span className="font-medium text-gray-900">{filteredProducts.length}</span> products
+                                Showing <span className="font-medium text-gray-900">{filteredProducts.length}</span> hot deals
                             </div>
                             <div className="flex items-center gap-3">
                                 {/* View Toggle */}
@@ -478,17 +499,20 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                             `}>
                                 {filteredProducts.map((product: Product) => {
                                     const imageSrc = getImageSrc(product.images);
-                                    const hasDiscount = product.sale_price && product.sale_price < product.regular_price;
-                                    const discountPercentage = hasDiscount
-                                        ? calculateDiscount(product.regular_price, product.sale_price)
-                                        : 0;
+                                    const discountPercentage = calculateDiscount(product.regular_price, product.sale_price);
                                     const displayPrice = product.sale_price || product.regular_price;
                                     const { average: avgRating, count: reviewCount } = getProductRating(product);
 
                                     if (viewMode === 'grid') {
                                         return (
                                             <div key={product.id} className="group">
-                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative">
+                                                    {/* Hot Deal Badge */}
+                                                    <div className="absolute top-0 left-0 bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-1.5 rounded-br-lg z-10 flex items-center gap-1">
+                                                        <RiFireFill className="animate-pulse" />
+                                                        <span className="font-bold text-sm">{discountPercentage}% OFF</span>
+                                                    </div>
+
                                                     {/* Image Container */}
                                                     <div className="relative aspect-square overflow-hidden bg-gray-100">
                                                         <img
@@ -499,21 +523,6 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                                 e.currentTarget.src = '/otherplaceholder.jpg';
                                                             }}
                                                         />
-
-                                                        {/* Badges */}
-                                                        <div className="absolute top-3 left-3 flex flex-col gap-1">
-                                                            {hasDiscount && (
-                                                                <span className="inline-flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                                                    <BsLightning className="text-xs" />
-                                                                    -{discountPercentage}%
-                                                                </span>
-                                                            )}
-                                                            {product.product_type === 'new-arrival' && (
-                                                                <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                                                    New
-                                                                </span>
-                                                            )}
-                                                        </div>
 
                                                         {/* Wishlist Button */}
                                                         <WishlistButton
@@ -542,7 +551,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                         </div>
 
                                                         {/* Product Name */}
-                                                        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                                        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1 group-hover:text-orange-600 transition-colors">
                                                             {product.name}
                                                         </h3>
 
@@ -560,16 +569,33 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                         <div className="mb-3">
                                                             <div className="flex items-center justify-between">
                                                                 <div>
-                                                                    <span className="font-bold text-gray-900">
-                                                                        <FormatPrice price={displayPrice} />
+                                                                    <span className="font-bold text-orange-600 text-lg">
+                                                                        {formatPrice(displayPrice)}
                                                                     </span>
-                                                                    {hasDiscount && (
-                                                                        <span className="ml-2 text-sm text-gray-400 line-through">
-                                                                            <FormatPrice price={product.regular_price} />
+                                                                    <span className="ml-2 text-sm text-gray-400 line-through">
+                                                                        {formatPrice(product.regular_price)}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">
+                                                                    Save {formatPrice(product.regular_price - displayPrice)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Stock Status */}
+                                                        <div className="mb-3">
+                                                            {product.quantity > 0 ? (
+                                                                <div className="flex items-center justify-between text-xs">
+                                                                    <span className="text-green-600">In Stock</span>
+                                                                    {product.quantity < 10 && (
+                                                                        <span className="text-orange-600">
+                                                                            Only {product.quantity} left!
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                            </div>
+                                                            ) : (
+                                                                <span className="text-red-600 text-xs">Out of Stock</span>
+                                                            )}
                                                         </div>
 
                                                         <AddtoCartButton product={product} />
@@ -581,7 +607,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                         // List View
                                         return (
                                             <div key={product.id} className="group">
-                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                                                     <div className="flex flex-col md:flex-row">
                                                         {/* Image */}
                                                         <div className="md:w-1/4 relative">
@@ -595,13 +621,11 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                                     }}
                                                                 />
                                                             </div>
-                                                            {hasDiscount && (
-                                                                <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                                                    -{discountPercentage}%
-                                                                </span>
-                                                            )}
+                                                            <div className="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                                                -{discountPercentage}%
+                                                            </div>
 
-                                                            {/* Wishlist Button in list view */}
+                                                            {/* Wishlist Button */}
                                                             <div className="absolute top-3 right-3">
                                                                 <WishlistButton
                                                                     productId={product.id}
@@ -622,7 +646,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                                     </div>
 
                                                                     {/* Product Name */}
-                                                                    <h3 className="text-lg font-medium text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                                                    <h3 className="text-lg font-medium text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
                                                                         {product.name}
                                                                     </h3>
 
@@ -650,19 +674,24 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                                             {product.inStock ? 'In Stock' : 'Out of Stock'}
                                                                         </div>
                                                                     </div>
+
+                                                                    {/* Savings Info */}
+                                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                                                                        <p className="text-green-700 text-sm">
+                                                                            <span className="font-bold">You Save:</span> {formatPrice(product.regular_price - displayPrice)} ({discountPercentage}% off)
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
 
                                                                 <div className="md:w-48">
                                                                     {/* Price */}
                                                                     <div className="mb-4">
-                                                                        <div className="text-2xl font-bold text-gray-900">
-                                                                            <FormatPrice price={displayPrice} />
+                                                                        <div className="text-2xl font-bold text-orange-600">
+                                                                            {formatPrice(displayPrice)}
                                                                         </div>
-                                                                        {hasDiscount && (
-                                                                            <div className="text-sm text-gray-400 line-through">
-                                                                                <FormatPrice price={product.regular_price} />
-                                                                            </div>
-                                                                        )}
+                                                                        <div className="text-sm text-gray-400 line-through">
+                                                                            {formatPrice(product.regular_price)}
+                                                                        </div>
                                                                     </div>
 
                                                                     {/* Actions */}
@@ -682,24 +711,24 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                         ) : (
                             // No Results
                             <div className="text-center py-12">
-                                <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <FiShoppingBag className="text-gray-400 text-3xl" />
+                                <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <FiShoppingBag className="text-orange-500 text-3xl" />
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    No products found
+                                    No deals found
                                 </h3>
                                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                    Try adjusting your search or filter to find what you're looking for.
+                                    Try adjusting your filters to find more great deals.
                                 </p>
                                 <button
                                     onClick={() => {
                                         setSelectedCategory('all');
+                                        setSelectedDiscount('all');
                                         setPriceRange([0, 10000]);
                                         setSearchQuery('');
-                                        setProductType('all');
-                                        setSortBy('default');
+                                        setSortBy('discount-high');
                                     }}
-                                    className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                                    className="px-6 py-2.5 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
                                 >
                                     Clear all filters
                                 </button>
@@ -711,13 +740,13 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                             <div className="mt-8 pt-6 border-t border-gray-200">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="text-sm text-gray-600">
-                                        Showing 1-{Math.min(filteredProducts.length, 12)} of {filteredProducts.length} products
+                                        Showing 1-{Math.min(filteredProducts.length, 12)} of {filteredProducts.length} deals
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
                                             Previous
                                         </button>
-                                        <button className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md">
+                                        <button className="px-3 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-md">
                                             1
                                         </button>
                                         <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
@@ -740,4 +769,4 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
     );
 };
 
-export default Products;
+export default HotDeals;

@@ -9,6 +9,7 @@ import { FiZap } from 'react-icons/fi';
 import { BiHeart } from 'react-icons/bi';
 import { Product } from '@/types';
 import { Link } from '@inertiajs/react';
+import FormatPrice from '../utils/FormatePrice';
 
 const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) => {
 
@@ -92,13 +93,6 @@ const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) =
     return `/storage/${imagePath}`;
   };
 
-
-  const formatPrice = (price: number): string => {
-    return `৳${new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price)}`;
-  };
 
   const renderProductImage = (imagesString: string, productName: string) => {
     const src = getFirstImage(imagesString);
@@ -230,11 +224,11 @@ const TrandingProducts = ({ trandingproduct }: { trandingproduct: Product[] }) =
                     <div className="flex flex-col gap-1">
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm font-bold text-primary">
-                          {formatPrice(offer.sale_price || offer.regular_price)}
+                          <FormatPrice price={offer.sale_price || offer.regular_price} />
                         </span>
                         {discount !== '0%' && (
                           <span className="text-sm text-gray-500 line-through">
-                            {formatPrice(offer.regular_price)}
+                            <FormatPrice price={offer.regular_price} />
                           </span>
                         )}
                       </div>

@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { useRef, useState } from "react";
 import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
 import AddtoCartButton from "../buttons/AddtoCartButton";
+import FormatPrice from "../utils/FormatePrice";
 
 interface TopSellingProductProps {
   products: Product[];
@@ -151,13 +152,6 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
     );
   };
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'BDT',
-        minimumFractionDigits: 2
-        }).format(price);
-    };
 
 
   const getImageSrc = (images: string) => {
@@ -316,11 +310,11 @@ const TopSellingProduct = ({ products }: TopSellingProductProps) => {
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold ">
-                          {formatPrice(product.sale_price || product.regular_price)}
+                          <FormatPrice price={product.sale_price || product.regular_price} />
                         </span>
                         {hasDiscount && (
                           <span className="text-sm text-gray-500 line-through">
-                            {formatPrice(product.regular_price)}
+                            <FormatPrice price={product.regular_price} />
                           </span>
                         )}
                       </div>

@@ -11,6 +11,7 @@ import { FiZap } from 'react-icons/fi';
 import { BiHeart } from 'react-icons/bi';
 import { Product } from '@/types';
 import { Link } from '@inertiajs/react';
+import FormatPrice from '../utils/FormatePrice';
 
 
 const OfferedProducts = ({product}: {product: Product[]}) => {
@@ -41,13 +42,6 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
         return saveAmount > 0 ? saveAmount.toFixed(0) : '0';
     };
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'BDT',
-        minimumFractionDigits: 2
-        }).format(price);
-    };
 
     const renderStars = (rating: number) => {
     const normalizedRating = Math.min(Math.max(Number(rating) || 0, 0), 5);
@@ -282,11 +276,11 @@ const OfferedProducts = ({product}: {product: Product[]}) => {
                       <div className="flex flex-col items-center justify-between">
                         <div className="flex items-baseline gap-2">
                           <span className="text-sm font-bold text-primary">
-                            {formatPrice(offer.sale_price || offer.regular_price)}
+                            <FormatPrice price={offer.sale_price || offer.regular_price} />
                           </span>
                           {discount !== '0%' && (
                             <span className="text-sm text-gray-500 line-through">
-                              {formatPrice(offer.regular_price)}
+                              <FormatPrice price={offer.regular_price} />
                             </span>
                           )}
                         </div>

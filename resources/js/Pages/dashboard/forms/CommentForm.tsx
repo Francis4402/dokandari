@@ -1,4 +1,3 @@
-// dashboard/forms/CommentForm.tsx
 
 import { useState } from "react";
 import { FaUser, FaStar, FaRegStar } from "react-icons/fa";

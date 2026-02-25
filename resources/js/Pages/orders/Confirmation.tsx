@@ -23,6 +23,7 @@ import {
 import AppLayout from '@/Layouts/AppLayout';
 import { useEffect } from 'react';
 import { Orders, OrderItem } from '@/types';
+import FormatPrice from '../utils/FormatePrice';
 
 interface OrderProps {
   auth: {
@@ -44,14 +45,7 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
     }
   }, []);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price ?? 0).replace('BDT', '৳');
-  };
+
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '—';
@@ -309,7 +303,7 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
             </div>
             <div className="excel-field">
               <span className="excel-label">Charge:</span>
-              <span className="excel-value">{formatPrice(order.delivery_charge)}</span>
+              <span className="excel-value"><FormatPrice price={order.delivery_charge}/></span>
             </div>
             {order.tracking_number && (
               <div className="excel-field">
@@ -343,8 +337,8 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
                 <tr key={index}>
                   <td>{item.product_name}</td>
                   <td className="center">{item.quantity}</td>
-                  <td className="right">{formatPrice(item.price)}</td>
-                  <td className="right">{formatPrice(item.total)}</td>
+                  <td className="right"><FormatPrice price={item.price} /></td>
+                  <td className="right"><FormatPrice price={item.total} /></td>
                 </tr>
               ))}
             </tbody>
@@ -355,30 +349,30 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
             <tbody>
               <tr>
                 <td>Subtotal</td>
-                <td className="right">{formatPrice(order.subtotal)}</td>
+                <td className="right"><FormatPrice price={order.subtotal} /></td>
               </tr>
               <tr>
                 <td>Delivery Charge</td>
-                <td className="right">{formatPrice(order.delivery_charge)}</td>
+                <td className="right"><FormatPrice price={order.delivery_charge} /></td>
               </tr>
               <tr>
                 <td>Tax (10%)</td>
-                <td className="right">{formatPrice(taxAmount)}</td>
+                <td className="right"><FormatPrice price={taxAmount} /></td>
               </tr>
               {order.discount_amount > 0 && (
                 <tr>
                   <td>Discount {order.coupon_code && `(${order.coupon_code})`}</td>
-                  <td className="right">-{formatPrice(order.discount_amount)}</td>
+                  <td className="right">-<FormatPrice price={order.discount_amount} /></td>
                 </tr>
               )}
               <tr>
                 <td>TOTAL</td>
-                <td className="right">{formatPrice(order.total)}</td>
+                <td className="right"><FormatPrice price={order.total} /></td>
               </tr>
               {order.payment_method === 'cash_on_delivery' && (
                 <tr>
                   <td>Amount to Collect (COD)</td>
-                  <td className="right" style={{ fontWeight: 'bold' }}>{formatPrice(order.amount_to_collect)}</td>
+                  <td className="right" style={{ fontWeight: 'bold' }}><FormatPrice price={order.amount_to_collect} /></td>
                 </tr>
               )}
             </tbody>
@@ -413,7 +407,7 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
               </h1>
               <p className="text-gray-600 max-w-2xl mx-auto">
                 Thank you for your order! {order.payment_method === 'cash_on_delivery'
-                  ? `Pay ${formatPrice(order.amount_to_collect)} on delivery.`
+                  ? `Pay ${<FormatPrice price={order.amount_to_collect} />} on delivery.`
                   : 'Payment being processed.'}
               </p>
               <div className="mt-4 flex flex-wrap gap-2 justify-center">
@@ -466,8 +460,8 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
                               <span className="font-medium">{item.product_name}</span>
                             </td>
                             <td className="py-3 text-sm text-center">{item.quantity}</td>
-                            <td className="py-3 text-sm text-right">{formatPrice(item.price)}</td>
-                            <td className="py-3 text-sm text-right font-medium">{formatPrice(item.total)}</td>
+                            <td className="py-3 text-sm text-right"><FormatPrice price={item.price} /></td>
+                            <td className="py-3 text-sm text-right font-medium"><FormatPrice price={item.total} /></td>
                           </tr>
                         ))}
                       </tbody>
@@ -477,31 +471,31 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="flex justify-between text-sm py-1">
                         <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium">{formatPrice(order.subtotal)}</span>
+                        <span className="font-medium"><FormatPrice price={order.subtotal} /></span>
                       </div>
                       <div className="flex justify-between text-sm py-1">
                         <span className="text-gray-600">Shipping</span>
-                        <span className="font-medium">{formatPrice(order.delivery_charge)}</span>
+                        <span className="font-medium"><FormatPrice price={order.delivery_charge}/></span>
                       </div>
                       <div className="flex justify-between text-sm py-1">
                         <span className="text-gray-600">Tax (10%)</span>
-                        <span className="font-medium">{formatPrice(taxAmount)}</span>
+                        <span className="font-medium"><FormatPrice price={taxAmount} /></span>
                       </div>
                       {order.discount_amount > 0 && (
                         <div className="flex justify-between text-sm py-1">
                           <span className="text-gray-600">Discount {order.coupon_code && `(${order.coupon_code})`}</span>
-                          <span className="font-medium text-green-600">-{formatPrice(order.discount_amount)}</span>
+                          <span className="font-medium text-green-600">-<FormatPrice price={order.discount_amount} /></span>
                         </div>
                       )}
                       <div className="flex justify-between text-base font-bold pt-3 mt-2 border-t border-gray-300">
                         <span>Total</span>
-                        <span className="text-green-600">{formatPrice(order.total)}</span>
+                        <span className="text-green-600"><FormatPrice price={order.total} /></span>
                       </div>
                       {order.payment_method === 'cash_on_delivery' && (
                         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-blue-800">Amount to collect on delivery</span>
-                            <span className="text-lg font-bold text-blue-800">{formatPrice(order.amount_to_collect)}</span>
+                            <span className="text-lg font-bold text-blue-800"><FormatPrice price={order.amount_to_collect} /></span>
                           </div>
                         </div>
                       )}

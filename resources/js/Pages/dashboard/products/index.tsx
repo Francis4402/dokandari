@@ -20,6 +20,7 @@ import {
 } from 'react-icons/fa';
 import { Product, storeType } from '@/types';
 import { toast } from 'sonner';
+import FormatPrice from '@/Pages/utils/FormatePrice';
 
 
 interface dashboarProductProps {
@@ -33,11 +34,11 @@ interface dashboarProductProps {
 const Products = ({auth, products, store}: dashboarProductProps) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [stockFilter, setStockFilter] = useState('all');
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [sortBy, setSortBy] = useState('newest');
+    const [stockFilter, setStockFilter] = useState('all');
 
 
 
@@ -350,12 +351,12 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                     const discount = calculateDiscount(product.regular_price, product.sale_price);
                     const stockStatus = getStockStatus(product.quantity, product.inStock);
 
-                    // Parse images array from JSON string
                     let images = [];
+
                     try {
-                    images = product.images ? JSON.parse(product.images) : [];
+                        images = product.images ? JSON.parse(product.images) : [];
                     } catch (e) {
-                    images = product.images ? [product.images] : []; // Fallback for single image
+                        images = product.images ? [product.images] : [];
                     }
 
                     const mainImage = images.length > 0 ? images[0] : null;
@@ -408,11 +409,11 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                             <div>
                             {product.sale_price ? (
                                 <>
-                                <span className="text-lg font-bold text-gray-800">${product.sale_price}</span>
-                                <span className="text-sm text-gray-500 line-through ml-2">${product.regular_price}</span>
+                                <span className="text-lg font-bold text-gray-800"><FormatPrice price={product.sale_price} /></span>
+                                <span className="text-sm text-gray-500 line-through ml-2"><FormatPrice price={product.regular_price} /></span>
                                 </>
                             ) : (
-                                <span className="text-lg font-bold text-gray-800">${product.regular_price}</span>
+                                <span className="text-lg font-bold text-gray-800"><FormatPrice price={product.regular_price} /></span>
                             )}
                             </div>
                             <div className="flex items-center">

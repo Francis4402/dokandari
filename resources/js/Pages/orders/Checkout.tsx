@@ -21,6 +21,7 @@ import {
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore, OrderData } from '../state/cartStore';
 import { toast } from 'sonner';
+import FormatPrice from '../utils/FormatePrice';
 
 interface CheckoutProps {
   auth: {
@@ -73,14 +74,6 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
 
   const summary = getOrderSummary();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(price);
-  };
 
   const getFirstImage = (images: string) => {
     try {
@@ -101,6 +94,15 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
       }
     }
     return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'currency',
+      currency: 'BDT',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price ?? 0).replace('BDT', '৳');
   };
 
   const getSelectedCityName = () => {
@@ -470,7 +472,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                             </p>
                             <div className="flex items-center justify-between mt-2">
                               <p className="text-xs text-green-600">
-                                Delivery: {formatPrice(pathaoCharges.delivery_charge)}
+                                Delivery: <FormatPrice price={pathaoCharges.delivery_charge} />
                               </p>
                               <p className="text-xs text-green-600 flex items-center">
                                 <FaClock className="h-3 w-3 mr-1" />
@@ -595,7 +597,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                                 Qty: {item.cartQty || 1}
                               </p>
                               <p className="text-sm font-semibold text-gray-900 mt-1">
-                                {formatPrice((item.sale_price || item.regular_price) * (item.cartQty || 1))}
+                                <FormatPrice price={(item.sale_price || item.regular_price) * (item.cartQty || 1)} />
                               </p>
                             </div>
                           </div>
@@ -606,25 +608,25 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                       <div className="space-y-3 pt-4 border-t border-gray-200">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Subtotal</span>
-                          <span className="font-medium text-gray-900">{formatPrice(summary.subtotal)}</span>
+                          <span className="font-medium text-gray-900"><FormatPrice price={summary.subtotal} /></span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Shipping</span>
-                          <span className="font-medium text-gray-900">{formatPrice(summary.shipping)}</span>
+                          <span className="font-medium text-gray-900"><FormatPrice price={summary.shipping} /></span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Tax (10%)</span>
-                          <span className="font-medium text-gray-900">{formatPrice(summary.tax)}</span>
+                          <span className="font-medium text-gray-900"><FormatPrice price={summary.tax} /></span>
                         </div>
                         {summary.discount && summary.discount > 0 ? (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount</span>
-                            <span className="font-medium text-green-600">-{formatPrice(summary.discount)}</span>
+                            <span className="font-medium text-green-600">-<FormatPrice price={summary.discount}/></span>
                           </div>
                         ) : null}
                         <div className="flex justify-between text-base font-bold pt-3 border-t border-gray-200">
                           <span className="text-gray-900">Total</span>
-                          <span className="text-blue-600">{formatPrice(summary.total)}</span>
+                          <span className="text-blue-600"><FormatPrice price={summary.total} /></span>
                         </div>
                       </div>
 
@@ -665,7 +667,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                               Processing...
                             </span>
                           ) : (
-                            `Place Order • ${formatPrice(summary.total)}`
+                            `Place Order • ${<FormatPrice price={summary.total} />}`
                           )}
                         </button>
 
@@ -698,13 +700,12 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                     <p className="text-sm text-gray-600 mb-3">
                       Contact our customer support for assistance
                     </p>
-                    <a
-                      href="tel:+880123456789"
+                    <div
                       className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-2"
                     >
                       <FaPhone className="h-3 w-3" />
-                      +880 1234-56789
-                    </a>
+                      +8801319052507
+                    </div>
                   </div>
                 </div>
               </div>
