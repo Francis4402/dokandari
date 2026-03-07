@@ -17,6 +17,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
 use App\Http\Controllers\WishlistController;
 use App\Models\Categories;
+use App\Models\Comment;
 use App\Models\Products;
 use App\Models\wishlist;
 use Illuminate\Foundation\Application;
@@ -36,8 +37,31 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     $categories = Categories::all();
-    $products = Products::with('store')->paginate(20);
+    $products = Products::with('store')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
     $wishlist = Wishlist::where('user_id', auth()->id())->paginate(12);
+
+
+    $productIds = $products->pluck('id')->toArray();
+
+    // Get ratings for all products
+    $ratings = Comment::whereIn('product_id', $productIds)
+        ->whereNotNull('rating')
+        ->select('product_id', 'rating')
+        ->get();
+
+    $productRatings = [];
+    foreach ($products as $product) {
+        $productRatingData = $ratings->where('product_id', $product->id);
+        $averageRating = $productRatingData->avg('rating') ?? 0;
+        $ratingCount = $productRatingData->count();
+
+        $productRatings[$product->id] = [
+            'average' => round($averageRating, 1),
+            'count' => $ratingCount
+        ];
+    }
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -47,23 +71,29 @@ Route::get('/', function () {
         'categories' => $categories,
         'products' => $products,
         'wishlist' => $wishlist,
+        'productRatings' => $productRatings,
     ]);
+});
+
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
+    Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
+    Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
+    Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
+    Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/products', [ProductsController::class, 'index'])->name('dashboard.products');
-    Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
+
     Route::get('/dashboard/stores', [StoreController::class, 'index'])->name('dashboard.store');
     Route::get('/dashboard/orders', [OrdersController::class, 'dashboardIndex'])->name('dashboard.orders');
-    Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
     Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
     Route::get('/dashboard/messages', [MessagesController::class, 'index'])->name('dashboard.messages');
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 
-    Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
-    Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
 
     Route::get('/dashboard/products/productform', [ProductsController::class, 'create'])->name('dashboard.createproduct');
     Route::get('/dashboard/stores/storeform', [StoreController::class, 'create'])->name('dashboard.createstore');
@@ -74,7 +104,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/stores/store', [StoreController::class, 'store'])->name('stores.store');
     Route::delete('/dashboard/store/{id}', [StoreController::class, 'destroy'])->name('dashboard.deletestore');
 
-    Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
     Route::get('/dashboard/products/{id}/edit', [ProductsController::class, 'edit'])->name('dashboard.productedit');
     Route::put('/dashboard/products/update/{slug}', [ProductsController::class, 'update'])->name('dashboard.updateproduct');
 
@@ -105,9 +134,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
+// Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
+Route::get('/stores/{id}', [StoreController::class, 'show'])->name('stores.show');
+
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
 Route::get('/products', [ProductsController::class, 'products'])->name('products.index');
@@ -117,6 +148,8 @@ Route::get('/products/{id}', [ProductsController::class, 'show'])->name('product
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 
 Route::get('/products/{product}/comments', [CommentController::class, 'getProductComments']);
+
+Route::get('/hotdeals', [ProductsController::class, 'hotdeals'])->name('products.hotdeals');
 
 Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');

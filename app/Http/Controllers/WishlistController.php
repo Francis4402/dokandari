@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\Products;
 use App\Models\wishlist;
 use Illuminate\Http\Request;
@@ -16,9 +17,8 @@ class WishlistController extends Controller
     public function index()
     {
         $wishlistItems = Wishlist::with('product.store')
-        ->where('user_id', auth()->id())
-        ->paginate(12);
-
+            ->where('user_id', auth()->id())
+            ->paginate(12);
 
         $products = [];
         foreach ($wishlistItems->items() as $item) {
@@ -27,12 +27,35 @@ class WishlistController extends Controller
             }
         }
 
+        // Get all product IDs from wishlist
+        $productIds = collect($products)->pluck('id')->toArray();
+
+
+        $ratings = Comment::whereIn('product_id', $productIds)
+            ->whereNotNull('rating')
+            ->select('product_id', 'rating')
+            ->get();
+
+
+        $productRatings = [];
+        foreach ($products as $product) {
+            $productRatingData = $ratings->where('product_id', $product->id);
+            $averageRating = $productRatingData->avg('rating') ?? 0;
+            $ratingCount = $productRatingData->count();
+
+            $productRatings[$product->id] = [
+                'average' => round($averageRating, 1),
+                'count' => $ratingCount
+            ];
+        }
+
         $wishlistProducts = [
             'data' => $products,
             'current_page' => $wishlistItems->currentPage(),
             'last_page' => $wishlistItems->lastPage(),
             'per_page' => $wishlistItems->perPage(),
             'total' => $wishlistItems->total(),
+            'productRatings' => $productRatings, // Add ratings to the data
         ];
 
         return Inertia::render('wishlist/index', [

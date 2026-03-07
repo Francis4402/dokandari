@@ -21,6 +21,7 @@ class ContactController extends Controller
         ]);
     }
 
+
     /**
      * Show the form for creating a new resource.
      */
@@ -42,10 +43,16 @@ class ContactController extends Controller
         ]);
 
         $contact = new Contact();
-        $contact->name = $validated['name'];
-        $contact->email = $validated['email'];
-        $contact->subject = $validated['subject'];
-        $contact->message = $validated['message'];
+
+        $contact = Contact::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'is_read' => false,
+            'is_starred' => false,
+        ]);
+
 
         $contact->save();
     }
@@ -55,7 +62,69 @@ class ContactController extends Controller
      */
     public function show(Contact $contact)
     {
-        //
+        // Mark as read when viewed
+        if (!$contact->is_read) {
+            $contact->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+        }
+
+        return Inertia::render('ContactUs/Show', [
+            'contact' => $contact
+        ]);
+    }
+
+    public function toggleRead(Contact $contact)
+    {
+        $contact->update([
+            'is_read' => !$contact->is_read,
+            'read_at' => !$contact->is_read ? now() : null
+        ]);
+
+        return redirect()->back()->with('success', 'Read status updated');
+    }
+
+    public function toggleStar(Contact $contact)
+    {
+        $contact->update([
+            'is_starred' => !$contact->is_starred
+        ]);
+
+        return redirect()->back()->with('success', 'Star status updated');
+    }
+
+    public function markAsRead(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:contacts,id'
+        ]);
+
+        Contact::whereIn('id', $request->ids)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+
+        return redirect()->back()->with('success', 'Messages marked as read');
+    }
+
+    public function markAsUnread(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:contacts,id'
+        ]);
+
+        Contact::whereIn('id', $request->ids)
+            ->update([
+                'is_read' => false,
+                'read_at' => null
+            ]);
+
+        return redirect()->back()->with('success', 'Messages marked as unread');
     }
 
     /**
@@ -79,6 +148,20 @@ class ContactController extends Controller
      */
     public function destroy(Contact $contact)
     {
-        //
+        $contact->delete();
+
+        return $contact;
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:contacts,id'
+        ]);
+
+        Contact::whereIn('id', $request->ids)->delete();
+
+        return redirect()->back()->with('success', 'Contacts deleted successfully');
     }
 }

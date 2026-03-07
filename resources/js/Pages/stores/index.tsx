@@ -10,7 +10,6 @@ import {
   FaCheckCircle,
   FaChevronDown,
   FaEye,
-  FaHeart,
   FaTimes,
   FaChevronRight,
 } from "react-icons/fa";
@@ -18,7 +17,7 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import { storeType } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -40,8 +39,6 @@ const StoreListPage = ({ auth, stores, wishlist }: StoreListPageProps) => {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const storesRef = useRef<HTMLDivElement>(null);
-
-
 
   const storeTypes = Array.from(
     new Set(stores.map((s) => s.storetype).filter(Boolean) as string[])
@@ -202,163 +199,146 @@ const StoreListPage = ({ auth, stores, wishlist }: StoreListPageProps) => {
 
         const handleMouseEnter = () => {
             if (cardRef.current) {
-            gsap.to(cardRef.current, {
-                y: -8,
-                duration: 0.3,
-                ease: "power2.out",
-            });
+                gsap.to(cardRef.current, {
+                    y: -8,
+                    duration: 0.3,
+                    ease: "power2.out",
+                });
             }
         };
 
         const handleMouseLeave = () => {
             if (cardRef.current) {
-            gsap.to(cardRef.current, {
-                y: 0,
-                duration: 0.3,
-                ease: "power2.out",
-            });
+                gsap.to(cardRef.current, {
+                    y: 0,
+                    duration: 0.3,
+                    ease: "power2.out",
+                });
             }
+        };
+
+        const handleCardClick = () => {
+            router.visit(`/stores/${store.id}`);
         };
 
         const safeRating = typeof store.rating === 'string'
             ? parseFloat(store.rating) || 0
             : Number(store.rating) || 0;
 
-        // Format the rating safely
         const ratingDisplay = Number.isFinite(safeRating)
             ? safeRating.toFixed(1)
             : "0.0";
 
-        // Parse review count safely
         const reviewCount = typeof store.review_count === 'string'
             ? parseInt(store.review_count, 10) || 0
             : Number(store.review_count) || 0;
 
-        // Ensure storetype has a fallback
         const storeTypeDisplay = store.storetype || "General Store";
-
-        // Ensure address has a fallback
         const addressDisplay = store.address || "Address not specified";
-
-        // Ensure name has a fallback
         const storeName = store.name || "Unnamed Store";
 
         return (
             <div
-            ref={cardRef}
-            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group store-card cursor-pointer border border-gray-200"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+                ref={cardRef}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group store-card cursor-pointer border border-gray-200"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleCardClick}
             >
-            <div className="p-6">
-                {/* Store Header with Logo and Name */}
-                <div className="flex items-start gap-4 mb-4">
-                {/* Store Logo */}
-                <div className="flex-shrink-0">
-                    <div className="h-16 w-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
-                    {store.logo ? (
-                        <img
-                        src={`/storage/${store.logo}`}
-                        alt={storeName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                        }}
-                        />
-                    ) : <img
-                        src={`/placeholder.png`}
-                        alt={storeName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                        }}
-                        />}
-                    <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
-                        {storeName.charAt(0)}
-                    </div>
-                    </div>
-                </div>
+                <div className="p-6">
+                    {/* Store Header with Logo and Name */}
+                    <div className="flex items-start gap-4 mb-4">
+                        {/* Store Logo */}
+                        <div className="flex-shrink-0">
+                            <div className="h-16 w-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
+                                {store.logo ? (
+                                    <img
+                                        src={`/storage/${store.logo}`}
+                                        alt={storeName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = "none";
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold">
+                                        {storeName.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-                {/* Store Name and Type */}
-                <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                    <div>
-                        <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-1 mb-1">
-                        {storeName}
-                        </h3>
-                        <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center px-2 py-1 text-xs border border-gray-300 rounded-md">
-                            <FaStore className="h-3 w-3 mr-1" />
-                            {storeTypeDisplay}
-                        </span>
+                        {/* Store Name and Type */}
+                        <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-1 mb-1">
+                                        {storeName}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="inline-flex items-center px-2 py-1 text-xs border border-gray-300 rounded-md">
+                                            <FaStore className="h-3 w-3 mr-1" />
+                                            {storeTypeDisplay}
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* Rating */}
+                            <div className="flex items-center gap-1 mb-2">
+                                <div className="flex">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <FaStar
+                                            key={i}
+                                            className={`h-3.5 w-3.5 ${
+                                                i < Math.floor(safeRating)
+                                                    ? "text-amber-400 fill-amber-400"
+                                                    : "text-gray-300"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-sm font-semibold text-gray-900">
+                                    {ratingDisplay}
+                                </span>
+                                <span className="text-sm text-gray-500">({reviewCount})</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="flex gap-2">
-                        <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full shadow-sm transition-colors">
-                        <FaHeart className="h-4 w-4 text-gray-600" />
-                        </button>
-                    </div>
+                    {/* Address */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                        <FaMapMarkerAlt className="h-4 w-4 flex-shrink-0" />
+                        <span className="line-clamp-1">
+                            {addressDisplay}
+                        </span>
                     </div>
 
-                    {/* Rating */}
-                    <div className="flex items-center gap-1 mb-2">
-                    <div className="flex">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                        <FaStar
-                            key={i}
-                            className={`h-3.5 w-3.5 ${
-                            i < Math.floor(safeRating)
-                                ? "text-amber-400 fill-amber-400"
-                                : "text-gray-300"
-                            }`}
-                        />
-                        ))}
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                                <FaStar className="h-3.5 w-3.5 text-amber-600" />
+                                <span className="text-lg font-bold text-gray-900">{ratingDisplay}</span>
+                            </div>
+                            <span className="text-xs text-gray-600">Rating</span>
+                        </div>
+                        <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                                <FaStar className="h-3.5 w-3.5 text-blue-600" />
+                                <span className="text-lg font-bold text-gray-900">{reviewCount}</span>
+                            </div>
+                            <span className="text-xs text-gray-600">Reviews</span>
+                        </div>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">
-                        {ratingDisplay}
-                    </span>
-                    <span className="text-sm text-gray-500">({reviewCount})</span>
-                    </div>
-                </div>
-                </div>
 
-                {/* Address */}
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                <FaMapMarkerAlt className="h-4 w-4 flex-shrink-0" />
-                <span className="line-clamp-1">
-                    {addressDisplay}
-                </span>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                    <FaStar className="h-3.5 w-3.5 text-amber-600" />
-                    <span className="text-lg font-bold text-gray-900">{ratingDisplay}</span>
+                    {/* Visit Button - Now just for visual, click is handled by card */}
+                    <div className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg text-center opacity-90">
+                        <FaEye className="h-4 w-4 inline mr-2" />
+                        Visit Store
                     </div>
-                    <span className="text-xs text-gray-600">Rating</span>
                 </div>
-                <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                    <FaStar className="h-3.5 w-3.5 text-blue-600" />
-                    <span className="text-lg font-bold text-gray-900">{reviewCount}</span>
-                    </div>
-                    <span className="text-xs text-gray-600">Reviews</span>
-                </div>
-                </div>
-
-                {/* Visit Button */}
-                <Link
-                href={`/stores/${store.id}`}
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center"
-                >
-                <FaEye className="h-4 w-4 mr-2" />
-                Visit Store
-                </Link>
-            </div>
             </div>
         );
     };

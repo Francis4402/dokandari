@@ -18,18 +18,18 @@ class OrdersController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $orders = Orders::where('user_id', Auth::id())
-            ->with('orderItems')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
-        return Inertia::render('orders/Index', [
-            'orders' => $orders,
-            'wishlist' => $wishlist
-        ]);
-    }
+    // public function index()
+    // {
+    //     $orders = Orders::where('user_id', Auth::id())
+    //         ->with('orderItems')
+    //         ->orderBy('created_at', 'desc')
+    //         ->paginate(10);
+    //     $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+    //     return Inertia::render('orders/Index', [
+    //         'orders' => $orders,
+    //         'wishlist' => $wishlist
+    //     ]);
+    // }
 
     public function dashboardIndex()
     {

@@ -83,7 +83,6 @@ export interface Product {
     inStock: boolean;
     rating: number;
     item_weight: number;
-    review?: number;
     store?: storeType;
     created_at: string;
     updated_at: string;

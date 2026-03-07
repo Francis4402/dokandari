@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
 import {
   FaEnvelope,
   FaPhone,
@@ -24,7 +23,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link, useForm, router } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,10 +40,15 @@ interface FAQItem {
   answer: string;
 }
 
-const ContactUsPage = ({ auth, wishlist }: PageProps) => {
+interface Props extends PageProps {
+  flash?: {
+    success?: string;
+    error?: string;
+  };
+}
+
+const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -52,16 +56,30 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
   const formRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
 
-
-  const { data, setData, post, processing, errors: inertiaErrors, reset } = useForm({
+  const { data, setData, post, processing, reset, wasSuccessful } = useForm({
     name: auth.user?.name || "",
     email: auth.user?.email || "",
     subject: "",
     message: ""
   });
 
-
   const isLoggedIn = !!auth.user;
+
+  // Show success modal when form was successful
+  useEffect(() => {
+    if (wasSuccessful) {
+      setShowSuccessModal(true);
+      reset('subject', 'message');
+      setErrors({});
+    }
+  }, [wasSuccessful]);
+
+  // Show flash message if exists
+  useEffect(() => {
+    if (flash?.success) {
+      setShowSuccessModal(true);
+    }
+  }, [flash]);
 
   // Contact information
   const contactInfo = {
@@ -167,6 +185,8 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
       newErrors.message = "Message is required";
     } else if (data.message.length < 10) {
       newErrors.message = "Message must be at least 10 characters";
+    } else if (data.message.length > 400) {
+      newErrors.message = "Message must not exceed 400 characters";
     }
 
     setErrors(newErrors);
@@ -180,24 +200,10 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
       return;
     }
 
-    setIsSubmitting(true);
-    setSubmitError("");
-
-
     post(route('contact.store'), {
-      onSuccess: () => {
-        setIsSubmitting(false);
-        setShowSuccessModal(true);
-        reset('subject', 'message');
-        setErrors({});
-      },
+      preserveScroll: true,
       onError: (errors) => {
-        setIsSubmitting(false);
-        setSubmitError("Failed to send message. Please try again.");
         console.error('Form submission errors:', errors);
-      },
-      onFinish: () => {
-        setIsSubmitting(false);
       }
     });
   };
@@ -310,6 +316,7 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
       <Head title="Contact Us">
         <meta name="description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
       </Head>
+
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Success Modal */}
         <Transition appear show={showSuccessModal} as={Fragment}>
@@ -348,14 +355,12 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                       <p className="text-gray-600 mb-6">
                         Thank you for contacting us. We've received your message and will get back to you within 24 hours.
                       </p>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => setShowSuccessModal(false)}
-                          className="flex-1 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
-                        >
-                          Continue Browsing
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setShowSuccessModal(false)}
+                        className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Continue Browsing
+                      </button>
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>
@@ -369,7 +374,7 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
           <div ref={headerRef} className="mb-12 text-center">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-center">
               <Link href="/" className="hover:text-amber-600 transition-colors">Home</Link>
-              <FaArrowLeft className="h-4 w-4" />
+              <span>/</span>
               <span className="text-gray-900 font-medium">Contact Us</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Get in Touch</h1>
@@ -394,24 +399,10 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                     </div>
                   </div>
 
-                  {submitError && (
+                  {flash?.error && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
                       <FaExclamationCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-red-800">Error sending message</p>
-                        <p className="text-sm text-red-700">{submitError}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {inertiaErrors && Object.keys(inertiaErrors).length > 0 && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      {Object.values(inertiaErrors).map((error, index) => (
-                        <p key={index} className="text-sm text-red-600 flex items-center gap-2">
-                          <FaExclamationCircle className="h-4 w-4" />
-                          {error}
-                        </p>
-                      ))}
+                      <p className="text-sm text-red-600">{flash.error}</p>
                     </div>
                   )}
 
@@ -428,7 +419,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                           <input
                             type="text"
                             id="name"
-                            name="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             disabled={isLoggedIn}
@@ -437,9 +427,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                             } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                             placeholder="John Doe"
                           />
-                          {isLoggedIn && (
-                            <p className="mt-1 text-xs text-gray-500">Auto-filled from your account</p>
-                          )}
                         </div>
                         {errors.name && (
                           <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -460,7 +447,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                           <input
                             type="email"
                             id="email"
-                            name="email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             disabled={isLoggedIn}
@@ -469,9 +455,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                             } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                             placeholder="john@example.com"
                           />
-                          {isLoggedIn && (
-                            <p className="mt-1 text-xs text-gray-500">Auto-filled from your account</p>
-                          )}
                         </div>
                         {errors.email && (
                           <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -489,7 +472,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                       <input
                         type="text"
                         id="subject"
-                        name="subject"
                         value={data.subject}
                         onChange={(e) => setData('subject', e.target.value)}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
@@ -511,10 +493,10 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                       </label>
                       <textarea
                         id="message"
-                        name="message"
                         value={data.message}
                         onChange={(e) => setData('message', e.target.value)}
                         rows={6}
+                        maxLength={400}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors resize-none ${
                           errors.message ? 'border-red-300' : 'border-gray-300'
                         }`}
@@ -534,10 +516,10 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                     <div className="pt-4">
                       <button
                         type="submit"
-                        disabled={processing || isSubmitting}
+                        disabled={processing}
                         className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {processing || isSubmitting ? (
+                        {processing ? (
                           <>
                             <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             Sending...
@@ -549,9 +531,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                           </>
                         )}
                       </button>
-                      <p className="mt-3 text-sm text-gray-500 text-center">
-                        By submitting this form, you agree to our Terms of Service and Privacy Policy.
-                      </p>
                     </div>
                   </form>
                 </div>
@@ -564,7 +543,6 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                 <h2 className="text-2xl font-bold mb-8">Contact Information</h2>
 
                 <div className="space-y-8 mb-8">
-
                   <div className="flex items-start gap-4">
                     <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                       <FaPhone className="h-6 w-6" />
@@ -674,64 +652,25 @@ const ContactUsPage = ({ auth, wishlist }: PageProps) => {
                       onClick={() => setActiveFAQ(activeFAQ === faq.id ? null : faq.id)}
                       className="w-full px-6 py-4 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <FaQuestionCircle className="h-5 w-5 text-amber-500" />
-                        <span className="font-semibold text-gray-900">{faq.question}</span>
-                      </div>
-                      <div className={`transform transition-transform ${activeFAQ === faq.id ? 'rotate-180' : ''}`}>
-                        <FaArrowLeft className="h-4 w-4 text-gray-500 rotate-90" />
-                      </div>
+                      <span className="font-semibold text-gray-900">{faq.question}</span>
+                      <svg
+                        className={`w-5 h-5 text-gray-500 transform transition-transform ${
+                          activeFAQ === faq.id ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
-
-                    <div
-                      className={`px-6 overflow-hidden transition-all duration-300 ${
-                        activeFAQ === faq.id ? 'py-4 border-t border-gray-200' : 'max-h-0 py-0'
-                      }`}
-                    >
-                      <p className="text-gray-600">{faq.answer}</p>
-                    </div>
+                    {activeFAQ === faq.id && (
+                      <div className="px-6 py-4 border-t border-gray-200">
+                        <p className="text-gray-600">{faq.answer}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
-              </div>
-            </div>
-
-            <div className="text-center mt-10 pt-8 border-t border-gray-200">
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition-colors cursor-pointer">
-                <FaHeadset className="h-5 w-5" />
-                <span className="font-medium">Still have questions? Chat with us live</span>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Live chat available Monday-Friday, 9AM-6PM
-              </p>
-            </div>
-          </div>
-
-          {/* Map Section */}
-          <div className="mt-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl shadow-xl overflow-hidden">
-            <div className="p-8 text-white">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Visit Our Office</h2>
-                  <p className="text-gray-300">Come meet our team in person</p>
-                </div>
-                <a
-                  href="https://maps.google.com/?q=123+Business+Center+Gulshan+Dhaka"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-medium rounded-lg transition-colors inline-flex items-center gap-2"
-                >
-                  <FaMapMarkerAlt className="h-5 w-5" />
-                  Get Directions
-                </a>
-              </div>
-
-              {/* Map Placeholder */}
-              <div className="h-64 md:h-80 bg-gray-700 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <FaMapMarkerAlt className="h-12 w-12 text-amber-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium">Interactive Map</p>
-                  <p className="text-gray-300 text-sm">Our location in Dhaka, Bangladesh</p>
-                </div>
               </div>
             </div>
           </div>

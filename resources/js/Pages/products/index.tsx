@@ -83,11 +83,11 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
             ? parseFloat(product.rating)
             : (product.rating || 0);
 
-        const reviewCount = typeof product.review === 'string'
-            ? parseInt(product.review) || 0
-            : (product.review || 0);
+        // const reviewCount = typeof product.review === 'string'
+        //     ? parseInt(product.review) || 0
+        //     : (product.review || 0);
 
-        return { average: rating, count: reviewCount };
+        return { average: rating, count: 0 };
     };
 
     // Render stars based on average rating

@@ -1,8 +1,6 @@
 
 import { useState } from "react";
 import {
-  FaHeart,
-  FaRegHeart,
   FaStar,
   FaRegStar,
   FaTruck,
@@ -19,13 +17,14 @@ import {
   FaPlus,
   FaHome
 } from "react-icons/fa";
-import { Product, storeType, Comments, User } from "@/types";
+import { Product, storeType, Comments } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { useStore } from "../state/cartStore";
 import CommentsList from "../dashboard/forms/CommentsList";
 import FormatPrice from "../utils/FormatePrice";
+
 
 
 interface ProductDetailsPageProps {
@@ -212,16 +211,6 @@ const ProductDetailsPage = ({
                     </div>
                   )}
 
-                  <button
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    className="absolute top-4 right-4 p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all hover:scale-110"
-                  >
-                    {isWishlisted ? (
-                      <FaHeart className="w-5 h-5 text-red-500" />
-                    ) : (
-                      <FaRegHeart className="w-5 h-5 text-gray-600" />
-                    )}
-                  </button>
 
                   {currentCartQuantity > 0 && (
                     <div className="absolute bottom-4 right-4">

@@ -27,18 +27,10 @@ const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
   { name: 'Dashboard', href: '/dashboard', icon: FiGrid },
   { name: 'All Products', href: '/products', hasDropdown: true, icon: FiShoppingBag },
-  { name: 'Deals', href: '/', badge: 'HOT', icon: FiTag },
+  { name: 'Deals', href: '/hotdeals', badge: 'HOT', icon: FiTag },
   { name: 'New Arrivals', href: '/', icon: FiZap },
 ]
 
-const categories = [
-  { name: 'Electronics', href: '/category/electronics', description: 'Latest gadgets and devices' },
-  { name: 'Fashion', href: '/category/fashion', description: 'Clothing and accessories' },
-  { name: 'Home & Garden', href: '/category/home', description: 'Furniture and decor' },
-  { name: 'Beauty', href: '/category/beauty', description: 'Skincare and cosmetics' },
-  { name: 'Sports', href: '/category/sports', description: 'Sports equipment' },
-  { name: 'Books', href: '/category/books', description: 'Books and magazines' },
-]
 
 const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any}>) => {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -104,7 +96,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
     }
   }, [searchOpen, dropdownOpen, userMenuOpen])
 
-  // GSAP animation for mobile search
+
   useGSAP(() => {
     if (searchPanelRef.current) {
       if (searchOpen) {
@@ -337,7 +329,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                             Profile
                           </Link>
                           <Link
-                            href="/orders"
+                            href="/dashboard/orders"
                             onClick={() => setUserMenuOpen(false)}
                             className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >

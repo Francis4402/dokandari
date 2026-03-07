@@ -1,8 +1,10 @@
-import { Product, storeType } from "@/types";
+import { Product } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef, useState } from "react";
-import { FaEye, FaStar, FaRegStar, FaArrowRight, FaShoppingCart } from "react-icons/fa";
+import { useRef } from "react";
+import { FaEye, FaArrowRight, FaShoppingCart } from "react-icons/fa";
+import { BsStar, BsStarFill, BsStarHalf } from "react-icons/bs";
+import { RiFireFill } from "react-icons/ri";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import { Link } from "@inertiajs/react";
 import WishlistButton from "../buttons/WishlistButton";
@@ -14,8 +16,6 @@ interface dailyDiscoverProduct {
 
 const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
-
 
   useGSAP(() => {
     const cards = cardsRef.current.filter(Boolean);
@@ -36,7 +36,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     );
   }, [discoverProduct]);
 
-
   const calculateDiscount = (regularPrice: number, salePrice: number) => {
     const regular = regularPrice;
     const sale = salePrice;
@@ -44,7 +43,6 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     if (isNaN(regular) || isNaN(sale) || regular <= 0 || sale >= regular) return 0;
     return Math.round(((regular - sale) / regular) * 100);
   };
-
 
   const handleCardEnter = (index: number): void => {
     const card = cardsRef.current[index];
@@ -68,24 +66,24 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     }
 
     const quickView = card.querySelector('.quick-view');
-        if (quickView) {
-        gsap.to(quickView, {
-            opacity: 1,
-            y: 0,
-            duration: 0.3
-        });
-        }
-    };
-
-    const handleCardLeave = (index: number): void => {
-        const card = cardsRef.current[index];
-        if (!card) return;
-
-        gsap.to(card, {
+    if (quickView) {
+      gsap.to(quickView, {
+        opacity: 1,
         y: 0,
-        scale: 1,
-        duration: 0.3,
-        ease: "power2.out"
+        duration: 0.3
+      });
+    }
+  };
+
+  const handleCardLeave = (index: number): void => {
+    const card = cardsRef.current[index];
+    if (!card) return;
+
+    gsap.to(card, {
+      y: 0,
+      scale: 1,
+      duration: 0.3,
+      ease: "power2.out"
     });
 
     const img = card.querySelector('img');
@@ -99,55 +97,35 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     }
 
     const quickView = card.querySelector('.quick-view');
-        if (quickView) {
-        gsap.to(quickView, {
-            opacity: 0,
-            y: 10,
-            duration: 0.2
-        });
-        }
-    };
+    if (quickView) {
+      gsap.to(quickView, {
+        opacity: 0,
+        y: 10,
+        duration: 0.2
+      });
+    }
+  };
 
-    const renderStars = (rating: number | string | undefined) => {
-        let numericRating = 0;
+  // Render stars based on rating from comments
+  const renderStars = (rating: number | undefined): JSX.Element => {
+    const numericRating = rating || 0;
+    const fullStars = Math.floor(numericRating);
+    const hasHalfStar = numericRating % 1 >= 0.5;
 
-        if (typeof rating === 'number') {
-        numericRating = rating;
-        } else if (typeof rating === 'string') {
-        numericRating = parseFloat(rating);
-        }
-
-        numericRating = Math.min(Math.max(isNaN(numericRating) ? 0 : numericRating, 0), 5);
-        const roundedRating = Math.round(numericRating * 2) / 2;
-
-        return (
-        <div className="flex items-center gap-1">
-            {[...Array(5)].map((_, i) => {
-            const starValue = i + 1;
-            return (
-                <span key={i}>
-                {starValue <= roundedRating ? (
-                    <FaStar className="w-3 h-3 text-yellow-400" />
-                ) : starValue - 0.5 === roundedRating ? (
-                    <div className="relative">
-                    <FaRegStar className="w-3 h-3 text-gray-300" />
-                    <div className="absolute top-0 left-0 overflow-hidden" style={{ width: '50%' }}>
-                        <FaStar className="w-3 h-3 text-yellow-400" />
-                    </div>
-                    </div>
-                ) : (
-                    <FaRegStar className="w-3 h-3 text-gray-300" />
-                )}
-                </span>
-            );
-            })}
-            <span className="text-xs text-gray-500 ml-1">
-            ({numericRating.toFixed(1)})
-            </span>
-        </div>
-        );
-    };
-
+    return (
+      <div className="flex items-center gap-0.5">
+        {[...Array(5)].map((_, i) => {
+          if (i < fullStars) {
+            return <BsStarFill key={i} className="text-amber-400 text-xs" />;
+          } else if (i === fullStars && hasHalfStar) {
+            return <BsStarHalf key={i} className="text-amber-400 text-xs" />;
+          } else {
+            return <BsStar key={i} className="text-gray-300 text-xs" />;
+          }
+        })}
+      </div>
+    );
+  };
 
   const getImageSrc = (images: string) => {
     if (!images) return '/otherplaceholder.jpg';
@@ -165,6 +143,11 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
     return '/otherplaceholder.jpg';
   };
 
+  // Don't render if no products
+  if (!discoverProduct || discoverProduct.length === 0) {
+    return null;
+  }
+
   return (
     <div className="mt-16 px-4">
       {/* Header */}
@@ -173,7 +156,7 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
           Daily Discover
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-           Explore the products our customers are loving today. Real reviews, real favorites.
+          Explore the products our customers are loving today. Real reviews, real favorites.
         </p>
         <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
       </div>
@@ -185,15 +168,17 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
 
           const discount = calculateDiscount(product.regular_price, product.sale_price || 0);
           const hasDiscount = discount > 0;
-
           const currentStock = product.quantity || 0;
-
           const imageSrc = getImageSrc(product.images);
 
           // Calculate save amount
           const regularPriceNum = (product.regular_price || 0);
           const salePriceNum = (product.sale_price || 0);
           const saveAmount = hasDiscount ? regularPriceNum - salePriceNum : 0;
+
+          // Get rating and review count from comments (now merged in the product)
+          const productRating = product.rating || 0;
+          const reviewCount = (product as any).review || 0; // Using 'any' temporarily since review isn't in Product interface
 
           return (
             <div
@@ -222,58 +207,65 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                     />
                   </div>
 
-
+                  {/* Discount Badge */}
                   {hasDiscount && (
-                    <div className="absolute top-3 right-3">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
+                    <div className="absolute top-3 left-3">
+                      <span className="inline-flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        <RiFireFill className="text-xs" />
                         -{discount}%
                       </span>
                     </div>
                   )}
 
                   {/* Quick View Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="quick-view opacity-0 translate-y-4">
-                        <Link href={`/products/${product.slug}`}>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
-                                <FaEye className="w-4 h-4" />
-                                Quick View
-                            </button>
-                        </Link>
-                      </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="quick-view opacity-0 translate-y-4 transition-all duration-300">
+                      <Link href={`/products/${product.slug}`}>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors shadow-lg">
+                          <FaEye className="w-4 h-4" />
+                          Quick View
+                        </button>
+                      </Link>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+                  {/* Wishlist Button */}
+                  <div className="absolute top-3 right-3">
                     <WishlistButton productId={product.id} />
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <FaShoppingCart className="w-4 h-4 text-gray-600" />
-                    </button>
                   </div>
                 </div>
 
                 {/* Content Section */}
                 <div className="p-4 flex-grow flex flex-col">
                   <div className="flex-shrink-0 mb-3">
+                    {/* Category */}
+                    <div className="mb-2">
+                      <span className="text-xs text-gray-500 uppercase tracking-wider">
+                        {product.category || 'Uncategorized'}
+                      </span>
+                    </div>
+
+                    {/* Product Name */}
                     <h3 className="text-base font-semibold leading-tight text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[48px]">
                       {product.name || 'Unnamed Product'}
                     </h3>
-                    {product.category && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mt-2">
-                        {product.category}
-                      </span>
-                    )}
                   </div>
 
-                  {/* Rating */}
+                  {/* Rating from Comments */}
                   <div className="mb-3 flex-shrink-0">
-                    {renderStars(product.rating)}
+                    <div className="flex items-center">
+                      {renderStars(productRating)}
+                      {reviewCount > 0 && (
+                        <span className="text-xs text-gray-400 ml-1">
+                          ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                        </span>
+                      )}
+                      {reviewCount === 0 && (
+                        <span className="text-xs text-gray-400 ml-1">
+                          (No reviews yet)
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Available Stock */}
@@ -290,18 +282,18 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
                   <div className="mt-auto">
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold ">
-                          <FormatPrice price={product.regular_price} />
+                        <span className="text-2xl font-bold text-gray-900">
+                          <FormatPrice price={product.sale_price || product.regular_price} />
                         </span>
-                        {product.sale_price && (
-                          <span className="text-sm text-gray-500 line-through">
-                            <FormatPrice price={product.sale_price} />
+                        {product.sale_price && product.sale_price < product.regular_price && (
+                          <span className="text-sm text-gray-400 line-through">
+                            <FormatPrice price={product.regular_price} />
                           </span>
                         )}
                       </div>
                       {saveAmount > 0 && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          Save {saveAmount}
+                          Save <FormatPrice price={saveAmount} />
                         </span>
                       )}
                     </div>
@@ -318,12 +310,14 @@ const DailyDiscover = ({ discoverProduct }: dailyDiscoverProduct) => {
 
       {/* View All Button */}
       <div className="text-center mt-12">
-        <button className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-300 hover:shadow-lg">
-          View All Products
-          <FaArrowRight className="w-4 h-4" />
-        </button>
+        <Link href="/products">
+          <button className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-300 hover:shadow-lg">
+            View All Products
+            <FaArrowRight className="w-4 h-4" />
+          </button>
+        </Link>
         <p className="text-sm text-gray-500 mt-4">
-          Showing {discoverProduct.length} top selling products
+          Showing {discoverProduct.length} daily discover products
         </p>
       </div>
     </div>

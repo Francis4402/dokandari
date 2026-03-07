@@ -272,15 +272,7 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <div className="flex space-x-2">
-                                                                <Link
-                                                                    href={`/dashboard/orders/${order.id}/edit`}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                    title="Edit order"
-                                                                >
-                                                                    <FaEdit className="h-4 w-4" />
-                                                                </Link>
+                                                            <div>
                                                                 <button
                                                                     onClick={(e) => openDeleteDialog(order.id, e)}
                                                                     disabled={deletingId === order.id}
@@ -386,7 +378,7 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setSelectedOrder(order);
+                                                                router.visit(`/orders/${order.id}/confirmation`);
                                                             }}
                                                             className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                                                         >
@@ -402,10 +394,6 @@ const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
                             </div>
                         </div>
 
-                        {/* Order Details Sidebar - Keep your existing sidebar code */}
-                        <div className="space-y-6">
-                            {/* ... your existing sidebar code ... */}
-                        </div>
                     </div>
                 </div>
             </div>

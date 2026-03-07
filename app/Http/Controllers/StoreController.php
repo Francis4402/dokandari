@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\Orders;
 use Illuminate\Http\Request;
 use App\Models\Store;
@@ -128,9 +129,73 @@ class StoreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Store $store)
+    public function show($id)
     {
-        //
+        $store = Store::findOrFail($id);
+
+        $products = Products::where('store_id', $store->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
+        // Get store ratings
+        $storeRatings = Comment::where('store_id', $store->id)
+            ->whereNull('product_id')
+            ->whereNotNull('rating')
+            ->get();
+
+        $averageRating = $storeRatings->avg('rating') ?? 0;
+        $reviewCount = $storeRatings->count();
+
+        // Get product ratings for all products in this store
+        $productIds = $products->pluck('id')->toArray();
+        $productRatings = Comment::whereIn('product_id', $productIds)
+            ->whereNotNull('rating')
+            ->select('product_id', 'rating')
+            ->get();
+
+        // Calculate average ratings for each product
+        $productRatingsData = [];
+        foreach ($products as $product) {
+            $productRatingData = $productRatings->where('product_id', $product->id);
+            $averageProductRating = $productRatingData->avg('rating') ?? 0;
+            $productReviewCount = $productRatingData->count();
+
+            $productRatingsData[$product->id] = [
+                'average' => round($averageProductRating, 1),
+                'count' => $productReviewCount
+            ];
+        }
+
+        $userStoreRating = null;
+
+        if (auth()->check()) {
+            $userRating = Comment::where('user_id', auth()->id())
+                ->where('store_id', $store->id)
+                ->whereNull('product_id')
+                ->first();
+
+            if ($userRating) {
+                $userStoreRating = [
+                    'id' => $userRating->id,
+                    'rating' => $userRating->rating,
+                    'comment' => $userRating->comment,
+                ];
+            }
+        }
+
+        return Inertia::render('storeproducts/index', [
+            'store' => $store,
+            'products' => $products,
+            'wishlist' => $wishlist,
+            'storeRating' => [
+                'average' => round($averageRating, 1),
+                'count' => $reviewCount,
+            ],
+            'productRatings' => $productRatingsData, // Add this
+            'userStoreRating' => $userStoreRating,
+        ]);
     }
 
     /**

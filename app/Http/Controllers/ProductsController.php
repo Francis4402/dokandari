@@ -171,7 +171,6 @@ class ProductsController extends Controller
 
         $reviewCount = $ratings->count();
 
-
         $userReview = null;
 
         if (auth()->check()) {
@@ -340,14 +339,45 @@ class ProductsController extends Controller
     }
 
     public function hotdeals() {
-        $products = Products::with('store')->paginate(20);
+
+        $products = Products::with('store')
+            ->orderBy('created_at', 'desc')->paginate(20);
+
 
         $wishlist = Wishlist::where('user_id', auth()->id())
             ->paginate(12);
 
+
+        $productIds = $products->pluck('id')->toArray();
+
+
+        $ratings = Comment::whereIn('product_id', $productIds)
+            ->whereNotNull('rating')
+            ->select('product_id', 'rating')
+            ->get();
+
+
+        $productRatings = [];
+        foreach ($products as $product) {
+            $productRatingData = $ratings->where('product_id', $product->id);
+            $averageRating = $productRatingData->avg('rating') ?? 0;
+            $ratingCount = $productRatingData->count();
+
+            $productRatings[$product->id] = [
+                'average' => round($averageRating, 1),
+                'count' => $ratingCount
+            ];
+        }
+
         return Inertia::render('hotdeals/index', [
             'products' => $products,
-            'wishlist' => $wishlist
+            'wishlist' => $wishlist,
+            'productRatings' => $productRatings,
         ]);
     }
+
+    public function newestproduct() {
+        return Inertia::render('/');
+    }
+
 }

@@ -11,7 +11,6 @@ import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
 import TopSellingProduct from './Components/TopSellingProduct';
 
-
 interface PaginatedProducts {
     data: Product[];
     current_page: number;
@@ -19,34 +18,63 @@ interface PaginatedProducts {
     per_page: number;
     total: number;
     links: any[];
+    from: number;
+    to: number;
 }
 
-export default function Welcome({ auth, categories, products, wishlist }: PageProps<{
+interface ProductRating {
+    average: number;
+    count: number;
+}
+
+export default function Welcome({
+    auth,
+    categories,
+    products,
+    wishlist,
+    productRatings
+}: PageProps<{
     laravelVersion: string,
     phpVersion: string,
     categories: categoryType,
-    products: PaginatedProducts
-    wishlist: any
+    products: PaginatedProducts,
+    wishlist: any,
+    productRatings: Record<string, ProductRating>
 }>) {
 
 
     const productsData = products.data || [];
 
-    const topSellingProduct = productsData.filter(product =>
+
+    const productsWithRatings = productsData.map(product => {
+        const ratingData = productRatings[product.id];
+
+        return {
+            ...product,
+
+            rating: ratingData?.average || 0,
+
+            review: ratingData?.count || 0
+        };
+    });
+
+
+    const topSellingProduct = productsWithRatings.filter(product =>
         product.product_type?.toLowerCase() === 'top-selling'
     );
 
-    const dailyDiscoverProduct = productsData.filter(product =>
+    const dailyDiscoverProduct = productsWithRatings.filter(product =>
         product.product_type?.toLowerCase() === 'regular'
     );
 
-    const featuredProducts = productsData.filter(product =>
+    const featuredProducts = productsWithRatings.filter(product =>
         product.product_type?.toLowerCase() === 'featured'
     );
 
-    const trandingProducts = productsData.filter(product =>
+    const trandingProducts = productsWithRatings.filter(product =>
         product.product_type?.toLowerCase() === 'trending'
     );
+
 
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
@@ -59,26 +87,24 @@ export default function Welcome({ auth, categories, products, wishlist }: PagePr
                 <NavRoutes />
                 <HeroSection />
                 <Categories categorie={categories} />
-                {
-                    featuredProducts.length > 0 && (
-                        <OfferedProducts product={featuredProducts} />
-                    )
-                }
-                {
-                    trandingProducts.length > 0 && (
-                        <TrendingProducts trandingproduct = {trandingProducts} />
-                    )
-                }
-                {
-                    topSellingProduct.length > 0 && (
-                        <TopSellingProduct products = {topSellingProduct} />
-                    )
-                }
-                {
-                    dailyDiscoverProduct.length > 0 && (
-                        <DailyDiscover discoverProduct = {dailyDiscoverProduct} />
-                    )
-                }
+
+
+                {featuredProducts.length > 0 && (
+                    <OfferedProducts product={featuredProducts} />
+                )}
+
+                {trandingProducts.length > 0 && (
+                    <TrendingProducts trandingproduct={trandingProducts} />
+                )}
+
+                {topSellingProduct.length > 0 && (
+                    <TopSellingProduct products={topSellingProduct} />
+                )}
+
+                {dailyDiscoverProduct.length > 0 && (
+                    <DailyDiscover discoverProduct={dailyDiscoverProduct} />
+                )}
+
                 <CategorySection />
             </div>
             <Footer/>

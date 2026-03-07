@@ -1,7 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Product } from '@/types';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import {
     FaHeart,
     FaArrowLeft,
@@ -10,24 +10,15 @@ import {
     FaRegStar,
     FaStore,
     FaWeight,
-    FaPalette,
     FaBox,
     FaTag,
     FaClock,
     FaTruck,
     FaShieldAlt,
-    FaEllipsisV,
-    FaTrash,
-    FaShare,
-    FaBell,
     FaEye,
-    FaCheckCircle,
-    FaExclamationCircle
 } from 'react-icons/fa';
 import { BiHeart } from 'react-icons/bi';
 import { MdLocalOffer } from 'react-icons/md';
-import { Menu, Transition, Dialog } from '@headlessui/react';
-import { toast } from 'sonner';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
 import FormatPrice from '../utils/FormatePrice';
@@ -40,6 +31,7 @@ interface WishlistPageProps {
         last_page: number;
         per_page: number;
         total: number;
+        productRatings?: Record<string, { average: number; count: number }>;
     };
     auth: {
         user: any
@@ -99,12 +91,7 @@ const productTypeMap: Record<string, { bg: string; text: string; icon: any; labe
 };
 
 export default function WishlistIndex({ wishlistProducts, auth }: WishlistPageProps) {
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-    const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-    const [productToRemove, setProductToRemove] = useState<string | null>(null);
     const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
-
 
     const getImageSrc = (images: string | null) => {
         if (!images) return '/otherplaceholder.jpg';
@@ -132,15 +119,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
         return Math.round(((regular - sale) / regular) * 100);
     };
 
-    const getColorStyle = (color: string) => {
-        const normalizedColor = color.toLowerCase().trim();
-        return colorMap[normalizedColor] || {
-            bg: 'bg-gray-100',
-            text: 'text-gray-700',
-            border: 'border-gray-200',
-            hex: '#6B7280'
-        };
-    };
 
     const renderRatingStars = (rating: number) => {
         const stars = [];
@@ -159,212 +137,10 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
         return stars;
     };
 
-    const handleRemoveFromWishlist = (productId: string) => {
-        router.post(`/wishlist/toggle/${productId}`, {}, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Removed from wishlist');
-                setIsRemoveDialogOpen(false);
-                setProductToRemove(null);
-            },
-            onError: () => {
-                toast.error('Failed to remove from wishlist');
-            }
-        });
-    };
-
-    const openQuickView = (product: Product) => {
-        setSelectedProduct(product);
-        setIsQuickViewOpen(true);
-    };
-
-    const confirmRemove = (productId: string) => {
-        setProductToRemove(productId);
-        setIsRemoveDialogOpen(true);
-    };
 
     return (
         <AppLayout user={auth.user} wishlist={wishlistProducts}>
             <Head title="My Wishlist" />
-
-            {/* Quick View Modal */}
-            <Transition appear show={isQuickViewOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-50" onClose={() => setIsQuickViewOpen(false)}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black/25" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4">
-                            <Transition.Child
-                                as={Fragment}
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
-                            >
-                                <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                                    {selectedProduct && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <img
-                                                    src={getImageSrc(selectedProduct.images)}
-                                                    alt={selectedProduct.name}
-                                                    className="w-full h-auto rounded-lg"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Dialog.Title className="text-2xl font-bold text-gray-900 mb-2">
-                                                    {selectedProduct.name}
-                                                </Dialog.Title>
-
-                                                {/* Store Info */}
-                                                {selectedProduct.store && (
-                                                    <Link
-                                                        href={`/stores/${selectedProduct.store.id}`}
-                                                        className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary mb-3"
-                                                    >
-                                                        <FaStore className="w-4 h-4" />
-                                                        {selectedProduct.store.name}
-                                                    </Link>
-                                                )}
-
-                                                {/* Price */}
-                                                <div className="flex items-baseline gap-3 mb-4">
-                                                    {selectedProduct.sale_price ? (
-                                                        <>
-                                                            <span className="text-3xl font-bold text-primary">
-                                                                <FormatPrice price={selectedProduct.sale_price} />
-                                                            </span>
-                                                            <span className="text-lg text-gray-400 line-through">
-                                                                <FormatPrice price={selectedProduct.regular_price} />
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-3xl font-bold text-primary">
-                                                            <FormatPrice price={selectedProduct.regular_price} />
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* Description */}
-                                                <p className="text-gray-600 mb-4">
-                                                    {selectedProduct.description}
-                                                </p>
-
-                                                {/* Specifications */}
-                                                <div className="space-y-2 mb-6">
-                                                    {selectedProduct.color && (
-                                                        <div className="flex items-center gap-2">
-                                                            <FaPalette className="w-4 h-4 text-gray-400" />
-                                                            <span className="text-sm text-gray-600">Color:</span>
-                                                            <div className={`px-2 py-0.5 rounded-full text-xs ${getColorStyle(selectedProduct.color).bg} ${getColorStyle(selectedProduct.color).text}`}>
-                                                                {selectedProduct.color}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {selectedProduct.item_weight > 0 && (
-                                                        <div className="flex items-center gap-2">
-                                                            <FaWeight className="w-4 h-4 text-gray-400" />
-                                                            <span className="text-sm text-gray-600">Weight:</span>
-                                                            <span className="text-sm font-medium">{selectedProduct.item_weight} kg</span>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex items-center gap-2">
-                                                        <FaBox className="w-4 h-4 text-gray-400" />
-                                                        <span className="text-sm text-gray-600">Availability:</span>
-                                                        {selectedProduct.inStock ? (
-                                                            <span className="text-sm text-green-600 flex items-center gap-1">
-                                                                <FaCheckCircle className="w-3 h-3" />
-                                                                In Stock ({selectedProduct.quantity} available)
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-sm text-red-600 flex items-center gap-1">
-                                                                <FaExclamationCircle className="w-3 h-3" />
-                                                                Out of Stock
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Action Buttons */}
-                                                <div className="flex items-center gap-3">
-                                                    <AddtoCartButton product={selectedProduct} />
-                                                    <WishlistButton productId={selectedProduct.id} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </Dialog.Panel>
-                            </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition>
-
-            {/* Remove Confirmation Dialog */}
-            <Transition appear show={isRemoveDialogOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-50" onClose={() => setIsRemoveDialogOpen(false)}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black/25" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4">
-                            <Transition.Child
-                                as={Fragment}
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
-                            >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                                    <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
-                                        Remove from Wishlist
-                                    </Dialog.Title>
-                                    <p className="text-sm text-gray-500 mb-6">
-                                        Are you sure you want to remove this item from your wishlist?
-                                    </p>
-                                    <div className="flex justify-end gap-3">
-                                        <button
-                                            onClick={() => setIsRemoveDialogOpen(false)}
-                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => productToRemove && handleRemoveFromWishlist(productToRemove)}
-                                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </Dialog.Panel>
-                            </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition>
 
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
@@ -443,7 +219,10 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                 {wishlistProducts.data.map((product) => {
                                     const discountPercentage = getDiscountPercentage(product.regular_price, product.sale_price);
                                     const typeBadge = productTypeMap[product.product_type] || productTypeMap.regular;
-                                    const colorStyle = product.color ? getColorStyle(product.color) : null;
+
+                                    // Get rating data from productRatings
+                                    const productRating = wishlistProducts.productRatings?.[product.id]?.average || 0;
+                                    const reviewCount = wishlistProducts.productRatings?.[product.id]?.count || 0;
 
                                     return (
                                         <div
@@ -452,9 +231,10 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                             onMouseEnter={() => setHoveredProductId(product.id)}
                                             onMouseLeave={() => setHoveredProductId(null)}
                                         >
-                                            {/* Product Image with Quick View Overlay */}
+                                            {/* Product Image Container */}
                                             <div className="relative aspect-square overflow-hidden bg-gray-100">
-                                                <Link href={`/products/${product.slug}`}>
+                                                {/* Image Link */}
+                                                <Link href={`/products/${product.slug}`} className="block w-full h-full">
                                                     <img
                                                         src={getImageSrc(product.images)}
                                                         alt={product.name}
@@ -465,44 +245,42 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                     />
                                                 </Link>
 
-                                                {/* Quick View Button - Appears on Hover */}
-                                                <div
+                                                {/* Wishlist Button - Positioned absolutely on top */}
+                                                <div className="absolute top-3 right-3 z-50">
+                                                    <WishlistButton productId={product.id} />
+                                                </div>
+
+                                                {/* Quick View Overlay */}
+                                                <Link
+                                                    href={`/products/${product.slug}`}
                                                     className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
                                                         hoveredProductId === product.id ? 'opacity-100' : 'opacity-0'
                                                     }`}
                                                 >
                                                     <button
-                                                        onClick={() => openQuickView(product)}
-                                                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transform -translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white shadow-lg"
+                                                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transform -translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white shadow-lg pointer-events-none"
+                                                        onClick={(e) => e.preventDefault()}
                                                     >
                                                         <FaEye className="w-4 h-4" />
-                                                        Quick View
+                                                        View Details
                                                     </button>
-                                                </div>
+                                                </Link>
 
                                                 {/* Overlay Gradient */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                                                 {/* Discount Badge */}
                                                 {discountPercentage && (
-                                                    <div className="absolute top-3 left-3 z-10">
+                                                    <div className="absolute top-3 left-3 z-10 pointer-events-none">
                                                         <div className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg shadow-lg">
                                                             -{discountPercentage}%
                                                         </div>
                                                     </div>
                                                 )}
 
-                                                {/* Product Type Badge */}
-                                                <div className="absolute top-3 right-3 z-10">
-                                                    <div className={`px-2 py-1 ${typeBadge.bg} ${typeBadge.text} text-xs font-medium rounded-lg shadow-lg flex items-center gap-1`}>
-                                                        <typeBadge.icon className="w-3 h-3" />
-                                                        {typeBadge.label}
-                                                    </div>
-                                                </div>
-
                                                 {/* Stock Status */}
                                                 {!product.inStock && (
-                                                    <div className="absolute inset-x-0 bottom-0 bg-red-500/90 text-white text-xs font-medium py-1 text-center backdrop-blur-sm">
+                                                    <div className="absolute inset-x-0 bottom-0 bg-red-500/90 text-white text-xs font-medium py-1 text-center backdrop-blur-sm pointer-events-none">
                                                         Out of Stock
                                                     </div>
                                                 )}
@@ -510,92 +288,16 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
 
                                             {/* Product Details */}
                                             <div className="p-4">
-                                                {/* Header with Menu */}
-                                                <div className="flex items-start justify-between mb-2">
-                                                    {/* Store Info */}
-                                                    {product.store && (
-                                                        <Link
-                                                            href={`/stores/${product.store.id}`}
-                                                            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary transition-colors"
-                                                        >
-                                                            <FaStore className="w-3 h-3" />
-                                                            {product.store.name}
-                                                        </Link>
-                                                    )}
-
-                                                    {/* Headless UI Menu */}
-                                                    <Menu as="div" className="relative">
-                                                        <Menu.Button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                                                            <FaEllipsisV className="w-4 h-4 text-gray-500" />
-                                                        </Menu.Button>
-                                                        <Transition
-                                                            as={Fragment}
-                                                            enter="transition ease-out duration-100"
-                                                            enterFrom="transform opacity-0 scale-95"
-                                                            enterTo="transform opacity-100 scale-100"
-                                                            leave="transition ease-in duration-75"
-                                                            leaveFrom="transform opacity-100 scale-100"
-                                                            leaveTo="transform opacity-0 scale-95"
-                                                        >
-                                                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-20">
-                                                                <div className="px-1 py-1">
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                onClick={() => openQuickView(product)}
-                                                                                className={`${
-                                                                                    active ? 'bg-primary/10 text-primary' : 'text-gray-700'
-                                                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                                                            >
-                                                                                <FaEye className="mr-2 h-4 w-4" />
-                                                                                Quick View
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                className={`${
-                                                                                    active ? 'bg-primary/10 text-primary' : 'text-gray-700'
-                                                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                                                            >
-                                                                                <FaShare className="mr-2 h-4 w-4" />
-                                                                                Share
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                className={`${
-                                                                                    active ? 'bg-primary/10 text-primary' : 'text-gray-700'
-                                                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                                                            >
-                                                                                <FaBell className="mr-2 h-4 w-4" />
-                                                                                Notify Me
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                </div>
-                                                                <div className="px-1 py-1">
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <button
-                                                                                onClick={() => confirmRemove(product.id)}
-                                                                                className={`${
-                                                                                    active ? 'bg-red-50 text-red-600' : 'text-red-500'
-                                                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                                                            >
-                                                                                <FaTrash className="mr-2 h-4 w-4" />
-                                                                                Remove
-                                                                            </button>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                </div>
-                                                            </Menu.Items>
-                                                        </Transition>
-                                                    </Menu>
-                                                </div>
+                                                {/* Store Info */}
+                                                {product.store && (
+                                                    <Link
+                                                        href={`/stores/${product.store.id}`}
+                                                        className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary transition-colors mb-2"
+                                                    >
+                                                        <FaStore className="w-3 h-3" />
+                                                        {product.store.name}
+                                                    </Link>
+                                                )}
 
                                                 {/* Product Name */}
                                                 <Link href={`/products/${product.slug}`}>
@@ -605,14 +307,21 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                 </Link>
 
                                                 {/* Rating */}
-                                                {product.rating > 0 && (
+                                                {reviewCount > 0 ? (
                                                     <div className="flex items-center gap-2 mb-3">
                                                         <div className="flex items-center gap-0.5">
-                                                            {renderRatingStars(product.rating)}
+                                                            {renderRatingStars(productRating)}
                                                         </div>
                                                         <span className="text-xs text-gray-500">
-                                                            ({product.review || 0})
+                                                            ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
                                                         </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <div className="flex items-center gap-0.5">
+                                                            {renderRatingStars(0)}
+                                                        </div>
+                                                        <span className="text-xs text-gray-400">(No reviews yet)</span>
                                                     </div>
                                                 )}
 
@@ -636,18 +345,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
 
                                                 {/* Color and Quick Specs */}
                                                 <div className="flex items-center gap-2 mb-4">
-                                                    {product.color && colorStyle && (
-                                                        <div className="flex items-center gap-1">
-                                                            <div
-                                                                className="w-4 h-4 rounded-full border border-gray-200"
-                                                                style={{ backgroundColor: colorStyle.hex }}
-                                                                title={product.color}
-                                                            />
-                                                            <span className="text-xs text-gray-600">
-                                                                {product.color}
-                                                            </span>
-                                                        </div>
-                                                    )}
                                                     {product.item_weight > 0 && (
                                                         <div className="flex items-center gap-1 text-xs text-gray-600">
                                                             <FaWeight className="w-3 h-3 text-gray-400" />
@@ -659,7 +356,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                                 {/* Action Buttons */}
                                                 <div className="flex items-center gap-2">
                                                     <AddtoCartButton product={product} />
-                                                    <WishlistButton productId={product.id} />
                                                 </div>
 
                                                 {/* Delivery Info */}

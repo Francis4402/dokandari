@@ -33,6 +33,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Dashboard', user }) => {
 
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { url } = usePage();
@@ -88,6 +89,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             current: url.startsWith('/dashboard/payments')
         },
         {
+            name: 'Messages',
+            href: '/dashboard/messages',
+            icon: FiMessageSquare,
+            current: url.startsWith('/dashboard/messages')
+        },
+        {
             name: 'Analytics',
             href: '/dashboard/analytics',
             icon: FiBarChart2,
@@ -125,6 +132,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             href: '/dashboard/shipping',
             icon: FiTruck,
             current: url.startsWith('/dashboard/shipping')
+        },
+        {
+            name: 'Messages',
+            href: '/dashboard/messages',
+            icon: FiMessageSquare,
+            current: url.startsWith('/dashboard/messages')
         },
         {
             name: 'Payments',

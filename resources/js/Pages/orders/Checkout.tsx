@@ -96,14 +96,6 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
     return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price ?? 0).replace('BDT', '৳');
-  };
 
   const getSelectedCityName = () => {
     const city = cities.find(c => c.city_id === parseInt(selectedCity));

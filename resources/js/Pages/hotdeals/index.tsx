@@ -1,5 +1,3 @@
-// pages/HotDeals.tsx
-
 import { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Product } from '@/types';
@@ -26,9 +24,17 @@ import {
 import AppLayout from '@/Layouts/AppLayout';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
+import FormatPrice from '../utils/FormatePrice';
 
 interface HotDealsPageProps {
-    products: Product[];
+    products: {
+        data: Product[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        links: any[];
+    };
     auth?: {
         user?: any;
     };
@@ -45,15 +51,19 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [selectedDiscount, setSelectedDiscount] = useState<string>('all');
 
+    // Get products array from paginated data
+    const productsData = products.data || [];
 
+    // Filter products that have sale_price (hot deals)
     const hotDealsProducts = useMemo(() => {
-        return products.filter(product =>
+        return productsData.filter(product =>
             product.sale_price &&
+            product.sale_price > 0 &&
             product.sale_price < product.regular_price
         );
-    }, [products]);
+    }, [productsData]);
 
-
+    // Get unique categories from hot deals
     const categories = useMemo(() => {
         const uniqueCategories = new Set(hotDealsProducts.map(p => p.category).filter(Boolean));
         return ['all', ...uniqueCategories];
@@ -67,16 +77,10 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         { id: '30', label: '30% or more' },
         { id: '40', label: '40% or more' },
         { id: '50', label: '50% or more' },
+        { id: '60', label: '60% or more' },
+        { id: '70', label: '70% or more' },
     ];
 
-    // Format price
-    const formatPrice = (price: number): string => {
-        return new Intl.NumberFormat('en-BD', {
-            style: 'currency',
-            currency: 'BDT',
-            minimumFractionDigits: 0,
-        }).format(price);
-    };
 
     // Calculate discount percentage
     const calculateDiscount = (regularPrice: number, salePrice?: number): number => {
@@ -94,11 +98,7 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
             ? parseFloat(product.rating)
             : (product.rating || 0);
 
-        const reviewCount = typeof product.review === 'string'
-            ? parseInt(product.review) || 0
-            : (product.review || 0);
-
-        return { average: rating, count: reviewCount };
+        return { average: rating, count: 0 };
     };
 
     // Render stars
@@ -144,7 +144,6 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         { id: 'price-low', label: 'Price: Low to High' },
         { id: 'price-high', label: 'Price: High to Low' },
         { id: 'rating', label: 'Top Rated' },
-        { id: 'popularity', label: 'Most Popular' },
     ];
 
     const filteredProducts = useMemo(() => {
@@ -214,13 +213,6 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                     const ratingA = getProductRating(a).average;
                     const ratingB = getProductRating(b).average;
                     return ratingB - ratingA;
-                });
-                break;
-            case 'popularity':
-                filtered.sort((a, b) => {
-                    const countA = getProductRating(a).count;
-                    const countB = getProductRating(b).count;
-                    return countB - countA;
                 });
                 break;
             default:
@@ -393,8 +385,12 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                         className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-orange-500"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">৳{priceRange[0]}</span>
-                                        <span className="text-sm text-gray-600">৳{priceRange[1]}</span>
+                                        <span className="text-sm text-gray-600">
+                                            <FormatPrice price={priceRange[0]} />
+                                        </span>
+                                        <span className="text-sm text-gray-600">
+                                            <FormatPrice price={priceRange[1]} />
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -525,16 +521,16 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                         />
 
                                                         {/* Wishlist Button */}
-                                                        <WishlistButton
-                                                            productId={product.id.toString()}
-                                                            className="absolute top-3 right-3"
-                                                            iconSize={4}
-                                                        />
+                                                        <div className="absolute top-3 right-3">
+                                                            <WishlistButton
+                                                                productId={product.id.toString()}
+                                                            />
+                                                        </div>
 
                                                         {/* Quick View Overlay */}
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                             <Link href={`/products/${product.slug}`}>
-                                                                <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
+                                                                <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors shadow-lg">
                                                                     <BsEye className="inline mr-1" /> Quick View
                                                                 </button>
                                                             </Link>
@@ -560,7 +556,7 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                             {renderStars(avgRating)}
                                                             {reviewCount > 0 && (
                                                                 <span className="text-xs text-gray-400 ml-1">
-                                                                    ({reviewCount})
+                                                                    ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
                                                                 </span>
                                                             )}
                                                         </div>
@@ -570,14 +566,14 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                             <div className="flex items-center justify-between">
                                                                 <div>
                                                                     <span className="font-bold text-orange-600 text-lg">
-                                                                        {formatPrice(displayPrice)}
+                                                                        <FormatPrice price={displayPrice} />
                                                                     </span>
                                                                     <span className="ml-2 text-sm text-gray-400 line-through">
-                                                                        {formatPrice(product.regular_price)}
+                                                                        <FormatPrice price={product.regular_price} />
                                                                     </span>
                                                                 </div>
                                                                 <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">
-                                                                    Save {formatPrice(product.regular_price - displayPrice)}
+                                                                    Save <FormatPrice price={product.regular_price - displayPrice} />
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -629,8 +625,16 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                             <div className="absolute top-3 right-3">
                                                                 <WishlistButton
                                                                     productId={product.id}
-                                                                    iconSize={4}
                                                                 />
+                                                            </div>
+
+                                                            {/* Quick View Overlay for List View */}
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <Link href={`/products/${product.slug}`}>
+                                                                    <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors shadow-lg">
+                                                                        <BsEye className="inline mr-1" /> Quick View
+                                                                    </button>
+                                                                </Link>
                                                             </div>
                                                         </div>
 
@@ -678,7 +682,7 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                     {/* Savings Info */}
                                                                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                                                                         <p className="text-green-700 text-sm">
-                                                                            <span className="font-bold">You Save:</span> {formatPrice(product.regular_price - displayPrice)} ({discountPercentage}% off)
+                                                                            <span className="font-bold">You Save:</span> <FormatPrice price={product.regular_price - displayPrice} /> ({discountPercentage}% off)
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -687,17 +691,15 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                     {/* Price */}
                                                                     <div className="mb-4">
                                                                         <div className="text-2xl font-bold text-orange-600">
-                                                                            {formatPrice(displayPrice)}
+                                                                            <FormatPrice price={displayPrice} />
                                                                         </div>
                                                                         <div className="text-sm text-gray-400 line-through">
-                                                                            {formatPrice(product.regular_price)}
+                                                                            <FormatPrice price={product.regular_price} />
                                                                         </div>
                                                                     </div>
 
                                                                     {/* Actions */}
-                                                                    <div className="flex items-center gap-2">
-                                                                        <AddtoCartButton product={product} />
-                                                                    </div>
+                                                                    <AddtoCartButton product={product} />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -736,28 +738,61 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                         )}
 
                         {/* Pagination */}
-                        {filteredProducts.length > 0 && (
+                        {filteredProducts.length > 0 && products.last_page > 1 && (
                             <div className="mt-8 pt-6 border-t border-gray-200">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="text-sm text-gray-600">
-                                        Showing 1-{Math.min(filteredProducts.length, 12)} of {filteredProducts.length} deals
+                                        Showing 1-{Math.min(filteredProducts.length, products.per_page)} of {products.total} products
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
+                                        {/* <Link
+                                            href={products.links?.prev || '#'}
+                                            className={`px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors ${
+                                                !products.links?.prev ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                        >
                                             Previous
-                                        </button>
-                                        <button className="px-3 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-md">
-                                            1
-                                        </button>
-                                        <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
-                                            2
-                                        </button>
-                                        <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
-                                            3
-                                        </button>
-                                        <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
+                                        </Link> */}
+
+                                        {[...Array(products.last_page)].map((_, i) => {
+                                            const page = i + 1;
+                                            const isCurrentPage = products.current_page === page;
+
+                                            if (
+                                                page === 1 ||
+                                                page === products.last_page ||
+                                                (page >= products.current_page - 1 && page <= products.current_page + 1)
+                                            ) {
+                                                return (
+                                                    <Link
+                                                        key={page}
+                                                        href={`?page=${page}`}
+                                                        className={`px-3 py-1.5 border border-gray-300 text-sm rounded-md transition-colors ${
+                                                            isCurrentPage
+                                                                ? 'bg-orange-600 text-white border-orange-600'
+                                                                : 'text-gray-700 hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        {page}
+                                                    </Link>
+                                                );
+                                            } else if (
+                                                page === products.current_page - 2 ||
+                                                page === products.current_page + 2
+                                            ) {
+                                                return <span key={page} className="px-2">...</span>;
+                                            }
+                                            return null;
+                                        })}
+
+                                        {/* <Link
+                                            href={products.links?.next || '#'}
+                                            className={`px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors ${
+                                                !products.links?.next ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                        >
                                             Next
-                                        </button>
+                                        </Link> */}
                                     </div>
                                 </div>
                             </div>
