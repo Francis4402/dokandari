@@ -18,7 +18,7 @@ import {
 } from 'react-icons/fa';
 import { PageProps } from '@/types';
 
-// Contact interface matching your database schema
+
 interface Contact {
   id: string;
   name: string;
@@ -39,7 +39,7 @@ interface PaginationLink {
   active: boolean;
 }
 
-// Props interface matching your controller return
+
 interface Props extends PageProps {
   contacts: {
     data: Contact[];
@@ -217,7 +217,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const sendReply = () => {
     if (!replyMessage.trim() || !replyingTo) return;
 
-    // In production, you would send this to your backend
     console.log('Reply to:', replyingTo.email, replyMessage);
 
     setShowReplyModal(false);

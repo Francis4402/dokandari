@@ -11,6 +11,7 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\StoreController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\WishlistController;
 use App\Models\Categories;
 use App\Models\Comment;
 use App\Models\Products;
+use App\Models\Review;
 use App\Models\wishlist;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +42,7 @@ Route::get('/', function () {
     $products = Products::with('store')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
+    $reviews = Review::all();
     $wishlist = Wishlist::where('user_id', auth()->id())->paginate(12);
 
 
@@ -72,6 +75,7 @@ Route::get('/', function () {
         'products' => $products,
         'wishlist' => $wishlist,
         'productRatings' => $productRatings,
+        'reviews' => $reviews,
     ]);
 });
 
@@ -155,6 +159,10 @@ Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');
     Route::get('/auth/google-callback', 'googleAuthentication')->name('auth.google-callback');
 });
+
+
+Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

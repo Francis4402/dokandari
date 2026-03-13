@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { categoryType, PageProps, Product } from '@/types';
+import { categoryType, PageProps, Product, ReviewType } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import HeroSection from './Components/HeroSection';
 import NavRoutes from './Components/NavRoutes';
@@ -32,13 +32,15 @@ export default function Welcome({
     categories,
     products,
     wishlist,
-    productRatings
+    productRatings,
+    reviews,
 }: PageProps<{
     laravelVersion: string,
     phpVersion: string,
     categories: categoryType,
     products: PaginatedProducts,
     wishlist: any,
+    reviews: ReviewType[],
     productRatings: Record<string, ProductRating>
 }>) {
 
@@ -102,7 +104,7 @@ export default function Welcome({
                 )}
 
                 {dailyDiscoverProduct.length > 0 && (
-                    <DailyDiscover discoverProduct={dailyDiscoverProduct} />
+                    <DailyDiscover discoverProduct={dailyDiscoverProduct} auth={auth} reviews={reviews} />
                 )}
 
                 <CategorySection />

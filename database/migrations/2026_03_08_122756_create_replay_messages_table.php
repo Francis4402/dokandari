@@ -11,17 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contacts', function (Blueprint $table) {
+        Schema::create('replay_messages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->string('email');
-            $table->string('subject');
+            $table->foreignUuid('contact_id')->constrained()->cascadeOnDelete();
             $table->text('message');
             $table->timestamps();
-            $table->boolean('is_read')->default(false);
-            $table->boolean('is_starred')->default(false);
-            $table->timestamp('read_at')->nullable();
         });
     }
 
@@ -30,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contacts');
+        Schema::dropIfExists('replay_messages');
     }
 };

@@ -27,7 +27,7 @@ class WishlistController extends Controller
             }
         }
 
-        // Get all product IDs from wishlist
+
         $productIds = collect($products)->pluck('id')->toArray();
 
 
@@ -55,7 +55,7 @@ class WishlistController extends Controller
             'last_page' => $wishlistItems->lastPage(),
             'per_page' => $wishlistItems->perPage(),
             'total' => $wishlistItems->total(),
-            'productRatings' => $productRatings, // Add ratings to the data
+            'productRatings' => $productRatings,
         ];
 
         return Inertia::render('wishlist/index', [

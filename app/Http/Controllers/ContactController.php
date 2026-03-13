@@ -6,6 +6,7 @@ use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateContactRequest;
 use App\Models\wishlist;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -45,6 +46,7 @@ class ContactController extends Controller
         $contact = new Contact();
 
         $contact = Contact::create([
+            'user_id' => Auth::id(),
             'name' => $validated['name'],
             'email' => $validated['email'],
             'subject' => $validated['subject'],

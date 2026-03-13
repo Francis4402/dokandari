@@ -11,6 +11,7 @@ class Contact extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'subject',

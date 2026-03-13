@@ -180,6 +180,12 @@ export interface Comments {
     user?: User;
 }
 
+export interface ReviewType {
+    product_id: string;
+    store_id: string;
+    user_id: string;
+}
+
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: {
