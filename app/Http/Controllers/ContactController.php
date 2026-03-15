@@ -38,25 +38,42 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:40',
-            'email' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:400',
         ]);
 
-        $contact = new Contact();
+        try {
+            $contact = Contact::create([
+                'user_id' => Auth::id(), // This might be null if user is not logged in
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'is_read' => false,
+                'is_starred' => false,
+            ]);
 
-        $contact = Contact::create([
-            'user_id' => Auth::id(),
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'subject' => $validated['subject'],
-            'message' => $validated['message'],
-            'is_read' => false,
-            'is_starred' => false,
-        ]);
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Message sent successfully!',
+                    'contact' => $contact
+                ]);
+            }
 
+            return redirect()->back()->with('success', 'Message sent successfully!');
+        } catch (\Exception $e) {
 
-        $contact->save();
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send message: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to send message');
+        }
     }
 
     /**
@@ -70,6 +87,8 @@ class ContactController extends Controller
                 'is_read' => true,
                 'read_at' => now()
             ]);
+
+            $contact->refresh();
         }
 
         return Inertia::render('ContactUs/Show', [
@@ -84,7 +103,7 @@ class ContactController extends Controller
             'read_at' => !$contact->is_read ? now() : null
         ]);
 
-        return redirect()->back()->with('success', 'Read status updated');
+        $contact->refresh();
     }
 
     public function toggleStar(Contact $contact)
@@ -93,7 +112,27 @@ class ContactController extends Controller
             'is_starred' => !$contact->is_starred
         ]);
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Star status updated',
+                'contact' => $contact
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Star status updated');
+    }
+
+    public function markSingleAsRead(Contact $contact)
+    {
+        if (!$contact->is_read) {
+            $contact->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        }
+
+        return back();
     }
 
     public function markAsRead(Request $request)

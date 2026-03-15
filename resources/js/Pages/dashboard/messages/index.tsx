@@ -18,7 +18,7 @@ import {
 } from 'react-icons/fa';
 import { PageProps } from '@/types';
 
-
+// Contact interface matching your database schema
 interface Contact {
   id: string;
   name: string;
@@ -39,7 +39,7 @@ interface PaginationLink {
   active: boolean;
 }
 
-
+// Props interface matching your controller return
 interface Props extends PageProps {
   contacts: {
     data: Contact[];
@@ -74,6 +74,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const [replyMessage, setReplyMessage] = useState('');
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showMobileList, setShowMobileList] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Ensure contacts is always an array
   const [contacts, setContacts] = useState<Contact[]>(
@@ -154,7 +155,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const toggleStar = (contactId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    router.post(`/contacts/${contactId}/toggle-star`, {}, {
+    router.post(route('contacts.toggle-star', contactId), {}, {
       preserveScroll: true,
       onSuccess: () => {
         setContacts(prev =>
@@ -174,39 +175,33 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     });
   };
 
-  const markAsRead = (contactId: string) => {
-    router.post(`/contacts/${contactId}/toggle-read`, {}, {
-      preserveScroll: true,
-      onSuccess: () => {
-        setContacts(prev =>
-          prev.map(c =>
-            c.id === contactId
-              ? { ...c, is_read: true, read_at: new Date().toISOString() }
-              : c
-          )
-        );
-        if (selectedContact?.id === contactId) {
-          setSelectedContact(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
-        }
-      },
-      onError: (errors) => {
-        console.error('Error marking as read:', errors);
-      }
-    });
-  };
-
   const handleContactSelect = (contact: Contact) => {
-    setSelectedContact(contact);
-    setShowMobileList(false);
-    if (!contact.is_read) {
-      markAsRead(contact.id);
-    }
-  };
+        setSelectedContact(contact);
+        setShowMobileList(false);
 
-  const handleBackToList = () => {
-    setShowMobileList(true);
-    setSelectedContact(null);
-  };
+        if (!contact.is_read) {
+            setIsUpdating(true);
+
+            router.post(route('contacts.mark-single-read', contact.id), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                const readAt = new Date().toISOString();
+                setContacts(prev =>
+                prev.map(c =>
+                    c.id === contact.id
+                    ? { ...c, is_read: true, read_at: readAt }
+                    : c
+                )
+                );
+                setSelectedContact(prev =>
+                prev ? { ...prev, is_read: true, read_at: readAt } : null
+                );
+            },
+            onFinish: () => setIsUpdating(false),
+            });
+        }
+    };
 
   const handleReply = (contact: Contact) => {
     setReplyingTo(contact);
@@ -217,6 +212,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const sendReply = () => {
     if (!replyMessage.trim() || !replyingTo) return;
 
+    // In production, you would send this to your backend
     console.log('Reply to:', replyingTo.email, replyMessage);
 
     setShowReplyModal(false);
@@ -230,7 +226,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const deleteContact = (contactId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this message?')) {
-      router.delete(`/contacts/${contactId}`, {
+      router.delete(route('contacts.destroy', contactId), {
         preserveScroll: true,
         onSuccess: () => {
           setContacts(prev => prev.filter(c => c.id !== contactId));
@@ -346,7 +342,13 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                 </div>
 
                 {/* Contacts List */}
-                <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)]">
+                <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] relative">
+                  {isUpdating && (
+                    <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+
                   {filteredContacts.length === 0 ? (
                     <div className="text-center py-12">
                       <FaEnvelope className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -457,7 +459,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <button
-                          onClick={handleBackToList}
+                          onClick={() => setShowMobileList(true)}
                           className="lg:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Back to list"
                         >

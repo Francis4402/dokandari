@@ -95,7 +95,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/orders', [OrdersController::class, 'dashboardIndex'])->name('dashboard.orders');
     Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
     Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
+
     Route::get('/dashboard/messages', [MessagesController::class, 'index'])->name('dashboard.messages');
+
+    Route::get('/contacts/{contact}', [ContactController::class, 'show'])->name('contacts.show');
+
+    Route::post('/contacts/{contact}/mark-read', [ContactController::class, 'markSingleAsRead'])
+    ->name('contacts.mark-single-read');
+
+    Route::post('/contacts/{contact}/toggle-star', [ContactController::class, 'toggleStar'])->name('contacts.toggle-star');
+
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 
 
