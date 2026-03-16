@@ -16,5 +16,8 @@ class Contact extends Model
         'email',
         'subject',
         'message',
+        'is_read',
+        'is_starred',
+        'read_at'
     ];
 }

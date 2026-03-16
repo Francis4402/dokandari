@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class MessagesController extends Controller
 {
     public function index(Request $request) {
         $query = Contact::query();
+        $user = Auth::user();
+
+        if (!in_array($user->role, ['admin', 'superadmin'])) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->filter === 'unread') {
             $query->where('is_read', false);
@@ -28,6 +34,7 @@ class MessagesController extends Controller
         }
 
         $contacts = $query->latest()->paginate(20);
+
         $unreadCount = Contact::where('is_read', false)->count();
 
         return Inertia::render('dashboard/messages/index', [

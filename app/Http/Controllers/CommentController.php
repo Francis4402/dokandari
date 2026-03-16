@@ -81,7 +81,7 @@ class CommentController extends Controller
             return redirect()->back()->with('success', $message);
         }
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->back();
     }
 
     /**
@@ -138,7 +138,7 @@ class CommentController extends Controller
 
         $comment->load('user');
 
-        return redirect()->back()->with('success', 'Review updated successfully!');
+        return redirect()->back();
     }
 
     /**
@@ -152,6 +152,6 @@ class CommentController extends Controller
 
         $comment->delete();
 
-        return redirect()->back()->with('success', 'Comment deleted successfully!');
+        return redirect()->back();
     }
 }

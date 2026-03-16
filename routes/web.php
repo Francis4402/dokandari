@@ -85,6 +85,20 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
+
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])
+    ->name('contacts.destroy');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
+    Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
+    Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
+    Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
+    Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
+
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])
+    ->name('contacts.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -100,12 +114,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->name('contacts.show');
 
-    Route::post('/contacts/{contact}/mark-read', [ContactController::class, 'markSingleAsRead'])
+    Route::post('/contacts/{contact}/read', [ContactController::class, 'markSingleAsRead'])
     ->name('contacts.mark-single-read');
 
-    Route::post('/contacts/{contact}/toggle-star', [ContactController::class, 'toggleStar'])->name('contacts.toggle-star');
+    Route::post('/contacts/{contact}/star', [ContactController::class, 'toggleStar'])
+    ->name('contacts.toggle-star');
 
-    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 
@@ -149,7 +163,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-// Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/stores/{id}', [StoreController::class, 'show'])->name('stores.show');

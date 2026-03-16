@@ -1,5 +1,3 @@
-// resources/js/Pages/dashboard/messages/index.tsx
-
 import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router } from '@inertiajs/react';
@@ -17,8 +15,9 @@ import {
   FaEnvelopeOpen
 } from 'react-icons/fa';
 import { PageProps } from '@/types';
+import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
 
-// Contact interface matching your database schema
+
 interface Contact {
   id: string;
   name: string;
@@ -32,14 +31,12 @@ interface Contact {
   updated_at: string;
 }
 
-// Pagination links interface
 interface PaginationLink {
   url: string | null;
   label: string;
   active: boolean;
 }
 
-// Props interface matching your controller return
 interface Props extends PageProps {
   contacts: {
     data: Contact[];
@@ -56,12 +53,15 @@ interface Props extends PageProps {
     filter?: string;
     search?: string;
   };
+
+  auth: {
+    user: any;
+  }
 }
 
 type MessageTab = 'inbox' | 'unread' | 'starred';
 
-const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadCount, filters }: Props) => {
-  // Initialize state with safe defaults
+const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadCount, filters}: Props) => {
   const [activeTab, setActiveTab] = useState<MessageTab>(() => {
     return (filters?.filter === 'unread' || filters?.filter === 'starred')
       ? filters.filter as MessageTab
@@ -76,40 +76,35 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const [showMobileList, setShowMobileList] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Ensure contacts is always an array
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+
   const [contacts, setContacts] = useState<Contact[]>(
     Array.isArray(initialContacts?.data) ? initialContacts.data : []
   );
 
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0);
 
-  // Update contacts when props change
   useEffect(() => {
     if (initialContacts?.data && Array.isArray(initialContacts.data)) {
       setContacts(initialContacts.data);
     }
   }, [initialContacts]);
 
-  // Update unread count when contacts change
   useEffect(() => {
-    if (Array.isArray(contacts)) {
-      const count = contacts.filter(c => !c.is_read).length;
-      setUnreadCount(count);
-    }
-  }, [contacts]);
+    setUnreadCount(initialUnreadCount);
+  }, [initialUnreadCount]);
 
-  // Filter contacts based on active tab and search
   const filteredContacts = useMemo(() => {
-    if (!Array.isArray(contacts) || contacts.length === 0) {
-      return [];
-    }
+    if (!Array.isArray(contacts) || contacts.length === 0) return [];
 
     return contacts.filter(contact => {
-      // Apply tab filter
       if (activeTab === 'unread' && contact.is_read) return false;
       if (activeTab === 'starred' && !contact.is_starred) return false;
 
-      // Apply search filter
       if (searchTerm.trim()) {
         const searchLower = searchTerm.toLowerCase().trim();
         return (
@@ -155,53 +150,59 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const toggleStar = (contactId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
+    setContacts(prev =>
+      prev.map(c => c.id === contactId ? { ...c, is_starred: !c.is_starred } : c)
+    );
+    if (selectedContact?.id === contactId) {
+      setSelectedContact(prev => prev ? { ...prev, is_starred: !prev.is_starred } : null);
+    }
+
     router.post(route('contacts.toggle-star', contactId), {}, {
       preserveScroll: true,
-      onSuccess: () => {
+      preserveState: true,
+      onError: (errors) => {
+        console.error('Error toggling star:', errors);
+        // Revert on failure
         setContacts(prev =>
-          prev.map(c =>
-            c.id === contactId
-              ? { ...c, is_starred: !c.is_starred }
-              : c
-          )
+          prev.map(c => c.id === contactId ? { ...c, is_starred: !c.is_starred } : c)
         );
         if (selectedContact?.id === contactId) {
           setSelectedContact(prev => prev ? { ...prev, is_starred: !prev.is_starred } : null);
         }
-      },
-      onError: (errors) => {
-        console.error('Error toggling star:', errors);
       }
     });
   };
 
   const handleContactSelect = (contact: Contact) => {
-        setSelectedContact(contact);
-        setShowMobileList(false);
+    setSelectedContact(contact);
+    setShowMobileList(false);
 
-        if (!contact.is_read) {
-            setIsUpdating(true);
+    if (!contact.is_read) {
+      const readAt = new Date().toISOString();
+      setContacts(prev =>
+        prev.map(c => c.id === contact.id ? { ...c, is_read: true, read_at: readAt } : c)
+      );
+      setSelectedContact({ ...contact, is_read: true, read_at: readAt });
+      setIsUpdating(true);
 
-            router.post(route('contacts.mark-single-read', contact.id), {}, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                const readAt = new Date().toISOString();
-                setContacts(prev =>
-                prev.map(c =>
-                    c.id === contact.id
-                    ? { ...c, is_read: true, read_at: readAt }
-                    : c
-                )
-                );
-                setSelectedContact(prev =>
-                prev ? { ...prev, is_read: true, read_at: readAt } : null
-                );
-            },
-            onFinish: () => setIsUpdating(false),
-            });
-        }
-    };
+      router.post(route('contacts.mark-single-read', contact.id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          router.reload({ only: ['unreadCount'] });
+          setIsUpdating(false);
+        },
+        onError: (errors) => {
+          console.error('Mark read failed:', errors);
+          setContacts(prev =>
+            prev.map(c => c.id === contact.id ? { ...c, is_read: false, read_at: null } : c)
+          );
+          setSelectedContact(contact);
+          setIsUpdating(false);
+        },
+      });
+    }
+  };
 
   const handleReply = (contact: Contact) => {
     setReplyingTo(contact);
@@ -212,35 +213,52 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const sendReply = () => {
     if (!replyMessage.trim() || !replyingTo) return;
 
-    // In production, you would send this to your backend
     console.log('Reply to:', replyingTo.email, replyMessage);
-
     setShowReplyModal(false);
     setReplyingTo(null);
     setReplyMessage('');
-
-    // Show success message
     alert(`Reply would be sent to ${replyingTo.email} in production`);
   };
 
-  const deleteContact = (contactId: string, e: React.MouseEvent) => {
+
+  const openDeleteDialog = (contact: Contact, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      router.delete(route('contacts.destroy', contactId), {
-        preserveScroll: true,
-        onSuccess: () => {
-          setContacts(prev => prev.filter(c => c.id !== contactId));
-          if (selectedContact?.id === contactId) {
-            setSelectedContact(null);
-            setShowMobileList(true);
-          }
-        },
-        onError: (errors) => {
-          console.error('Error deleting contact:', errors);
-        }
-      });
-    }
+    setContactToDelete(contact);
+    setShowDeleteDialog(true);
   };
+
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
+    setContactToDelete(null);
+    setIsDeleting(false);
+  };
+
+
+  const handleDeleteConfirm = () => {
+    if (!contactToDelete) return;
+
+    setIsDeleting(true);
+
+    router.delete(route('contacts.destroy', contactToDelete.id), {
+      preserveScroll: true,
+      onSuccess: () => {
+        setContacts(prev => prev.filter(c => c.id !== contactToDelete.id));
+        if (selectedContact?.id === contactToDelete.id) {
+          setSelectedContact(null);
+          setShowMobileList(true);
+        }
+        setShowDeleteDialog(false);
+        setContactToDelete(null);
+        setIsDeleting(false);
+      },
+      onError: (errors) => {
+        console.error('Error deleting contact:', errors);
+        setIsDeleting(false);
+      }
+    });
+  };
+
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '';
@@ -266,10 +284,10 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
   const getTabIcon = (tab: MessageTab) => {
     switch(tab) {
-      case 'inbox': return <FaInbox className="mr-1" />;
-      case 'unread': return <FaEnvelope className="mr-1" />;
+      case 'inbox':   return <FaInbox className="mr-1" />;
+      case 'unread':  return <FaEnvelope className="mr-1" />;
       case 'starred': return <FaStar className="mr-1" />;
-      default: return null;
+      default:        return null;
     }
   };
 
@@ -279,6 +297,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
+
           {/* Header */}
           <div className="mb-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -297,9 +316,11 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
             {/* Contacts Sidebar */}
             <div className={`${showMobileList ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
               <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+
                 {/* Search */}
                 <div className="p-4 border-b border-gray-200">
                   <form onSubmit={handleSearch}>
@@ -368,7 +389,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                           onClick={() => handleContactSelect(contact)}
                         >
                           <div className="flex items-start space-x-3">
-                            {/* Avatar */}
                             <div className="relative flex-shrink-0">
                               <div className="w-12 h-12 rounded-full overflow-hidden bg-blue-100">
                                 <img
@@ -385,23 +405,18 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                               )}
                             </div>
 
-                            {/* Contact Info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-semibold text-gray-800 truncate">
-                                  {contact.name}
-                                </h4>
+                                <h4 className="font-semibold text-gray-800 truncate">{contact.name}</h4>
                                 <div className="flex items-center space-x-2 flex-shrink-0">
                                   <button
                                     onClick={(e) => toggleStar(contact.id, e)}
                                     className="hover:scale-110 transition-transform focus:outline-none"
-                                    title={contact.is_starred ? "Unstar" : "Star"}
+                                    title={contact.is_starred ? 'Unstar' : 'Star'}
                                   >
                                     <FaStar
                                       className={`h-3 w-3 ${
-                                        contact.is_starred
-                                          ? 'text-yellow-500'
-                                          : 'text-gray-300 hover:text-yellow-500'
+                                        contact.is_starred ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-500'
                                       }`}
                                     />
                                   </button>
@@ -424,9 +439,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                               </p>
 
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-400 truncate max-w-[150px]">
-                                  {contact.email}
-                                </span>
+                                <span className="text-xs text-gray-400 truncate max-w-[150px]">{contact.email}</span>
                                 {!contact.is_read && (
                                   <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">
                                     New
@@ -454,6 +467,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
             <div className={`${!showMobileList ? 'block' : 'hidden'} lg:block lg:col-span-3`}>
               {selectedContact ? (
                 <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+
                   {/* Message Header */}
                   <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
@@ -475,9 +489,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                           </div>
                         </div>
                         <div>
-                          <h2 className="text-2xl font-bold text-gray-800">
-                            {selectedContact.name}
-                          </h2>
+                          <h2 className="text-2xl font-bold text-gray-800">{selectedContact.name}</h2>
                           <p className="text-gray-600">{selectedContact.email}</p>
                           <p className="text-sm text-gray-500 mt-1">
                             Received: {formatDate(selectedContact.created_at)}
@@ -493,13 +505,22 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                           <FaReply className="h-4 w-4 mr-2" />
                           Reply
                         </button>
-                        <button
-                          onClick={(e) => deleteContact(selectedContact.id, e)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <FaTrash className="h-5 w-5" />
-                        </button>
+
+                        {
+                            auth.user.role === 'superadmin' || auth.user.role === 'admin' ? (
+                                <button
+                                    onClick={(e) => openDeleteDialog(selectedContact, e)}
+                                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Delete"
+                                    >
+                                    <FaTrash className="h-5 w-5" />
+                                </button>
+                            ) : (
+                                <></>
+                            )
+                        }
+
+
                       </div>
                     </div>
                   </div>
@@ -507,6 +528,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                   {/* Message Content */}
                   <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-3xl mx-auto">
+
                       {/* Subject */}
                       <div className="mb-6 pb-4 border-b border-gray-200">
                         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Subject</h3>
@@ -534,9 +556,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                                 <div>
                                   <span className="text-sm font-medium text-gray-700">Read</span>
                                   {selectedContact.read_at && (
-                                    <p className="text-xs text-gray-500">
-                                      {formatDate(selectedContact.read_at)}
-                                    </p>
+                                    <p className="text-xs text-gray-500">{formatDate(selectedContact.read_at)}</p>
                                   )}
                                 </div>
                               </>
@@ -586,7 +606,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
         </div>
       </div>
 
-      {/* Reply Modal */}
+      {/* ── Reply Modal ───────────────────────────────────────────────────── */}
       {showReplyModal && replyingTo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
@@ -614,9 +634,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                   </p>
                 </div>
 
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Reply *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Your Reply *</label>
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
@@ -646,6 +664,21 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
           </div>
         </div>
       )}
+
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Message"
+        message={
+          contactToDelete
+            ? `Are you sure you want to delete the message from ${contactToDelete.name}? This action cannot be undone.`
+            : 'Are you sure you want to delete this message? This action cannot be undone.'
+        }
+        isDeleting={isDeleting}
+      />
+
     </DashboardLayout>
   );
 };
