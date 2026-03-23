@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ReplayMessages;
 use App\Http\Requests\StoreReplayMessagesRequest;
 use App\Http\Requests\UpdateReplayMessagesRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ReplayMessagesController extends Controller
 {
@@ -29,7 +30,30 @@ class ReplayMessagesController extends Controller
      */
     public function store(StoreReplayMessagesRequest $request)
     {
-        //
+        $request->validate([
+            'contact_id' => 'required|exists:contacts,id',
+            'message' => 'required|string'
+        ]);
+
+        $reply = ReplayMessages::create([
+            'user_id' => Auth::id(),
+            'contact_id' => $request->contact_id,
+            'message' => $request->message
+        ]);
+
+
+        $reply->load('user');
+
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'reply' => $reply,
+                'message' => 'Reply sent successfully'
+            ]);
+        }
+
+        return back()->with('success', 'Reply sent successfully');
     }
 
     /**

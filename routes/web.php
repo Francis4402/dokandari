@@ -11,6 +11,7 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReplayMessagesController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\SocialiteController;
@@ -79,7 +80,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::middleware(['auth', 'role:superadmin'])->group(function () {
+Route::middleware(['auth', 'role:superadmin, admin'])->group(function () {
     Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
     Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
     Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
@@ -88,17 +89,9 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])
     ->name('contacts.destroy');
-});
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard/categories', [CategoriesController::class, 'index'])->name('dashboard.categories');
-    Route::post('/dashboard/categories', [CategoriesController::class, 'store'])->name('dashboard.storecategory');
-    Route::delete('/dashboard/categories/{id}', [CategoriesController::class, 'destroy'])->name('dashboard.deletecategory');
-    Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
-    Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
-
-    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])
-    ->name('contacts.destroy');
+    Route::post('/reply-message', [ReplayMessagesController::class, 'store'])
+    ->name('reply.message');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

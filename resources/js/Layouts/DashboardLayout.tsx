@@ -479,28 +479,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
         <main className="py-6">
           {/* Container to center content and match form width */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Page header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-              <nav className="flex mt-2" aria-label="Breadcrumb">
-                <ol className="inline-flex items-center space-x-1 md:space-x-3">
-                  <li className="inline-flex items-center">
-                    <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                      <FiHome className="w-4 h-4 mr-2" />
-                      Dashboard
-                    </Link>
-                  </li>
-                  {title !== 'Dashboard' && (
-                    <li>
-                      <div className="flex items-center">
-                        <FiChevronRight className="w-4 h-4 text-gray-400 mx-1" />
-                        <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2">{title}</span>
-                      </div>
-                    </li>
-                  )}
-                </ol>
-              </nav>
-            </div>
 
             {/* Page content - Add a white background container for consistency */}
             <div className="bg-white rounded-lg shadow-sm transition-shadow">

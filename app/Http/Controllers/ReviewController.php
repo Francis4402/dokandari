@@ -38,7 +38,7 @@ class ReviewController extends Controller
 
             $userId = Auth::id();
 
-            // Check if user has already reviewed this product
+
             $existingReview = Review::where('user_id', $userId)
                 ->where('product_id', $request->product_id)
                 ->first();

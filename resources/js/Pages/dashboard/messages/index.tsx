@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+// resources/js/Pages/dashboard/messages/index.tsx
+
+import { useState, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -8,15 +10,15 @@ import {
   FaTimes,
   FaReply,
   FaTrash,
-  FaEye,
-  FaCheckDouble,
   FaArrowLeft,
   FaInbox,
-  FaEnvelopeOpen
+  FaEnvelopeOpen,
+  FaPaperPlane,
+  FaUserCircle
 } from 'react-icons/fa';
 import { PageProps } from '@/types';
 import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
-
+import axios from 'axios';
 
 interface Contact {
   id: string;
@@ -29,6 +31,21 @@ interface Contact {
   read_at: string | null;
   created_at: string;
   updated_at: string;
+  replies?: ReplyMessage[];
+}
+
+interface ReplyMessage {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  message: string;
+  created_at: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface PaginationLink {
@@ -53,7 +70,6 @@ interface Props extends PageProps {
     filter?: string;
     search?: string;
   };
-
   auth: {
     user: any;
   }
@@ -61,7 +77,7 @@ interface Props extends PageProps {
 
 type MessageTab = 'inbox' | 'unread' | 'starred';
 
-const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadCount, filters}: Props) => {
+const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadCount, filters }: Props) => {
   const [activeTab, setActiveTab] = useState<MessageTab>(() => {
     return (filters?.filter === 'unread' || filters?.filter === 'starred')
       ? filters.filter as MessageTab
@@ -75,18 +91,25 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showMobileList, setShowMobileList] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isSendingReply, setIsSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const [replies, setReplies] = useState<ReplyMessage[]>([]);
+  const [loadingReplies, setLoadingReplies] = useState(false);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
 
   const [contacts, setContacts] = useState<Contact[]>(
     Array.isArray(initialContacts?.data) ? initialContacts.data : []
   );
 
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0);
+
+
+  const isAdmin = auth.user?.role === 'admin' || auth.user?.role === 'superadmin';
 
   useEffect(() => {
     if (initialContacts?.data && Array.isArray(initialContacts.data)) {
@@ -97,6 +120,36 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   useEffect(() => {
     setUnreadCount(initialUnreadCount);
   }, [initialUnreadCount]);
+
+  // Load replies when a contact is selected
+  useEffect(() => {
+    if (selectedContact) {
+      loadReplies(selectedContact.id);
+    } else {
+      setReplies([]);
+    }
+  }, [selectedContact]);
+
+  // Scroll to bottom when new replies are loaded
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [replies]);
+
+  const loadReplies = async (contactId: string) => {
+    setLoadingReplies(true);
+    try {
+      const response = await axios.get(route('contact.replies', contactId));
+      if (response.data.success) {
+        setReplies(response.data.replies);
+      }
+    } catch (error) {
+      console.error('Error loading replies:', error);
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
 
   const filteredContacts = useMemo(() => {
     if (!Array.isArray(contacts) || contacts.length === 0) return [];
@@ -162,7 +215,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
       preserveState: true,
       onError: (errors) => {
         console.error('Error toggling star:', errors);
-        // Revert on failure
         setContacts(prev =>
           prev.map(c => c.id === contactId ? { ...c, is_starred: !c.is_starred } : c)
         );
@@ -185,7 +237,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
       setSelectedContact({ ...contact, is_read: true, read_at: readAt });
       setIsUpdating(true);
 
-      router.post(route('contacts.mark-single-read', contact.id), {}, {
+      router.post(route('contacts.toggle-read', contact.id), {}, {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
@@ -205,21 +257,55 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   };
 
   const handleReply = (contact: Contact) => {
+    if (!isAdmin) {
+      alert('Only administrators can reply to messages');
+      return;
+    }
     setReplyingTo(contact);
     setReplyMessage('');
+    setReplyError(null);
     setShowReplyModal(true);
   };
 
-  const sendReply = () => {
+  const sendReply = async () => {
     if (!replyMessage.trim() || !replyingTo) return;
+    if (!isAdmin) {
+      alert('Only administrators can reply to messages');
+      return;
+    }
 
-    console.log('Reply to:', replyingTo.email, replyMessage);
-    setShowReplyModal(false);
-    setReplyingTo(null);
-    setReplyMessage('');
-    alert(`Reply would be sent to ${replyingTo.email} in production`);
+    setIsSendingReply(true);
+    setReplyError(null);
+
+    try {
+      const response = await axios.post(route('reply.message'), {
+        contact_id: replyingTo.id,
+        message: replyMessage.trim()
+      });
+
+      if (response.data.success) {
+        // Add the new reply to the replies list
+        const newReply = response.data.reply;
+        setReplies(prev => [...prev, newReply]);
+
+        // Close modal and reset
+        setShowReplyModal(false);
+        setReplyingTo(null);
+        setReplyMessage('');
+
+        // Show success message
+        alert('Reply sent successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error sending reply:', error);
+      setReplyError(
+        error.response?.data?.message ||
+        'Failed to send reply. Please try again.'
+      );
+    } finally {
+      setIsSendingReply(false);
+    }
   };
-
 
   const openDeleteDialog = (contact: Contact, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -227,13 +313,11 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     setShowDeleteDialog(true);
   };
 
-
   const handleDeleteCancel = () => {
     setShowDeleteDialog(false);
     setContactToDelete(null);
     setIsDeleting(false);
   };
-
 
   const handleDeleteConfirm = () => {
     if (!contactToDelete) return;
@@ -259,7 +343,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     });
   };
 
-
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '';
     try {
@@ -270,6 +353,18 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
         year: 'numeric',
         month: 'short',
         day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
       });
@@ -463,7 +558,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
               </div>
             </div>
 
-            {/* Message Detail Area */}
+            {/* Message Detail Area with Replies */}
             <div className={`${!showMobileList ? 'block' : 'hidden'} lg:block lg:col-span-3`}>
               {selectedContact ? (
                 <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
@@ -498,90 +593,131 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleReply(selectedContact)}
-                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <FaReply className="h-4 w-4 mr-2" />
-                          Reply
-                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleReply(selectedContact)}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <FaReply className="h-4 w-4 mr-2" />
+                            Reply
+                          </button>
+                        )}
 
-                        {
-                            auth.user.role === 'superadmin' || auth.user.role === 'admin' ? (
-                                <button
-                                    onClick={(e) => openDeleteDialog(selectedContact, e)}
-                                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Delete"
-                                    >
-                                    <FaTrash className="h-5 w-5" />
-                                </button>
-                            ) : (
-                                <></>
-                            )
-                        }
-
-
+                        {isAdmin && (
+                          <button
+                            onClick={(e) => openDeleteDialog(selectedContact, e)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <FaTrash className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Message Content */}
+                  {/* Message and Replies Thread */}
                   <div className="flex-1 overflow-y-auto p-6">
-                    <div className="max-w-3xl mx-auto">
-
-                      {/* Subject */}
-                      <div className="mb-6 pb-4 border-b border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Subject</h3>
-                        <p className="text-gray-900 text-lg font-medium">{selectedContact.subject}</p>
-                      </div>
-
-                      {/* Message */}
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Message</h3>
-                        <div className="bg-gray-50 rounded-lg p-6">
-                          <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                            {selectedContact.message}
-                          </p>
+                    <div className="max-w-3xl mx-auto space-y-6">
+                      {/* Original Message */}
+                      <div className="bg-white border border-gray-200 rounded-lg p-6">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 mr-3">
+                            <img
+                              src={getAvatarUrl(selectedContact.name)}
+                              alt={selectedContact.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{selectedContact.name}</h4>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(selectedContact.created_at)}
+                            </p>
+                          </div>
                         </div>
+
+                        <div className="mb-4 pb-4 border-b border-gray-200">
+                          <span className="text-sm font-semibold text-gray-700">Subject: </span>
+                          <span className="text-gray-900">{selectedContact.subject}</span>
+                        </div>
+
+                        <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                          {selectedContact.message}
+                        </p>
                       </div>
 
-                      {/* Status */}
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Status</h3>
-                        <div className="flex flex-wrap items-center gap-6">
-                          <div className="flex items-center">
-                            {selectedContact.is_read ? (
-                              <>
-                                <FaCheckDouble className="h-5 w-5 text-green-500 mr-2" />
-                                <div>
-                                  <span className="text-sm font-medium text-gray-700">Read</span>
-                                  {selectedContact.read_at && (
-                                    <p className="text-xs text-gray-500">{formatDate(selectedContact.read_at)}</p>
-                                  )}
+                      {/* Replies Thread */}
+                      {loadingReplies ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        </div>
+                      ) : (
+                        replies.map((reply) => (
+                          <div key={reply.id} className="bg-blue-50 border border-blue-200 rounded-lg p-6 ml-8">
+                            <div className="flex items-center mb-4">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-green-100 mr-3">
+                                <div className="w-full h-full flex items-center justify-center bg-green-500 text-white">
+                                  <FaUserCircle className="w-6 h-6" />
                                 </div>
-                              </>
-                            ) : (
-                              <>
-                                <FaEye className="h-5 w-5 text-blue-500 mr-2" />
-                                <span className="text-sm font-medium text-gray-700">Unread</span>
-                              </>
-                            )}
+                              </div>
+                              <div>
+                                <div className="flex items-center">
+                                  <h4 className="font-semibold text-gray-800">{reply.user?.name}</h4>
+                                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                    Admin
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {formatDate(reply.created_at)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                              {reply.message}
+                            </p>
                           </div>
-                          <div className="flex items-center">
-                            {selectedContact.is_starred ? (
-                              <>
-                                <FaStar className="h-5 w-5 text-yellow-500 mr-2" />
-                                <span className="text-sm font-medium text-gray-700">Starred</span>
-                              </>
-                            ) : (
-                              <>
-                                <FaStar className="h-5 w-5 text-gray-300 mr-2" />
-                                <span className="text-sm font-medium text-gray-700">Not Starred</span>
-                              </>
-                            )}
+                        ))
+                      )}
+
+                      {/* Quick Reply Form for Admins */}
+                      {isAdmin && (
+                        <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100">
+                                <img
+                                  src={getAvatarUrl(auth.user?.name || 'Admin')}
+                                  alt="Admin"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <textarea
+                                rows={2}
+                                placeholder="Type your reply here..."
+                                value={replyMessage}
+                                onChange={(e) => setReplyMessage(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <div className="flex justify-end mt-2">
+                                <button
+                                  onClick={() => handleReply(selectedContact)}
+                                  disabled={!replyMessage.trim()}
+                                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  <FaPaperPlane className="h-4 w-4 mr-2" />
+                                  Send Reply
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      <div ref={messagesEndRef} />
                     </div>
                   </div>
                 </div>
@@ -606,8 +742,8 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
         </div>
       </div>
 
-      {/* ── Reply Modal ───────────────────────────────────────────────────── */}
-      {showReplyModal && replyingTo && (
+      {/* Reply Modal */}
+      {showReplyModal && replyingTo && isAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
             <div className="p-6">
@@ -620,6 +756,12 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                   <FaTimes className="h-5 w-5" />
                 </button>
               </div>
+
+              {replyError && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                  {replyError}
+                </div>
+              )}
 
               <div className="mb-6">
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -654,17 +796,26 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                 </button>
                 <button
                   onClick={sendReply}
-                  disabled={!replyMessage.trim()}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!replyMessage.trim() || isSendingReply}
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                  Send Reply
+                  {isSendingReply ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <FaPaperPlane className="h-4 w-4 mr-2" />
+                      Send Reply
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
 
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
@@ -678,7 +829,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
         }
         isDeleting={isDeleting}
       />
-
     </DashboardLayout>
   );
 };

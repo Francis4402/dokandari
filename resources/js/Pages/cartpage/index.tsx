@@ -20,6 +20,9 @@ import {
   FaStar,
   FaMapMarkerAlt,
   FaTruckLoading,
+  FaInfoCircle,
+  FaWeightHanging,
+  FaPercent,
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import axios from 'axios';
@@ -38,14 +41,12 @@ interface CartPageProps {
 
 const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
-
   const {
     cart: cartItems,
     removeFromCart,
     clearCart,
     getTotalItems,
     getSubTotal,
-    getTax,
     getShipping,
     increaseQty,
     decreaseQty,
@@ -72,12 +73,11 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
     type: 'percentage' | 'fixed';
   } | null>(null);
 
-
   const [cities, setLocalCities] = useState<citytypes[]>([]);
   const [zones, setZones] = useState<zonetypes[]>([]);
   const [areas, setAreas] = useState<areatypes[]>([]);
   const [loadingPathao, setLoadingPathao] = useState(false);
-
+  const [pathaoBaseCharge, setPathaoBaseCharge] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCities();
@@ -146,64 +146,129 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
     }
   }
 
-    const calculatePathaoPrice = async (cityId: string, zoneId: string, areaId?: string) => {
-        if (!cityId || !zoneId) {
-            toast.error('Please select city and zone');
-            return;
+  // Helper function to calculate weight surcharge percentage
+  const getWeightSurchargePercentage = (weight: number): number => {
+    if (weight <= 0.5) return 0;
+    if (weight > 0.5 && weight <= 1) return 10;
+    if (weight > 1 && weight <= 2) return 35;
+    if (weight > 2) {
+      const extraKg = Math.ceil(weight - 2);
+      return 35 + (extraKg * 10);
+    }
+    return 0;
+  };
+
+  // Helper function to get weight surcharge message
+  const getWeightSurchargeMessage = (weight: number): string => {
+    if (weight <= 0.5) return 'No surcharge (≤ 0.5kg)';
+    if (weight > 0.5 && weight <= 1) return '10% surcharge (0.5kg - 1kg)';
+    if (weight > 1 && weight <= 2) return '35% surcharge (1kg - 2kg)';
+    if (weight > 2) {
+      const extraKg = Math.ceil(weight - 2);
+      return `${35 + (extraKg * 10)}% surcharge (${extraKg}kg extra beyond 2kg)`;
+    }
+    return '';
+  };
+
+  const calculatePathaoPrice = async (cityId: string, zoneId: string, areaId?: string) => {
+    if (!cityId || !zoneId) {
+      toast.error('Please select city and zone');
+      return;
+    }
+
+    setLoadingPathao(true);
+
+    try {
+      const subtotal = getSubTotal();
+      const itemCount = getTotalItems();
+      const items = getFormattedCartItems();
+
+      const totalWeight = items.reduce((sum, item) => {
+        return sum + ((item.item_weight || 0.5) * item.quantity);
+      }, 0);
+
+      // Prepare request for Pathao API
+      const priceRequest: any = {
+        store_id: 367082,
+        sender_city: 2,
+        recipient_city: parseInt(cityId),
+        recipient_zone: parseInt(zoneId),
+        item_type: 2,
+        item_weight: Math.max(0.5, totalWeight),
+        item_quantity: itemCount,
+        amount_to_collect: subtotal,
+        delivery_type: 48
+      };
+
+      // Add area if selected
+      if (areaId) {
+        priceRequest.recipient_area = parseInt(areaId);
+      }
+
+      // Call Pathao API to get delivery charge
+      const response = await axios.post('/api/pathao/calculate-price', priceRequest);
+
+      if (response.data?.data?.data) {
+        const priceData = response.data.data.data;
+        // Get the delivery charge from Pathao API
+        const pathaoDeliveryCharge = priceData.price || priceData.final_price || 0;
+
+        // Store the base Pathao charge
+        setPathaoBaseCharge(pathaoDeliveryCharge);
+
+        // Calculate weight-based surcharge
+        let weightSurchargePercentage = getWeightSurchargePercentage(totalWeight);
+        let weightSurchargeAmount = pathaoDeliveryCharge * (weightSurchargePercentage / 100);
+
+        // Add weight surcharge to Pathao charge
+        const pathaoWithSurcharge = pathaoDeliveryCharge + weightSurchargeAmount;
+
+        // Add extra 20 taka service fee
+        const totalDeliveryCharge = pathaoWithSurcharge + 20;
+
+        // Store the total charge with breakdown
+        setPathaoCharges({
+          delivery_charge: totalDeliveryCharge,
+          base_charge: pathaoDeliveryCharge,
+          service_fee: 20,
+          weight_surcharge: weightSurchargeAmount,
+          weight_surcharge_percentage: weightSurchargePercentage
+        });
+
+        // Show success message with breakdown
+        let weightMessage = '';
+        if (totalWeight <= 0.5) {
+          weightMessage = 'No weight surcharge';
+        } else if (totalWeight > 0.5 && totalWeight <= 1) {
+          weightMessage = `+10% weight surcharge (${totalWeight.toFixed(2)}kg)`;
+        } else if (totalWeight > 1 && totalWeight <= 2) {
+          weightMessage = `+35% weight surcharge (${totalWeight.toFixed(2)}kg)`;
+        } else if (totalWeight > 2) {
+          weightMessage = `+${weightSurchargePercentage}% weight surcharge (${totalWeight.toFixed(2)}kg)`;
         }
 
-        setLoadingPathao(true);
+        toast.success(
+          `Delivery charge: ৳${totalDeliveryCharge.toFixed(2)} (Pathao: ৳${pathaoDeliveryCharge.toFixed(2)} + ${weightMessage} + 20 service fee)`,
+          { duration: 6000 }
+        );
+      }
+    } catch (error: any) {
+      console.error('Pathao calculation error:', error);
 
-        try {
-            const subtotal = getSubTotal();
-            const itemCount = getTotalItems();
-            const items = getFormattedCartItems();
+      if (error.response?.data?.message?.includes('area')) {
+        toast.error('Please select an area to calculate shipping');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to calculate shipping price. Please try again.');
+      }
 
-            const totalWeight = items.reduce((sum, item) => {
-                return sum + ((item.item_weight || 0.5) * item.quantity);
-            }, 0);
-
-
-            const priceRequest: any = {
-                store_id: 367082,
-                sender_city: 2,
-                recipient_city: parseInt(cityId),
-                recipient_zone: parseInt(zoneId),
-                item_type: 2,
-                item_weight: Math.max(0.5, totalWeight),
-                item_quantity: itemCount,
-                amount_to_collect: subtotal,
-                delivery_type: 48
-            };
-
-            // Only add area if provided
-            if (areaId) {
-                priceRequest.recipient_area = parseInt(areaId);
-            }
-
-            const response = await axios.post('/api/pathao/calculate-price', priceRequest);
-
-            if (response.data?.data?.data) {
-                const priceData = response.data.data.data;
-                const baseDeliveryCharge = priceData.price || priceData.final_price || 0;
-                const totalDeliveryCharge = baseDeliveryCharge + 20;
-
-                setPathaoCharges({ delivery_charge: totalDeliveryCharge });
-                toast.success(`Shipping price: ${<FormatPrice price={totalDeliveryCharge} />}`);
-            }
-        } catch (error: any) {
-
-            if (error.response?.data?.message?.includes('area')) {
-                toast.error('Please select an area to calculate shipping');
-            } else {
-                toast.error(error.response?.data?.message || 'Failed to calculate shipping price');
-            }
-            setPathaoCharges(null);
-        } finally {
-            setLoadingPathao(false);
-        }
-    };
-
+      setPathaoCharges(null);
+      setPathaoBaseCharge(null);
+    } finally {
+      setLoadingPathao(false);
+    }
+  };
 
   const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cityId = e.target.value;
@@ -213,179 +278,194 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
     setZones([]);
     setAreas([]);
     setPathaoCharges(null);
+    setPathaoBaseCharge(null);
 
     if (cityId) {
       await fetchZone(cityId);
     }
   };
 
-    const handleZoneChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const zoneId = e.target.value;
-        setSelectedZone(zoneId);
-        setSelectedArea('');
-        setAreas([]);
-        setPathaoCharges(null);
+  const handleZoneChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const zoneId = e.target.value;
+    setSelectedZone(zoneId);
+    setSelectedArea('');
+    setAreas([]);
+    setPathaoCharges(null);
+    setPathaoBaseCharge(null);
 
-        if (zoneId) {
-            await fetchArea(zoneId);
+    if (zoneId && selectedCity) {
+      await fetchArea(zoneId);
+      await calculatePathaoPrice(selectedCity, zoneId);
+    }
+  };
 
-            if (selectedCity) {
-                await calculatePathaoPrice(selectedCity, zoneId);
-            }
+  const handleAreaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const areaId = e.target.value;
+    setSelectedArea(areaId);
+
+    if (selectedCity && selectedZone) {
+      await calculatePathaoPrice(selectedCity, selectedZone, areaId);
+    }
+  };
+
+  const open = () => setIsOpen(true);
+  const close = () => setIsOpen(false);
+
+  const confirmClearCart = () => {
+    clearCart();
+    close();
+  };
+
+  // Calculate totals - tax is already included in subtotal
+  const calculateTotals = () => {
+    const subtotal = getSubTotal(); // This includes tax
+    const shipping = getShipping();
+    const item_count = getTotalItems();
+
+    let discount = 0;
+    if (appliedCoupon) {
+      discount = appliedCoupon.type === 'percentage'
+        ? subtotal * (appliedCoupon.discount / 100)
+        : Math.min(appliedCoupon.discount, subtotal);
+    }
+
+    // Total = Subtotal (incl. tax) + Shipping - Discount
+    const total = Math.max(0, subtotal + shipping - discount);
+
+    return { subtotal, shipping, discount, total, item_count };
+  };
+
+  const cartTotals = calculateTotals();
+
+  const handleIncreaseQuantity = async (itemId: string) => {
+    const item = getItemById(itemId);
+    if (item && item.cartQty && item.cartQty < item.quantity) {
+      increaseQty(itemId);
+      if (selectedCity && selectedZone) {
+        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+      }
+    }
+  };
+
+  const handleDecreaseQuantity = async (itemId: string) => {
+    const item = getItemById(itemId);
+    if (item && item.cartQty && item.cartQty > 1) {
+      decreaseQty(itemId);
+      if (selectedCity && selectedZone) {
+        await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
+      }
+    } else {
+      removeFromCart(itemId);
+    }
+  };
+
+  const moveToWishlist = (itemId: string) => {
+    const item = cartItems?.find(item => item.id === itemId);
+    if (item) {
+      removeFromCart(itemId);
+      toast.success(`${item.name} moved to wishlist`);
+    }
+  };
+
+  const applyCoupon = () => {
+    if (!couponCode.trim()) return;
+
+    const validCoupons = [
+      { code: 'fdagd', discount: 10, type: 'percentage' as const },
+      { code: 'dsagag', discount: 20, type: 'percentage' as const },
+      { code: 'fegdaf', discount: 5.99, type: 'fixed' as const },
+      { code: 'gdafeagds', discount: 15, type: 'percentage' as const }
+    ];
+
+    const coupon = validCoupons.find(c => c.code === couponCode.toUpperCase());
+
+    if (coupon) {
+      setAppliedCoupon(coupon);
+      setCouponCode('');
+      toast.success(`Coupon ${coupon.code} applied!`);
+    } else {
+      toast.error('Invalid coupon code');
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    toast.success('Coupon removed');
+  };
+
+  const calculateDiscountPercentage = (regular: number, sale: number | null) => {
+    if (!sale || sale >= regular) return 0;
+    return Math.round(((regular - sale) / regular) * 100);
+  };
+
+  const getStockStatus = (inStock: boolean) => {
+    if (inStock) return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+    return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
+  };
+
+  const getFirstImage = (images: string) => {
+    try {
+      const parsed = JSON.parse(images);
+      let imageName = '';
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        imageName = parsed[0];
+      } else if (typeof parsed === 'string' && parsed) {
+        imageName = parsed;
+      }
+
+      if (imageName) {
+        return `${window.location.origin}/storage/${imageName}`;
+      }
+    } catch (error) {
+      if (typeof images === 'string' && images) {
+        const matches = images.match(/"([^"]+)"/);
+        if (matches && matches[1]) {
+          return `${window.location.origin}/storage/${matches[1]}`;
         }
-    };
+      }
+    }
 
-    const handleAreaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const areaId = e.target.value;
-        setSelectedArea(areaId);
+    return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+  };
 
-        if (selectedCity && selectedZone) {
-            await calculatePathaoPrice(selectedCity, selectedZone, areaId);
-        }
-    };
+  const calculateSaleSavings = () => {
+    return (cartItems || []).reduce((sum, item) => {
+      const regular = (item.regular_price);
+      const sale = (item.sale_price);
+      const quantity = item.cartQty || 1;
 
-    const open = () => setIsOpen(true);
-    const close = () => setIsOpen(false);
+      if (sale && sale < regular) {
+        return sum + ((regular - sale) * quantity);
+      }
+      return sum;
+    }, 0);
+  };
 
-    const confirmClearCart = () => {
-        clearCart();
-        close();
-    };
+  const getSelectedCityName = () => {
+    const city = cities.find(c => c.city_id === parseFloat(selectedCity));
+    return city?.city_name || '';
+  };
 
-    const calculateTotals = () => {
-        const subtotal = getSubTotal();
-        const tax = getTax();
-        const shipping = getShipping();
-        const item_count = getTotalItems();
+  const getSelectedZoneName = () => {
+    const zone = zones.find(z => z.zone_id === parseFloat(selectedZone));
+    return zone?.zone_name || '';
+  };
 
-        let discount = 0;
-        if (appliedCoupon) {
-        discount = appliedCoupon.type === 'percentage'
-            ? subtotal * (appliedCoupon.discount / 100)
-            : Math.min(appliedCoupon.discount, subtotal);
-        }
+  const getSelectedAreaName = () => {
+    const area = areas.find(a => a.area_id === parseFloat(selectedArea));
+    return area?.area_name || '';
+  };
 
-        const total = Math.max(0, subtotal + tax + shipping - discount);
+  const getTotalWeight = () => {
+    const items = getFormattedCartItems();
+    return items.reduce((sum, item) => {
+      return sum + ((item.item_weight || 0.5) * item.quantity);
+    }, 0);
+  };
 
-        return { subtotal, tax, shipping, discount, total, item_count };
-    };
-
-    const cartTotals = calculateTotals();
-
-    const handleIncreaseQuantity = async (itemId: string) => {
-        const item = getItemById(itemId);
-        if (item && item.cartQty && item.cartQty < item.quantity) {
-        increaseQty(itemId);
-        if (selectedCity && selectedZone && selectedArea) {
-            await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
-        }
-        }
-    };
-
-    const handleDecreaseQuantity = async (itemId: string) => {
-        const item = getItemById(itemId);
-        if (item && item.cartQty && item.cartQty > 1) {
-        decreaseQty(itemId);
-        if (selectedCity && selectedZone && selectedArea) {
-            await calculatePathaoPrice(selectedCity, selectedZone, selectedArea);
-        }
-        } else {
-        removeFromCart(itemId);
-        }
-    };
-
-    const moveToWishlist = (itemId: string) => {
-        const item = cartItems?.find(item => item.id === itemId);
-        if (item) {
-        removeFromCart(itemId);
-        toast.success(`${item.name} moved to wishlist`);
-        }
-    };
-
-    const applyCoupon = () => {
-        if (!couponCode.trim()) return;
-
-        const validCoupons = [
-        { code: 'fdagd', discount: 10, type: 'percentage' as const },
-        { code: 'dsagag', discount: 20, type: 'percentage' as const },
-        { code: 'fegdaf', discount: 5.99, type: 'fixed' as const },
-        { code: 'gdafeagds', discount: 15, type: 'percentage' as const }
-        ];
-
-        const coupon = validCoupons.find(c => c.code === couponCode.toUpperCase());
-
-        if (coupon) {
-        setAppliedCoupon(coupon);
-        setCouponCode('');
-        toast.success(`Coupon ${coupon.code} applied!`);
-        } else {
-        toast.error('Invalid coupon code');
-        }
-    };
-
-    const removeCoupon = () => {
-        setAppliedCoupon(null);
-        toast.success('Coupon removed');
-    };
-
-
-    const calculateDiscountPercentage = (regular: number, sale: number | null) => {
-        if (!sale || sale >= regular) return 0;
-        return Math.round(((regular - sale) / regular) * 100);
-    };
-
-    const getStockStatus = (inStock: boolean) => {
-        if (inStock) return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
-        return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-    };
-
-    const getFirstImage = (images: string) => {
-        try {
-        const parsed = JSON.parse(images);
-        let imageName = '';
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            imageName = parsed[0];
-        } else if (typeof parsed === 'string' && parsed) {
-            imageName = parsed;
-        }
-
-        if (imageName) {
-            return `${window.location.origin}/storage/${imageName}`;
-        }
-        } catch (error) {
-        if (typeof images === 'string' && images) {
-            const matches = images.match(/"([^"]+)"/);
-            if (matches && matches[1]) {
-            return `${window.location.origin}/storage/${matches[1]}`;
-            }
-        }
-        }
-
-        return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
-    };
-
-    const calculateSaleSavings = () => {
-        return (cartItems || []).reduce((sum, item) => {
-        const regular = (item.regular_price);
-        const sale = (item.sale_price);
-        const quantity = item.cartQty || 1;
-
-        if (sale && sale < regular) {
-            return sum + ((regular - sale) * quantity);
-        }
-        return sum;
-        }, 0);
-    };
-
-    const getSelectedCityName = () => {
-        const city = cities.find(c => c.city_id === parseFloat(selectedCity));
-        return city?.city_name || '';
-    };
-
-    const isCheckoutDisabled = () => {
-        return !selectedCity || !selectedZone || !pathaoCharges || loadingPathao;
-    };
-
+  const isCheckoutDisabled = () => {
+    return !selectedCity || !selectedZone || !pathaoCharges || loadingPathao;
+  };
 
   if (!cartItems || cartItems.length === 0) {
     return (
@@ -475,7 +555,10 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Subtotal</p>
-                    <p className="text-2xl font-bold text-gray-900"><FormatPrice price={cartTotals.subtotal} /></p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      <FormatPrice price={cartTotals.subtotal} />
+                      <span className="text-xs text-gray-500 ml-1 font-normal">(tax included)</span>
+                    </p>
                   </div>
                   <FaCreditCard className="h-8 w-8 text-green-500" />
                 </div>
@@ -694,8 +777,18 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     {/* Pricing Breakdown */}
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium text-gray-900"><FormatPrice price={cartTotals.subtotal} /></span>
+                        <div className="flex items-center">
+                          <span className="text-gray-600">Subtotal</span>
+                          <div className="group relative ml-2">
+                            <FaInfoCircle className="h-3 w-3 text-gray-400 cursor-help" />
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                              Tax (10%) is included
+                            </div>
+                          </div>
+                        </div>
+                        <span className="font-medium text-gray-900">
+                          <FormatPrice price={cartTotals.subtotal} />
+                        </span>
                       </div>
 
                       <div className="flex justify-between items-center">
@@ -711,11 +804,6 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                             </span>
                           )}
                         </span>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Tax (10%)</span>
-                        <span className="font-medium text-gray-900"><FormatPrice price={cartTotals.tax} /></span>
                       </div>
 
                       {appliedCoupon && (
@@ -742,6 +830,13 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                       )}
                     </div>
 
+                    {/* Tax Included Notice */}
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-xs text-blue-700 text-center">
+                        ✓ Tax is already included in the subtotal
+                      </p>
+                    </div>
+
                     {/* Pathao Delivery Configuration */}
                     <div className="bg-gradient-to-br from-gray-50 to-green-50 rounded-2xl shadow-lg p-6 border-2 border-green-200 mb-6">
                       <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
@@ -750,14 +845,12 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                       </h2>
 
                       <div className="space-y-4">
-                        {/* Pathao Configuration */}
                         <div className="mt-2">
                           <h3 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
                             <FaMapMarkerAlt className="h-4 w-4 text-green-600 mr-2" />
                             Select Delivery Location
                           </h3>
 
-                          {/* Loading State */}
                           {loadingPathao && (
                             <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
                               <p className="text-xs text-blue-700 font-medium flex items-center">
@@ -767,7 +860,6 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                             </div>
                           )}
 
-                          {/* Location Selectors */}
                           <div className="space-y-3">
                             <div>
                               <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -809,25 +901,25 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                             <div>
                               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                Area *
+                                Area
                               </label>
                               <select
                                 value={selectedArea}
                                 onChange={handleAreaChange}
                                 className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                                 disabled={!selectedZone || loadingPathao}
-                            >
+                              >
                                 <option value="">Select Area (Optional)</option>
                                 {areas.map((area) => (
-                                    <option key={area.area_id} value={area.area_id}>
-                                        {area.area_name}
-                                    </option>
+                                  <option key={area.area_id} value={area.area_id}>
+                                    {area.area_name}
+                                  </option>
                                 ))}
-                            </select>
+                              </select>
                             </div>
                           </div>
 
-                          {/* Shipping Rate Display */}
+                          {/* Shipping Rate Display with Weight Surcharge Breakdown */}
                           {selectedCity && (
                             <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
                               <div className="flex items-center mb-3">
@@ -835,26 +927,58 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                 <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
                               </div>
 
-                              {/* Loading State for Price Calculation */}
+                              {/* Loading State */}
                               {loadingPathao && (
                                 <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                                   <p className="text-xs text-blue-700 flex items-center">
                                     <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
-                                    Calculating best shipping rate...
+                                    Calculating delivery charges via Pathao...
                                   </p>
                                 </div>
                               )}
 
-                              {/* City Info */}
+                              {/* Location Info */}
                               <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
                                 <p className="text-xs text-blue-700 flex items-center">
                                   <FaMapMarkerAlt className="h-3 w-3 mr-1" />
                                   Delivering to: {getSelectedCityName()}
+                                  {selectedZone && `, ${getSelectedZoneName()}`}
+                                  {selectedArea && `, ${getSelectedAreaName()}`}
                                 </p>
                               </div>
 
+                              {/* Weight Information with Surcharge Details */}
+                              {!loadingPathao && (
+                                <div className="mb-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-semibold text-yellow-800 flex items-center">
+                                      <FaWeightHanging className="h-3 w-3 mr-1" />
+                                      Total Weight:
+                                    </p>
+                                    <p className="text-sm font-bold text-yellow-900">
+                                      {getTotalWeight().toFixed(2)} kg
+                                    </p>
+                                  </div>
+
+                                  <div className="mt-2 p-2 bg-white rounded border border-yellow-200">
+                                    <p className="text-xs text-gray-700 flex items-center mb-1">
+                                      <FaPercent className="h-3 w-3 mr-1 text-orange-500" />
+                                      Weight Surcharge:
+                                    </p>
+                                    <p className={`text-xs font-medium ${getTotalWeight() <= 0.5 ? 'text-green-600' : getTotalWeight() <= 1 ? 'text-orange-500' : 'text-red-500'}`}>
+                                      {getWeightSurchargeMessage(getTotalWeight())}
+                                    </p>
+                                    {getTotalWeight() > 2 && (
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        Additional {Math.ceil(getTotalWeight() - 2)}kg × 10% extra
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Main Display */}
-                              <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                              <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300 mb-3">
                                 <p className="text-xs text-green-700 font-semibold mb-1">
                                   {loadingPathao ? 'Calculating...' : pathaoCharges ? 'Total Delivery Charge' : 'Select area to calculate'}
                                 </p>
@@ -862,10 +986,67 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                   {loadingPathao ? (
                                     <FaTruckLoading className="h-6 w-6 mx-auto animate-spin" />
                                   ) : (
-                                    pathaoCharges ? <FormatPrice price={pathaoCharges.delivery_charge} />: '---'
+                                    pathaoCharges ? <FormatPrice price={pathaoCharges.delivery_charge} /> : '---'
                                   )}
                                 </p>
                               </div>
+
+                              {/* Detailed Breakdown with Weight Surcharge */}
+                              {pathaoCharges && !loadingPathao && (
+                                <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200">
+                                  <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+                                    <FaInfoCircle className="h-3 w-3 mr-1" />
+                                    Price Breakdown:
+                                  </p>
+                                  <div className="space-y-1 text-xs">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Pathao Base Charge:</span>
+                                      <span className="font-medium">
+                                        <FormatPrice price={pathaoCharges.base_charge || 0} />
+                                      </span>
+                                    </div>
+
+                                    {/* Weight Surcharge Display */}
+                                    {pathaoCharges.weight_surcharge && pathaoCharges.weight_surcharge > 0 && (
+                                      <div className="flex justify-between text-orange-600">
+                                        <span className="flex items-center">
+                                          <FaWeightHanging className="h-3 w-3 mr-1" />
+                                          Weight Surcharge ({pathaoCharges.weight_surcharge_percentage}%):
+                                        </span>
+                                        <span>+ <FormatPrice price={pathaoCharges.weight_surcharge} /></span>
+                                      </div>
+                                    )}
+
+                                    <div className="flex justify-between text-blue-600">
+                                      <span>Service Fee:</span>
+                                      <span>+ <FormatPrice price={20} /></span>
+                                    </div>
+
+                                    <div className="flex justify-between pt-2 border-t border-gray-200 font-semibold">
+                                      <span>Total:</span>
+                                      <span className="text-green-600"><FormatPrice price={pathaoCharges.delivery_charge} /></span>
+                                    </div>
+                                  </div>
+
+                                  {/* Weight Surcharge Rules */}
+                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                                    <p className="text-gray-600 font-medium mb-1 flex items-center">
+                                      <FaInfoCircle className="h-3 w-3 mr-1" />
+                                      Weight Surcharge Rules:
+                                    </p>
+                                    <ul className="text-gray-500 space-y-0.5 ml-4 list-disc">
+                                      <li>≤ 0.5 kg: <span className="text-green-600">No surcharge</span></li>
+                                      <li>0.5 kg - 1 kg: <span className="text-orange-500">+10% surcharge</span></li>
+                                      <li>1 kg - 2 kg: <span className="text-orange-500">+35% surcharge</span></li>
+                                      <li>&gt; 2 kg: <span className="text-red-500">+35% + 10% per additional kg</span></li>
+                                    </ul>
+                                  </div>
+
+                                  <p className="text-xs text-gray-500 mt-2 text-center">
+                                    * Pathao base charge calculated based on distance and item type
+                                  </p>
+                                </div>
+                              )}
 
                               {/* Estimated Delivery */}
                               {selectedArea && pathaoCharges && (
@@ -873,8 +1054,8 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                   <p className="text-xs text-purple-700 flex items-center">
                                     <FaTruck className="h-3 w-3 mr-1" />
                                     Estimated delivery: {
-                                      getSelectedCityName().toLowerCase().includes('dhaka') ? '3-5' :
-                                      getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-4'
+                                      getSelectedCityName().toLowerCase().includes('dhaka') ? '2-3' :
+                                      getSelectedCityName().toLowerCase().includes('chittagong') ? '2-3' : '3-5'
                                     } business days
                                   </p>
                                 </div>

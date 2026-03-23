@@ -31,6 +31,10 @@ export interface OrderData {
 
 export interface PathaoCharges {
     delivery_charge: number;
+    base_charge?: number;
+    service_fee?: number;
+    weight_surcharge?: number;
+    weight_surcharge_percentage?: number;
 }
 
 type Store = {
@@ -47,7 +51,7 @@ type Store = {
     areas: areatypes[];
 
     // Cart actions
-    addToCart: (product: CartItem | Product, store: storeType, quantity?: number) => void; // ✅ FIXED
+    addToCart: (product: CartItem | Product, store: storeType, quantity?: number) => void;
     removeFromCart: (id: string) => void;
     clearCart: () => void;
     getTotalItems: () => number;
@@ -121,7 +125,7 @@ export const useStore = create<Store>()(
                 couponCode: null,
                 discountAmount: 0,
 
-                // ✅ FIXED: now accepts CartItem | Product
+                // Add to cart
                 addToCart: (product, store, quantity = 1) =>
                     set((state) => {
                         if (!store || !store.id) {
@@ -152,7 +156,7 @@ export const useStore = create<Store>()(
 
                         // Create cart item with store information
                         const cartItem: CartItem = {
-                            ...product,       // spreads all Product fields
+                            ...product,
                             store: store,
                             cartQty: quantity,
                             item_weight: product.item_weight || 0.5,
@@ -256,23 +260,39 @@ export const useStore = create<Store>()(
                 getItemById: (id: string) =>
                     get().cart.find((item) => item.id === id),
 
-                getSubTotal: () =>
-                    get().cart.reduce(
+                // Subtotal includes tax
+                getSubTotal: () => {
+                    const subtotal = get().cart.reduce(
                         (sum, item) =>
                             sum + ((item.sale_price || item.regular_price) * (item.cartQty || 1)),
                         0
-                    ),
-
-                getTax: () => get().getSubTotal() * 0.10,
-
-                getShipping: () => {
-                    const { pathaoCharges } = get();
-                    return pathaoCharges ? pathaoCharges.delivery_charge : 0;
+                    );
+                    return subtotal;
                 },
 
+                // Tax calculation for display purposes only
+                getTax: () => {
+                    const subtotal = get().cart.reduce(
+                        (sum, item) =>
+                            sum + ((item.sale_price || item.regular_price) * (item.cartQty || 1)),
+                        0
+                    );
+                    return subtotal * 0.10;
+                },
+
+                // Get shipping - returns the total delivery charge including all surcharges
+                getShipping: () => {
+                    const { pathaoCharges } = get();
+
+                    if (!pathaoCharges) return 0;
+
+                    // Return the total delivery charge (Pathao charge + weight surcharge + service fee)
+                    return pathaoCharges.delivery_charge;
+                },
+
+                // Total = Subtotal (incl. tax) + Shipping - Discount
                 getTotal: () => {
                     const subtotal = get().getSubTotal();
-                    const tax = get().getTax();
                     const shipping = get().getShipping();
                     const discount = get().discountAmount;
 
@@ -281,7 +301,7 @@ export const useStore = create<Store>()(
                         discountValue = (subtotal * discount) / 100;
                     }
 
-                    return subtotal + tax + shipping - discountValue;
+                    return subtotal + shipping - discountValue;
                 },
 
                 setPathaoCharges: (charges) =>
@@ -344,6 +364,7 @@ export const useStore = create<Store>()(
                     });
                 },
 
+                // Order summary with tax included in subtotal
                 getOrderSummary: () => {
                     const subtotal = get().getSubTotal();
                     const tax = get().getTax();
@@ -358,7 +379,7 @@ export const useStore = create<Store>()(
                     }, 0);
 
                     return {
-                        subtotal,
+                        subtotal, // This includes tax
                         tax,
                         shipping,
                         total,
@@ -455,7 +476,12 @@ export const useStore = create<Store>()(
                         item_description: 'Products order',
                         store_name: storeInfo.name,
                         subtotal: summary.subtotal,
+                        tax_amount: summary.tax,
                         delivery_charge: state.pathaoCharges.delivery_charge,
+                        base_delivery_charge: state.pathaoCharges.base_charge || state.pathaoCharges.delivery_charge - 20 - (state.pathaoCharges.weight_surcharge || 0),
+                        weight_surcharge: state.pathaoCharges.weight_surcharge || 0,
+                        weight_surcharge_percentage: state.pathaoCharges.weight_surcharge_percentage || 0,
+                        service_fee: 20,
                         total: summary.total,
                         coupon_code: state.couponCode || null,
                         discount_amount: state.discountAmount || 0,
@@ -467,7 +493,6 @@ export const useStore = create<Store>()(
                         notes: orderData.notes || null,
                         items: formattedItems,
                     };
-
 
                     return new Promise<void>((resolve, reject) => {
                         router.post('/orders', orderPayload, {
