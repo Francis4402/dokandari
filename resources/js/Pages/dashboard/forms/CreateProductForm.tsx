@@ -26,37 +26,16 @@ import {
   FaWeightHanging,
   FaPalette,
   FaStar,
-  FaHeading,
-  FaParagraph,
-  FaCode,
-  FaBold,
-  FaItalic,
-  FaUnderline,
-  FaAlignLeft,
-  FaAlignCenter,
-  FaAlignRight,
   FaLink as FaLinkIcon,
-  FaQuoteRight,
-  FaListOl,
-  FaListUl,
-  FaUndo,
-  FaRedo,
   FaEye as FaEyeIcon,
-  FaPen,
 } from 'react-icons/fa';
 import {
   HiCheck,
   HiOutlineExclamationCircle,
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
-
-
-interface ToolbarButton {
-  icon: React.ReactNode;
-  command: string;
-  title: string;
-  value?: string;
-}
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface productFormType {
     auth: {
@@ -67,43 +46,39 @@ interface productFormType {
 }
 
 
-export interface Product {
-    id: string;
-    user_id: string;
-    store_id: string;
-    name: string;
-    images: string;
-    slug: string;
-    category: string;
-    subcategory: string;
-    quantity: number;
-    regular_price: number;
-    sale_price: number | null;
-    description: string;
-    color: string;
-    product_type: 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular';
-    inStock: boolean;
-    rating: number;
-    item_weight: number;
-    review?: number;
-    created_at: string;
-    updated_at: string;
-}
+// Custom Quill modules configuration
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    ['blockquote', 'code-block'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'script': 'sub'}, { 'script': 'super' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['link', 'image', 'video'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'blockquote', 'code-block',
+  'list', 'bullet',
+  'script', 'indent',
+  'align',
+  'link', 'image', 'video'
+];
 
 export default function CreateProductForm({auth, store, categories}: productFormType) {
   const imagesInputRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
   const [availablesubcategory, setAvailablesubcategory] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
-
-  // Rich text editor state
-  const [editorMode, setEditorMode] = useState<'write' | 'preview'>('write');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
 
   const productTypes = [
     { value: 'regular', label: 'Regular' },
@@ -128,12 +103,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
     rating: '0',
     item_weight: '',
     store_id: store.id || '',
-    product_type: 'regular' as 'top-selling' | 'trending' | 'featured' | 'new-arrival' | 'regular',
   });
 
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
-
 
   const parsesubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
@@ -144,75 +117,26 @@ export default function CreateProductForm({auth, store, categories}: productForm
     }
   };
 
-  // Rich text editor toolbar buttons
-  const toolbarButtons: ToolbarButton[] = [
-    { icon: <FaBold />, command: 'bold', title: 'Bold' },
-    { icon: <FaItalic />, command: 'italic', title: 'Italic' },
-    { icon: <FaUnderline />, command: 'underline', title: 'Underline' },
-    { icon: <FaListUl />, command: 'insertUnorderedList', title: 'Bullet List' },
-    { icon: <FaListOl />, command: 'insertOrderedList', title: 'Numbered List' },
-    { icon: <FaQuoteRight />, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
-    { icon: <FaCode />, command: 'formatBlock', value: 'pre', title: 'Code Block' },
-    { icon: <FaLinkIcon />, command: 'createLink', title: 'Insert Link' },
-    { icon: <FaAlignLeft />, command: 'justifyLeft', title: 'Align Left' },
-    { icon: <FaAlignCenter />, command: 'justifyCenter', title: 'Align Center' },
-    { icon: <FaAlignRight />, command: 'justifyRight', title: 'Align Right' },
-    { icon: <FaHeading />, command: 'formatBlock', value: 'h2', title: 'Heading' },
-    { icon: <FaParagraph />, command: 'formatBlock', value: 'p', title: 'Paragraph' },
-  ];
-
-
-  useEffect(() => {
-    if (editorRef.current && data.description && editorMode === 'write') {
-      editorRef.current.innerHTML = data.description;
-    }
-  }, [data.description, editorMode]);
-
-  // Apply rich text formatting
-  const applyFormatting = (button: ToolbarButton) => {
-    if (!editorRef.current) return;
-
-    // Focus the editor
-    editorRef.current.focus();
-
-    if (button.command === 'createLink') {
-      const url = window.prompt('Enter the URL:');
-      if (url) {
-        document.execCommand(button.command, false, url);
-      }
-    } else if (button.value) {
-      document.execCommand(button.command, false, button.value);
-    } else {
-      document.execCommand(button.command, false, undefined);
-    }
-
-
-    setData('description', editorRef.current.innerHTML);
+  // Auto-generate slug from name
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
   };
 
-  // Handle editor content change
-  const handleEditorChange = () => {
-    if (editorRef.current) {
-      setData('description', editorRef.current.innerHTML);
+  // Handle name change with auto slug generation
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setData('name', newName);
+
+    // Auto-generate slug only if slug is empty or was auto-generated
+    if (!data.slug || data.slug === generateSlug(data.name)) {
+      setData('slug', generateSlug(newName));
     }
   };
-
-  // Insert emoji
-  const insertEmoji = (emoji: string) => {
-    if (!editorRef.current) return;
-
-    editorRef.current.focus();
-    document.execCommand('insertText', false, emoji);
-
-    setData('description', editorRef.current.innerHTML);
-    setShowEmojiPicker(false);
-  };
-
-
-  const commonEmojis = [
-    '😊', '👍', '⭐', '🔥', '✅', '🎁', '💯', '🚀', '💪', '✨',
-    '🎨', '📦', '🛒', '💰', '💎', '🔋', '⚡', '🌟', '💫', '🎯'
-  ];
 
   useEffect(() => {
     const validColors = colorInputs.filter(color => color.trim() !== '');
@@ -238,18 +162,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
       setData('subcategory', '');
     }
   }, [data.category, categories]);
-
-  useEffect(() => {
-    if (data.name && !data.slug) {
-      const slug = data.name
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/--+/g, '-')
-        .trim();
-      setData('slug', slug);
-    }
-  }, [data.name]);
 
   useEffect(() => {
     return () => {
@@ -288,7 +200,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
     const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
 
     if (oversizedFiles.length > 0) {
-
       toast.error(
         `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
         {
@@ -338,7 +249,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
     formData.append('item_weight', data.item_weight);
-    formData.append('product_type', data.product_type);
 
     // Append images
     data.images.forEach((image, index) => {
@@ -359,9 +269,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setShowSubcategoryDropdown(false);
         setAvailablesubcategory([]);
         setColorInputs(['']);
-        if (editorRef.current) {
-          editorRef.current.innerHTML = '';
-        }
       },
       onError: () => {
         toast.error('Failed to create product. Please check the form for errors.');
@@ -458,7 +365,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         <input
                           type="text"
                           value={data.name}
-                          onChange={(e) => setData('name', e.target.value)}
+                          onChange={handleNameChange}
                           placeholder="Your Product Name"
                           className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
@@ -491,13 +398,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         <button
                           type="button"
                           onClick={() => {
-                            const slug = data.name
-                              .toLowerCase()
-                              .replace(/[^\w\s-]/g, '')
-                              .replace(/\s+/g, '-')
-                              .replace(/--+/g, '-')
-                              .trim();
-                            setData('slug', slug);
+                            const newSlug = generateSlug(data.name);
+                            setData('slug', newSlug);
                             toast.success('Slug generated!');
                           }}
                           disabled={!data.name}
@@ -507,6 +409,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           Generate
                         </button>
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Slug is automatically generated from the product name
+                      </p>
                       {errors.slug && (
                         <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                           <HiOutlineExclamationCircle className="h-4 w-4" />
@@ -863,147 +768,32 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
               </div>
 
-              {/* Rich Description Card */}
+              {/* Rich Description Card with Quill.js */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b">
-                  <div className="flex items-center gap-2">
-                    <FaBookOpen className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditorMode('write')}
-                      className={`px-3 py-1.5 rounded-l-lg text-sm font-medium transition-colors ${
-                        editorMode === 'write'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      <FaPen className="h-3 w-3 inline mr-1" />
-                      Write
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditorMode('preview')}
-                      className={`px-3 py-1.5 rounded-r-lg text-sm font-medium transition-colors ${
-                        editorMode === 'preview'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      <FaEyeIcon className="h-3 w-3 inline mr-1" />
-                      Preview
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
+                  <FaBookOpen className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
                 </div>
 
-                {/* Rich Text Toolbar */}
-                {editorMode === 'write' && (
-                  <div className="mb-4">
-                    <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                      {toolbarButtons.map((button, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => applyFormatting(button)}
-                          title={button.title}
-                          className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
-                        >
-                          {button.icon}
-                        </button>
-                      ))}
-                      <div className="w-px h-6 bg-gray-300 mx-1" />
-                      <button
-                        type="button"
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
-                        title="Insert Emoji"
-                      >
-                        😊
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          document.execCommand('undo', false, undefined);
-                          if (editorRef.current) {
-                            setData('description', editorRef.current.innerHTML);
-                          }
-                        }}
-                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
-                        title="Undo"
-                      >
-                        <FaUndo />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          document.execCommand('redo', false, undefined);
-                          if (editorRef.current) {
-                            setData('description', editorRef.current.innerHTML);
-                          }
-                        }}
-                        className="p-2 hover:bg-gray-200 rounded transition-colors text-gray-700"
-                        title="Redo"
-                      >
-                        <FaRedo />
-                      </button>
-                    </div>
-
-                    {/* Emoji Picker */}
-                    {showEmojiPicker && (
-                      <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200 shadow-lg">
-                        <div className="grid grid-cols-10 gap-1">
-                          {commonEmojis.map((emoji, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => insertEmoji(emoji)}
-                              className="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-lg"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                <div>
+                  <ReactQuill
+                    theme="snow"
+                    value={data.description}
+                    onChange={(value) => setData('description', value)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Describe your product features, specifications, and benefits..."
+                    className="h-64 mb-12"
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Use the toolbar to format your text with rich styling
+                    </p>
                   </div>
-                )}
-
-
-                {editorMode === 'write' ? (
-                  <div>
-                    <div
-                      ref={editorRef}
-                      contentEditable
-                      onInput={handleEditorChange}
-                      onBlur={handleEditorChange}
-                      className="w-full min-h-[250px] rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent overflow-y-auto prose prose-sm max-w-none"
-                      style={{
-                        whiteSpace: 'pre-wrap',
-                        wordWrap: 'break-word'
-                      }}
-                      data-placeholder="Describe your product features, specifications, and benefits..."
-                      suppressContentEditableWarning={true}
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-gray-500">
-                        <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Use the toolbar above to format your text
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="min-h-[250px] p-4 border border-gray-200 rounded-lg bg-gray-50 prose prose-sm max-w-none">
-                    {data.description ? (
-                      <div dangerouslySetInnerHTML={{ __html: data.description }} />
-                    ) : (
-                      <p className="text-gray-400 text-center">No description provided</p>
-                    )}
-                  </div>
-                )}
+                </div>
 
                 {errors.description && (
                   <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -1048,7 +838,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Click to upload images</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB each</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB each</p>
                         </div>
                       </div>
                     ) : (
@@ -1094,33 +884,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
               </div>
 
-              {/* Product Type Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaStar className="h-5 w-5 text-yellow-500" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Type</h2>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Product Type
-                  </label>
-                  <select
-                    value={data.product_type}
-                    onChange={(e) => setData('product_type', e.target.value as any)}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    {productTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Determines how the product appears in collections and promotions
-                  </p>
-                </div>
-              </div>
 
               {/* Stock Status Card */}
               <div className="bg-white rounded-xl shadow-lg p-6">
@@ -1266,15 +1029,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         </div>
                       )}
 
-                      {/* Product Type Badge */}
-                      {data.product_type !== 'regular' && (
-                        <div className="mt-2">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <FaStar className="h-3 w-3 mr-1" />
-                            {data.product_type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
 

@@ -336,19 +336,6 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                             <FiPackage className="h-4 w-4" />
                             Orders
                           </Link>
-                          <Link
-                            href="/wishlist"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            <FiHeart className="h-4 w-4" />
-                            Wishlist
-                            {wishlistItems > 0 && (
-                              <span className="ml-auto inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-                                {wishlistItems}
-                              </span>
-                            )}
-                          </Link>
                         </div>
                         <div className="py-1">
                           <Link

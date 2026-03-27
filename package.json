@@ -28,6 +28,7 @@
         "@gsap/react": "^2.1.2",
         "gsap": "^3.14.2",
         "react-icons": "^5.5.0",
+        "react-quill": "^2.0.0",
         "sonner": "^2.0.7",
         "swiper": "^12.0.3",
         "zustand": "^5.0.10"

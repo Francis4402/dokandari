@@ -27,13 +27,15 @@ import {
   FaTrash,
   FaWeightHanging,
   FaStar,
-  FaList
+  FaPalette,
 } from 'react-icons/fa';
 import {
   HiCheck,
   HiOutlineExclamationCircle,
 } from 'react-icons/hi2';
 import { toast } from 'sonner';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface EditProductFormProps {
   auth: {
@@ -43,6 +45,31 @@ interface EditProductFormProps {
   categories: categoryType[];
   product: Product;
 }
+
+// Custom Quill modules configuration
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    ['blockquote', 'code-block'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'script': 'sub'}, { 'script': 'super' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['link', 'image', 'video'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'blockquote', 'code-block',
+  'list', 'bullet',
+  'script', 'indent',
+  'align',
+  'link', 'image', 'video'
+];
 
 export default function EditProductForm({ auth, store, categories, product }: EditProductFormProps) {
   const imagesInputRef = useRef<HTMLInputElement>(null);
@@ -69,11 +96,32 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     inStock: product.inStock ?? true,
     item_weight: product.item_weight?.toString() || '0',
     rating: product.rating?.toString() || '0',
-    store_id: store.id || ''
+    store_id: store.id || '',
   });
 
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
+
+  // Generate slug function
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+  };
+
+  // Handle name change with auto slug generation
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setData('name', newName);
+
+    // Auto-generate slug only if slug is empty or matches the previously auto-generated pattern
+    if (!data.slug || data.slug === generateSlug(product.name)) {
+      setData('slug', generateSlug(newName));
+    }
+  };
 
   // Parse subcategory from the selected category
   const parsesubcategory = (subcategoryString: string | null): string[] => {
@@ -147,19 +195,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     setData('color', validColors);
   }, [colorInputs]);
 
-  // Auto-generate slug from name
-  useEffect(() => {
-    if (data.name && !data.slug) {
-      const slug = data.name
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/--+/g, '-')
-        .trim();
-      setData('slug', slug);
-    }
-  }, [data.name]);
-
   // Clean up object URLs
   useEffect(() => {
     return () => {
@@ -203,7 +238,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
 
     if (oversizedFiles.length > 0) {
-
       toast.error(
         `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
         {
@@ -217,7 +251,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     if (files.length) {
       setData('images', files as any);
       const previews = files.map(file => URL.createObjectURL(file));
-      setImagePreviews(previews);
+      setImagePreviews([...imagePreviews, ...previews]);
       toast.success(`${files.length} image(s) uploaded successfully!`, {
         duration: 3000,
         position: 'top-center',
@@ -238,7 +272,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
   const removeNewImage = (index: number) => {
     const imageIndex = index - existingImages.length;
-    if (imageIndex >= 0) {
+    if (imageIndex >= 0 && imageIndex < data.images.length) {
       const newImages = data.images.filter((_, i) => i !== imageIndex);
       const newPreviews = imagePreviews.filter((_, i) => i !== index);
 
@@ -306,13 +340,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
       setData(field, value as any);
     }
   };
-
-  const productTypes = [
-    { value: 'regular', label: 'Regular', color: 'gray' },
-    { value: 'top-selling', label: 'Top Selling', color: 'red' },
-    { value: 'trending', label: 'Trending', color: 'purple' },
-    { value: 'featured', label: 'Featured', color: 'blue' },
-  ];
 
   return (
     <DashboardLayout user={auth.user}>
@@ -395,7 +422,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         <input
                           type="text"
                           value={data.name}
-                          onChange={(e) => setData('name', e.target.value)}
+                          onChange={handleNameChange}
                           placeholder="Your Product Name"
                           className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
@@ -428,12 +455,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         <button
                           type="button"
                           onClick={() => {
-                            const slug = data.name
-                              .toLowerCase()
-                              .replace(/[^\w\s-]/g, '')
-                              .replace(/\s+/g, '-')
-                              .replace(/--+/g, '-')
-                              .trim();
+                            const slug = generateSlug(data.name);
                             setData('slug', slug);
                             toast.success('Slug regenerated!');
                           }}
@@ -444,6 +466,9 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           Regenerate
                         </button>
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Slug is automatically generated from the product name
+                      </p>
                       {errors.slug && (
                         <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                           <HiOutlineExclamationCircle className="h-4 w-4" />
@@ -505,7 +530,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     {/* Sub Category */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sub Category <span className="text-red-500">*</span>
+                        Sub Category
                       </label>
                       <div className="relative">
                         <button
@@ -564,7 +589,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     </div>
                   </div>
 
-                  {/* Row 3: Quantity and Product Type */}
+                  {/* Row 3: Quantity and Item Weight */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Quantity */}
                     <div>
@@ -589,97 +614,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </p>
                       )}
                     </div>
-                  </div>
-
-                  {/* Row 4: Colors and Item Weight */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Colors */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Colors <span className="text-xs font-normal text-gray-500">(Add multiple)</span>
-                      </label>
-
-                      <div className="space-y-2">
-                        {colorInputs.map((color, index) => (
-                          <div key={index} className="flex gap-2">
-                            <div className="relative flex-1">
-                              <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                              <input
-                                type="text"
-                                value={color}
-                                onChange={(e) => updateColorInput(index, e.target.value)}
-                                placeholder="Enter color name..."
-                                className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              />
-                            </div>
-
-                            {index === colorInputs.length - 1 ? (
-                              <button
-                                type="button"
-                                onClick={addColorInput}
-                                className="px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                              >
-                                <FaPlus className="h-4 w-4" />
-                                Add
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => removeColorInput(index)}
-                                className="px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-                              >
-                                <FaTimes className="h-4 w-4" />
-                                Remove
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Display added colors */}
-                      {getValidColors().length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                              Added Colors ({getValidColors().length})
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setColorInputs([''])}
-                              className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
-                            >
-                              <FaTimes className="h-3 w-3" />
-                              Clear All
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {getValidColors().map((color, index) => (
-                              <div
-                                key={index}
-                                className="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-lg"
-                              >
-                                <span className="text-sm font-medium text-gray-800">
-                                  {color}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {errors.color && (
-                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                          <HiOutlineExclamationCircle className="h-4 w-4" />
-                          {errors.color}
-                        </p>
-                      )}
-                    </div>
 
                     {/* Item Weight */}
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                         <FaWeightHanging className="h-4 w-4" />
-                        Item Weight (g) <span className="text-red-500">*</span>
+                        Item Weight (kg) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -689,7 +629,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           step="0.1"
                           value={data.item_weight}
                           onChange={(e) => handleNumberInput(e, 'item_weight')}
-                          placeholder="0"
+                          placeholder="0.5"
                           className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -702,33 +642,113 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     </div>
                   </div>
 
-                  {/* Row 5: Rating */}
-                  <div className="grid md:grid-cols-1 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaStar className="h-4 w-4 text-yellow-500" />
-                        Rating (0-5)
-                      </label>
-                      <div className="relative">
-                        <FaStar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-4 w-4" />
-                        <input
-                          type="number"
-                          min="0"
-                          max="5"
-                          step="0.1"
-                          value={data.rating}
-                          onChange={(e) => handleNumberInput(e, 'rating')}
-                          placeholder="0.0"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                      </div>
-                      {errors.rating && (
-                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                          <HiOutlineExclamationCircle className="h-4 w-4" />
-                          {errors.rating}
-                        </p>
-                      )}
+                  {/* Row 4: Colors */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Colors <span className="text-xs font-normal text-gray-500">(Add multiple)</span>
+                    </label>
+
+                    <div className="space-y-2">
+                      {colorInputs.map((color, index) => (
+                        <div key={index} className="flex gap-2">
+                          <div className="relative flex-1">
+                            <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <input
+                              type="text"
+                              value={color}
+                              onChange={(e) => updateColorInput(index, e.target.value)}
+                              placeholder="Enter color name..."
+                              className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          {index === colorInputs.length - 1 ? (
+                            <button
+                              type="button"
+                              onClick={addColorInput}
+                              className="px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                            >
+                              <FaPlus className="h-4 w-4" />
+                              Add
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => removeColorInput(index)}
+                              className="px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                            >
+                              <FaTimes className="h-4 w-4" />
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
+
+                    {/* Display added colors */}
+                    {getValidColors().length > 0 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700">
+                            Added Colors ({getValidColors().length})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setColorInputs([''])}
+                            className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                          >
+                            <FaTimes className="h-3 w-3" />
+                            Clear All
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {getValidColors().map((color, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-lg"
+                            >
+                              <span className="text-sm font-medium text-gray-800">
+                                {color}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {errors.color && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.color}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Row 5: Rating */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <FaStar className="h-4 w-4 text-yellow-500" />
+                      Rating (0-5)
+                    </label>
+                    <div className="relative">
+                      <FaStar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-4 w-4" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        value={data.rating}
+                        onChange={(e) => handleNumberInput(e, 'rating')}
+                        placeholder="0.0"
+                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    {errors.rating && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.rating}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -830,7 +850,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                 </div>
               </div>
 
-              {/* Description Card */}
+              {/* Description Card with Quill.js */}
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b">
                   <FaBookOpen className="h-5 w-5 text-blue-600" />
@@ -838,23 +858,31 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <textarea
+                  <ReactQuill
+                    theme="snow"
                     value={data.description}
-                    onChange={(e) => setData('description', e.target.value)}
+                    onChange={(value) => setData('description', value)}
+                    modules={quillModules}
+                    formats={quillFormats}
                     placeholder="Describe your product features, specifications, and benefits..."
-                    rows={6}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="h-64 mb-12"
                   />
-                  {errors.description && (
-                    <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                      <HiOutlineExclamationCircle className="h-4 w-4" />
-                      {errors.description}
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
                     </p>
-                  )}
+                    <p className="text-xs text-gray-500">
+                      Use the toolbar to format your text with rich styling
+                    </p>
+                  </div>
                 </div>
+
+                {errors.description && (
+                  <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                    <HiOutlineExclamationCircle className="h-4 w-4" />
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -891,7 +919,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                               alt={`Product ${i + 1}`}
                               className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
                               onError={(e) => {
-                                // Fallback if image fails to load
                                 e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
                               }}
                             />
@@ -931,7 +958,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Click to add more images</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB each</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB each</p>
                         </div>
                       </div>
                     ) : (
@@ -1121,7 +1148,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                           <FaWeightHanging className="h-3 w-3" />
-                          {data.item_weight || 0}g
+                          {data.item_weight || 0}kg
                         </span>
                         <span className="flex items-center gap-1">
                           <FaStar className="h-3 w-3 text-yellow-500" />
@@ -1183,7 +1210,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           Weight
                         </span>
                         <span className="font-medium text-gray-800">
-                          {data.item_weight || 0}g
+                          {data.item_weight || 0}kg
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
@@ -1239,8 +1266,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       <span>Click on existing images to remove them</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaTag className="h-3 w-3" />
+                      <FaPalette className="h-3 w-3" />
                       <span>Add colors by entering names and clicking Add</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaBookOpen className="h-3 w-3" />
+                      <span>Rich text editor allows formatted product descriptions</span>
                     </p>
                   </div>
                 </div>
