@@ -44,15 +44,15 @@ const DailyDiscover = ({ discoverProduct, auth, reviews }: DailyDiscoverProduct)
   }, [discoverProduct]);
 
   useEffect(() => {
-    // Calculate review counts from the reviews data
+
     const counts: Record<string, number> = {};
 
-    // Initialize all products with 0 reviews
+
     discoverProduct.forEach(product => {
       counts[product.id] = 0;
     });
 
-    // Count reviews from the reviews array
+
     reviews.forEach(review => {
       if (review.product_id && counts.hasOwnProperty(review.product_id)) {
         counts[review.product_id] = (counts[review.product_id] || 0) + 1;
@@ -122,7 +122,6 @@ const DailyDiscover = ({ discoverProduct, auth, reviews }: DailyDiscoverProduct)
     e.preventDefault();
     e.stopPropagation();
 
-    // Prevent clicking if already reviewed or loading
     if (userReviews[productId] || loadingStates[productId]) {
       return;
     }

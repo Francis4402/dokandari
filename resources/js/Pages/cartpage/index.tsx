@@ -467,6 +467,12 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
     return !selectedCity || !selectedZone || !pathaoCharges || loadingPathao;
   };
 
+
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '');
+    };
+
   if (!cartItems || cartItems.length === 0) {
     return (
       <AppLayout user={auth.user} wishlist={wishlist}>
@@ -638,7 +644,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                       </h3>
                                     </Link>
                                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                                      {item.description}
+                                      {stripHtml(item.description)}
                                     </p>
                                   </div>
                                   <div className="text-right">

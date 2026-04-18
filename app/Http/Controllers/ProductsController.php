@@ -95,12 +95,12 @@ class ProductsController extends Controller
 
                 $extension = $file->getClientOriginalExtension();
 
-
                 $filename = 'product_' . time() . '_' . $index . '_' . Str::random(10) . '.' . $extension;
 
                 $filePath = $directory . '/' . $filename;
 
                 $manager = new ImageManager(new Driver());
+
                 $img = $manager->read($file->getRealPath());
 
                 $img->scale(width: 800);
@@ -134,7 +134,7 @@ class ProductsController extends Controller
         $wishlist = Wishlist::where('user_id', auth()->id())
             ->paginate(12);
 
-        // Get comments with user data
+
         $comments = Comment::with('user')
             ->where('product_id', $product->id)
             ->latest()
@@ -160,7 +160,7 @@ class ProductsController extends Controller
                 ];
             });
 
-        // Calculate average rating and review count
+
         $ratings = $comments->filter(function($comment) {
             return $comment['rating'] !== null;
         });
@@ -232,7 +232,6 @@ class ProductsController extends Controller
             'item_weight' => 'required|numeric',
         ]);
 
-        // ✅ Update normal fields (exclude images)
         $product->update(collect($validated)->except([
             'images',
             'images_to_remove',
@@ -278,7 +277,6 @@ class ProductsController extends Controller
             }
         }
 
-        // ✅ Save final images array
         $product->images = json_encode(array_values($existingImages));
         $product->save();
     }

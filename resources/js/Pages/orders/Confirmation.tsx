@@ -624,7 +624,7 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
             {/* Action Buttons */}
             <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                href={route('orders.index')}
+                href={route('dashboard.orders')}
                 className="inline-flex items-center justify-center px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
               >
                 <FaShoppingBag className="h-4 w-4 mr-2" />

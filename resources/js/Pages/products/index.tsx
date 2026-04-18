@@ -71,23 +71,24 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
     };
 
-    // Get product rating (from product object or passed ratings)
+
     const getProductRating = (product: Product): { average: number; count: number } => {
-        // If ratings are passed from controller with product ID
+
         if (productRatings[product.id]) {
             return productRatings[product.id];
         }
 
-        // Otherwise, use product.rating and product.review fields
+
         const rating = typeof product.rating === 'string'
             ? parseFloat(product.rating)
             : (product.rating || 0);
 
-        // const reviewCount = typeof product.review === 'string'
-        //     ? parseInt(product.review) || 0
-        //     : (product.review || 0);
-
         return { average: rating, count: 0 };
+    };
+
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '');
     };
 
     // Render stars based on average rating
@@ -628,7 +629,7 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
 
                                                                     {/* Description */}
                                                                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                                                        {product.description}
+                                                                        {stripHtml(product.description)}
                                                                     </p>
 
                                                                     {/* Rating & Stock */}

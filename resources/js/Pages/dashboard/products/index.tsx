@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import FormatPrice from '@/Pages/utils/FormatePrice';
 
 
+
 interface dashboarProductProps {
     auth: {
         user: any
@@ -95,10 +96,15 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
       }
     });
 
-  const handleDeleteClick = (id: string) => {
-    setProductToDelete(id);
-    setShowDeleteModal(true);
-  };
+    const handleDeleteClick = (id: string) => {
+        setProductToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '');
+    };
 
   const confirmDelete = () => {
     if (productToDelete) {
@@ -196,7 +202,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Inventory Value</p>
                   <p className="text-3xl font-bold text-gray-800 mt-1">
-                    ${stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <FormatPrice price={stats.totalValue} />
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -402,7 +408,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                         </div>
 
                         <h3 className="font-bold text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{stripHtml(product.description)}</p>
 
                         {/* Price */}
                         <div className="flex items-center justify-between mb-4">
@@ -425,7 +431,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                         {/* Actions */}
                         <div className="flex space-x-2">
                             <Link
-                                href={`/dashboard/products/${product.id}`}
+                                href={`/products/${product.slug}`}
                                 className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                             >
                             <FaEye className="h-3 w-3 mr-1" />

@@ -122,6 +122,11 @@ export default function StoreShow({
     );
   };
 
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '');
+    };
+
   const getImageSrc = (images: string): string => {
     if (!images) return '/placeholder-image.jpg';
 
@@ -533,7 +538,7 @@ export default function StoreShow({
                                   </h3>
                                 </Link>
                                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                  {product.description}
+                                  {stripHtml(product.description)}
                                 </p>
                                 <div className="flex items-center gap-4 mb-4">
                                   <div className="flex items-center">

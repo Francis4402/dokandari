@@ -659,7 +659,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                               Processing...
                             </span>
                           ) : (
-                            `Place Order • ${<FormatPrice price={summary.total} />}`
+                            `Place Order`
                           )}
                         </button>
 

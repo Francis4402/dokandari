@@ -49,13 +49,14 @@ Route::get('/', function () {
 
     $productIds = $products->pluck('id')->toArray();
 
-    // Get ratings for all products
+
     $ratings = Comment::whereIn('product_id', $productIds)
         ->whereNotNull('rating')
         ->select('product_id', 'rating')
         ->get();
 
     $productRatings = [];
+
     foreach ($products as $product) {
         $productRatingData = $ratings->where('product_id', $product->id);
         $averageRating = $productRatingData->avg('rating') ?? 0;
@@ -137,6 +138,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');
 
     Route::get('/orders/{order}/confirmation', [OrdersController::class, 'confirmation'])->name('orders.confirmation');
+
 
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
 

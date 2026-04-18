@@ -1,4 +1,4 @@
-// resources/js/Components/Dashboard/Layout.tsx
+
 import React, { useState, Fragment } from 'react';
 import { Dialog, Menu, Transition } from '@headlessui/react';
 import {

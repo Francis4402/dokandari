@@ -1,12 +1,23 @@
 import DashboardLayout from '@/Layouts/DashboardLayout'
 import { Head, Link } from '@inertiajs/react'
-import { FiDollarSign, FiPackage, FiShoppingCart, FiTrendingUp, FiUsers } from 'react-icons/fi'
+import { FiPackage, FiShoppingCart, FiTrendingUp, FiUsers } from 'react-icons/fi'
 import { useState } from 'react'
-import { PageProps } from '@/types'
+import { Orders } from '@/types'
+import FormatPrice from '../utils/FormatePrice'
+import { BsFillPeopleFill } from 'react-icons/bs'
 
 
-const DashboardHome = ({auth}: PageProps) => {
-  // Fake data for stats
+interface dashboardhometypes {
+    auth: {
+        user: any;
+    },
+    totalUsers: number,
+    orders: Orders[]
+}
+
+
+const DashboardHome = ({auth, totalUsers, orders}: dashboardhometypes) => {
+
   const [stats, setStats] = useState({
     totalRevenue: 15420.75,
     totalOrders: 342,
@@ -89,40 +100,6 @@ const DashboardHome = ({auth}: PageProps) => {
     },
   ])
 
-  const statCards = [
-    {
-      name: 'Total Revenue',
-      value: `$${stats.totalRevenue.toLocaleString()}`,
-      change: '+12.5%',
-      icon: FiDollarSign,
-      color: 'bg-green-500',
-      href: '/dashboard/analytics'
-    },
-    {
-      name: 'Total Orders',
-      value: stats.totalOrders.toLocaleString(),
-      change: '+8.2%',
-      icon: FiShoppingCart,
-      color: 'bg-blue-500',
-      href: '/dashboard/orders'
-    },
-    {
-      name: 'Total Customers',
-      value: stats.totalCustomers.toLocaleString(),
-      change: '+5.7%',
-      icon: FiUsers,
-      color: 'bg-purple-500',
-      href: '/dashboard/customers'
-    },
-    {
-      name: 'Total Products',
-      value: stats.totalProducts.toLocaleString(),
-      change: '+3.4%',
-      icon: FiPackage,
-      color: 'bg-orange-500',
-      href: '/dashboard/products'
-    },
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -140,6 +117,12 @@ const DashboardHome = ({auth}: PageProps) => {
   };
 
 
+  const totalRevenue = Array.isArray(orders)
+    ? orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0)
+    : 0;
+
+
+
   return (
     <DashboardLayout user={auth.user}>
         <Head title='Dashboard'>
@@ -151,7 +134,7 @@ const DashboardHome = ({auth}: PageProps) => {
          <div className="space-y-6">
           {/* Welcome Banner */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-            <h1 className="text-2xl font-bold mb-2">Welcome back, Admin! 👋</h1>
+            <h1 className="text-2xl font-bold mb-2">Welcome back, {auth.user.name}</h1>
             <p className="opacity-90">Here's what's happening with your store today.</p>
             <div className="mt-4 flex items-center">
               <FiTrendingUp className="h-5 w-5 mr-2" />
@@ -161,35 +144,31 @@ const DashboardHome = ({auth}: PageProps) => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {statCards.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <Link
-                  key={stat.name}
-                  href={stat.href}
-                  className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 hover:-translate-y-1 transform"
-                >
-                  <div className="p-5">
-                    <div className="flex items-center">
-                      <div className={`${stat.color} p-3 rounded-md`}>
-                        <Icon className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                          <dd className="text-2xl font-semibold text-gray-900">{stat.value}</dd>
-                        </dl>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-5 py-3">
-                    <div className="text-sm">
-                      <span className="font-medium text-green-600">{stat.change}</span> from last month
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Total Revenue</h3>
+                  <p className="text-3xl font-bold text-purple-600 mt-2"><FormatPrice price={totalRevenue} /></p>
+                  <p className="text-sm text-gray-500 mt-1">Total Sales</p>
+                </div>
+                <div className="bg-purple-100 p-3 rounded-full">
+                  <FiTrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Total Users</h3>
+                  <p className="text-3xl font-bold text-purple-600 mt-2">{totalUsers}</p>
+                  <p className="text-sm text-gray-500 mt-1">Total Sales</p>
+                </div>
+                <div className="bg-purple-100 p-3 rounded-full">
+                  <FiTrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Additional Stats Cards */}
@@ -202,7 +181,7 @@ const DashboardHome = ({auth}: PageProps) => {
                   <p className="text-sm text-gray-500 mt-1">Website visitors to customers</p>
                 </div>
                 <div className="bg-purple-100 p-3 rounded-full">
-                  <FiTrendingUp className="h-8 w-8 text-purple-600" />
+                  <BsFillPeopleFill className="h-8 w-8 text-purple-600" />
                 </div>
               </div>
             </div>
@@ -210,12 +189,12 @@ const DashboardHome = ({auth}: PageProps) => {
             <div className="bg-white shadow rounded-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Average Order Value</h3>
-                  <p className="text-3xl font-bold text-green-600 mt-2">${stats.averageOrderValue.toFixed(2)}</p>
-                  <p className="text-sm text-gray-500 mt-1">Per customer transaction</p>
+                  <h3 className="text-lg font-medium text-gray-900">Total Orders</h3>
+                  <p className="text-3xl font-bold text-green-600 mt-2">{orders.length}</p>
+                  <p className="text-sm text-gray-500 mt-1">Total Orders of Customer</p>
                 </div>
                 <div className="bg-green-100 p-3 rounded-full">
-                  <FiDollarSign className="h-8 w-8 text-green-600" />
+                  <FiTrendingUp className="h-8 w-8 text-purple-600" />
                 </div>
               </div>
             </div>
@@ -231,7 +210,7 @@ const DashboardHome = ({auth}: PageProps) => {
                   <p className="mt-1 text-sm text-gray-500">Latest orders from your store</p>
                 </div>
                 <Link
-                  href="/dashboard/orders"
+                  href={route('dashboard.orders')}
                   className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center"
                 >
                   View all <span className="ml-1">→</span>
@@ -256,10 +235,13 @@ const DashboardHome = ({auth}: PageProps) => {
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment Method
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentOrders.map((order) => (
+                    {orders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                           <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">
@@ -267,7 +249,7 @@ const DashboardHome = ({auth}: PageProps) => {
                           </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.customer_name}
+                          {order.recipient_name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(order.created_at).toLocaleDateString('en-US', {
@@ -277,11 +259,17 @@ const DashboardHome = ({auth}: PageProps) => {
                           })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                          ${order.total.toFixed(2)}
+                          ${order.total}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full `}>
+                            {order.payment_status}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full `}>
+                            {order.payment_method}
                           </span>
                         </td>
                       </tr>
@@ -299,7 +287,7 @@ const DashboardHome = ({auth}: PageProps) => {
                   <p className="mt-1 text-sm text-gray-500">Best performing products this month</p>
                 </div>
                 <Link
-                  href="/dashboard/products"
+                  href={route('products.index')}
                   className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center"
                 >
                   View all <span className="ml-1">→</span>
@@ -307,35 +295,35 @@ const DashboardHome = ({auth}: PageProps) => {
               </div>
               <div className="p-6">
                 <ul className="divide-y divide-gray-200">
-                  {topProducts.map((product, index) => (
-                    <li key={product.id} className="py-4 hover:bg-gray-50 transition-colors rounded-lg px-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg ${
-                            index === 0 ? 'bg-yellow-100 text-yellow-800' :
-                            index === 1 ? 'bg-gray-100 text-gray-800' :
-                            index === 2 ? 'bg-orange-100 text-orange-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            <span className="font-bold">#{index + 1}</span>
-                          </div>
-                          <div className="ml-4">
-                            <Link
-                              href={`/dashboard/products/${product.id}`}
-                              className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                            >
-                              {product.name}
-                            </Link>
-                            <p className="text-sm text-gray-500">{product.sales.toLocaleString()} units sold</p>
-                          </div>
+                    {topProducts.map((product, index) => (
+                        <li key={product.id} className="py-4 hover:bg-gray-50 transition-colors rounded-lg px-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                            <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg ${
+                                index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                                index === 1 ? 'bg-gray-100 text-gray-800' :
+                                index === 2 ? 'bg-orange-100 text-orange-800' :
+                                'bg-blue-100 text-blue-800'
+                            }`}>
+                                <span className="font-bold">#{index + 1}</span>
+                            </div>
+                            <div className="ml-4">
+                                <Link
+                                href={`/dashboard/products/${product.id}`}
+                                className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                >
+                                {product.name}
+                                </Link>
+                                <p className="text-sm text-gray-500">{product.sales.toLocaleString()} units sold</p>
+                            </div>
+                            </div>
+                            <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900">${product.revenue.toLocaleString()}</p>
+                            <p className="text-sm text-gray-500">Revenue</p>
+                            </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-gray-900">${product.revenue.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">Revenue</p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
+                        </li>
+                    ))}
                 </ul>
               </div>
             </div>

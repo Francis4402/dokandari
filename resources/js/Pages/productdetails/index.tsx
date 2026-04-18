@@ -56,7 +56,6 @@ const ProductDetailsPage = ({
 }: ProductDetailsPageProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
-  const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'specifications'>('description');
 
 
@@ -64,6 +63,7 @@ const ProductDetailsPage = ({
 
 
   const cartItem = getItemById(product.id.toString());
+
   const currentCartQuantity = cartItem?.cartQty || 0;
 
 
@@ -140,11 +140,17 @@ const ProductDetailsPage = ({
   };
 
 
-  const decrementQuantity = (): void => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
-    }
-  };
+    const decrementQuantity = (): void => {
+        if (quantity > 1) {
+        setQuantity(prev => prev - 1);
+        }
+    };
+
+
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '');
+    };
 
 
   const maxAvailable = (product.quantity || 0) - currentCartQuantity;
@@ -474,7 +480,7 @@ const ProductDetailsPage = ({
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Product Description</h3>
                     <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                      {product.description || 'No description available.'}
+                      {stripHtml(product.description || 'No description available.')}
                     </div>
                   </div>
                 )}
@@ -561,7 +567,6 @@ const ProductDetailsPage = ({
                   </div>
                 )}
 
-                {/* Reviews Tab - Now includes CommentsList with ratings */}
                 {activeTab === 'reviews' && (
                   <div className="space-y-8">
                     {/* Rating Summary */}
