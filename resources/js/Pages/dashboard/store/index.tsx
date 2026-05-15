@@ -57,7 +57,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
     storeTypes: Array.from(new Set(stores.map(store => store.storetype)))
   };
 
-  // Filter and sort stores
+
   const filteredStores = stores
     .filter(store => {
       const matchesSearch =

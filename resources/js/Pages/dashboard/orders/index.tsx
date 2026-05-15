@@ -1,11 +1,10 @@
 
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
   FaShoppingCart,
   FaEye,
-  FaEdit,
   FaTrash,
   FaTruck,
   FaCheckCircle,
@@ -17,14 +16,9 @@ import {
   FaCreditCard,
   FaBoxOpen,
   FaStore,
-  FaTimes,
   FaImage,
   FaPhone,
-  FaMapMarkerAlt,
   FaHashtag,
-  FaWeight,
-  FaTag,
-  FaInfoCircle
 } from 'react-icons/fa';
 import { Orders, OrderItem } from '@/types';
 import { toast } from 'sonner';
