@@ -35,7 +35,9 @@ interface DashboardOrderType {
 }
 
 const DashboardOrders = ({ auth, orders }: DashboardOrderType) => {
+
     const [selectedOrder, setSelectedOrder] = useState<(Orders & { order_items?: OrderItem[] }) | null>(null);
+
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Delete dialog state

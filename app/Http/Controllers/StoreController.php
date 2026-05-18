@@ -129,9 +129,8 @@ class StoreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Store $store)
     {
-        $store = Store::findOrFail($id);
 
         $products = Products::where('store_id', $store->id)
             ->orderBy('created_at', 'desc')
@@ -201,7 +200,7 @@ class StoreController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($name)
+    public function edit(string $name)
     {
         $store = Store::where('name', $name)->first();
 
@@ -308,7 +307,7 @@ class StoreController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $store = Store::findOrFail($id);
 

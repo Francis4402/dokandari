@@ -34,52 +34,33 @@ class OrdersController extends Controller
     public function dashboardIndex()
     {
         $user = Auth::user();
+        $userRole = $user->role;
 
-        if ($user->role === 'superadmin' || $user->role === 'admin') {
-            $orders = Orders::with(['orderItems', 'store', 'user'])
+        $stores = Store::get();
+
+
+        if ($userRole === 'admin' || $userRole === 'superadmin') {
+
+            $orders = Orders::with('orderItems')
                 ->orderBy('created_at', 'desc')
                 ->get();
+        } elseif ($userRole === 'agent') {
 
-            return Inertia::render('dashboard/orders/index', [
-                'orders' => $orders,
-                'userRole' => $user->role,
-            ]);
-        }
-
-
-        if ($user->role === 'agent') {
-
-            $store = Store::where('user_id', $user->id)->first();
-
-            if (!$store) {
-                return Inertia::render('dashboard/orders/index', [
-                    'orders' => [],
-                    'userRole' => $user->role,
-                    'message' => 'No store found for this agent',
-                ]);
-            }
-
-            $orders = Orders::where('store_id', $store->id)
-                ->with(['orderItems', 'user'])
+            $orders = Orders::with('orderItems')
+                ->whereIn('store_id', $stores->pluck('id'))
                 ->orderBy('created_at', 'desc')
                 ->get();
+        } else {
 
-            return Inertia::render('dashboard/orders/index', [
-                'orders' => $orders,
-                'userRole' => $user->role,
-                'store' => $store,
-            ]);
+            $orders = Orders::with('orderItems')
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
         }
-
-        // Regular user - see orders by user_id
-        $orders = Orders::where('user_id', $user->id)
-            ->with(['orderItems', 'store'])
-            ->orderBy('created_at', 'desc')
-            ->get();
 
         return Inertia::render('dashboard/orders/index', [
             'orders' => $orders,
-            'userRole' => $user->role,
+            'userRole' => $userRole,
         ]);
     }
 
@@ -294,27 +275,42 @@ class OrdersController extends Controller
 
     public function confirmation(Orders $order)
     {
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
+        $user = Auth::user();
+
+        // Check permissions: admin/superadmin can view all, users can only view their own
+        if (!in_array($user->role, ['admin', 'superadmin']) && $order->user_id !== $user->id) {
+            abort(403, 'You do not have permission to view this order confirmation.');
         }
 
         $order->load(['orderItems', 'store', 'user']);
         $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
         return Inertia::render('orders/Confirmation', [
             'order' => $order,
-            'wishlist' => $wishlist
+            'wishlist' => $wishlist,
+            'userRole' => $user->role, // Pass role to frontend if needed
         ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Orders $order)
     {
-        $order = Orders::with('orderItems')->findOrFail($id);
+        // Check permissions for viewing order
+        $user = Auth::user();
 
+        if (!($user->role === 'admin' ||
+              $user->role === 'superadmin' ||
+              $order->user_id === $user->id ||
+              ($user->role === 'agent' && $this->isAgentStore($user, $order->store_id)))) {
+            abort(403, 'You do not have permission to view this order.');
+        }
+
+        $order->load('orderItems');
         $store = Store::find($order->store_id);
         $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+
         return Inertia::render('orders/Show', [
             'order' => $order,
             'store' => $store,
@@ -348,7 +344,7 @@ class OrdersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Orders $id)
     {
         try {
             Log::info('Attempting to delete order: ' . $id);
@@ -450,18 +446,17 @@ class OrdersController extends Controller
     }
 
 
-    private function getFirstImage($images): string
+    /**
+     * @param array|string $images
+     */
+    private function getFirstImage(array|string $images): string
     {
         if (is_string($images)) {
-            try {
-                $decoded = json_decode($images, true);
-                if (is_array($decoded) && !empty($decoded)) {
-                    return $decoded[0];
-                }
-                return $images;
-            } catch (\Exception $e) {
-                return $images;
+            $decoded = json_decode($images, true);
+            if (is_array($decoded) && !empty($decoded)) {
+                return $decoded[0];
             }
+            return $images;
         }
         return is_array($images) && !empty($images) ? $images[0] : '';
     }
