@@ -15,22 +15,6 @@ use Inertia\Inertia;
 
 class OrdersController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    // public function index()
-    // {
-    //     $orders = Orders::where('user_id', Auth::id())
-    //         ->with('orderItems')
-    //         ->orderBy('created_at', 'desc')
-    //         ->paginate(10);
-    //     $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
-    //     return Inertia::render('orders/Index', [
-    //         'orders' => $orders,
-    //         'wishlist' => $wishlist
-    //     ]);
-    // }
-
     public function dashboardIndex()
     {
         $user = Auth::user();
@@ -61,6 +45,17 @@ class OrdersController extends Controller
         return Inertia::render('dashboard/orders/index', [
             'orders' => $orders,
             'userRole' => $userRole,
+        ]);
+    }
+
+    public function adminorders()
+    {
+        $orders = Orders::with('orderItems')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('dashboard/adminorders/index', [
+            'orders' => $orders,
         ]);
     }
 
@@ -203,7 +198,7 @@ class OrdersController extends Controller
                 'items' => json_encode($validated['items']),
             ]);
 
-            // Create order items & update stock
+
             foreach ($validated['items'] as $item) {
                 $product = Products::find($item['product_id']);
                 if ($product) {
@@ -277,7 +272,6 @@ class OrdersController extends Controller
     {
         $user = Auth::user();
 
-        // Check permissions: admin/superadmin can view all, users can only view their own
         if (!in_array($user->role, ['admin', 'superadmin']) && $order->user_id !== $user->id) {
             abort(403, 'You do not have permission to view this order confirmation.');
         }
@@ -288,7 +282,7 @@ class OrdersController extends Controller
         return Inertia::render('orders/Confirmation', [
             'order' => $order,
             'wishlist' => $wishlist,
-            'userRole' => $user->role, // Pass role to frontend if needed
+            'userRole' => $user->role,
         ]);
     }
 
@@ -297,7 +291,6 @@ class OrdersController extends Controller
      */
     public function show(Orders $order)
     {
-        // Check permissions for viewing order
         $user = Auth::user();
 
         if (!($user->role === 'admin' ||
@@ -330,118 +323,50 @@ class OrdersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Orders $orders)
+    public function update(Request $request, Orders $order)
     {
-        $validated = $request->validate([
-            'status' => 'required|string|in:pending,confirmed,processing,shipped,delivered,cancelled',
-        ]);
+        try {
+            $validated = $request->validate([
+                'payment_status' => 'sometimes|in:pending,paid,failed,refunded',
+                'order_status' => 'sometimes|in:pending,confirmed,processing,shipped,delivered,cancelled',
+            ]);
 
-        $orders->update([
-            'order_status' => $validated['status'],
-        ]);
+            $order->update($validated);
+
+            return redirect()->back()->with('success', 'Order updated successfully');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update order');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Orders $id)
+    public function destroy(Orders $order)
     {
         try {
-            Log::info('Attempting to delete order: ' . $id);
-
-            $order = Orders::find($id);
-
-            if (!$order) {
-                Log::error('Order not found with ID: ' . $id);
-
-                if (request()->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Order not found'
-                    ], 404);
-                }
-
-                return redirect()->back()->with('error', 'Order not found');
-            }
-
             $user = Auth::user();
-            Log::info('User role: ' . $user->role . ', User ID: ' . $user->id);
 
-            // Check permissions
-            $canDelete = false;
-
-            if ($user->role === 'superadmin' || $user->role === 'admin') {
-                $canDelete = true;
-                Log::info('Admin/Superadmin - can delete');
-            }
-            else if ($user->role === 'agent') {
-                $store = Store::where('user_id', $user->id)->first();
-                Log::info('Agent store: ' . ($store ? $store->id : 'none') . ', Order store: ' . $order->store_id);
-
-                if ($store && $order->store_id === $store->id) {
-                    $canDelete = true;
-                    Log::info('Agent - can delete');
-                }
-            }
-            else if ($user->role === 'user') {
-                Log::info('User order check - Order user_id: ' . $order->user_id . ', Auth user_id: ' . $user->id);
-
-                if ($order->user_id === $user->id) {
-                    $canDelete = true;
-                    Log::info('User - can delete');
-                }
-            }
+            $canDelete = in_array($user->role, ['superadmin', 'admin']);
 
             if (!$canDelete) {
-                Log::warning('Permission denied for user ' . $user->id . ' to delete order ' . $id);
-
-                $message = 'You do not have permission to delete this order';
-
-                if (request()->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $message
-                    ], 403);
-                }
-
-                return redirect()->back()->with('error', $message);
+                return redirect()->back()->with('error', 'You do not have permission to delete this order.');
             }
 
-            // Delete related order items first
-            if (method_exists($order, 'orderItems') && $order->orderItems()->exists()) {
-                Log::info('Deleting order items for order: ' . $id);
+            if (method_exists($order, 'orderItems')) {
                 $order->orderItems()->delete();
             }
 
-            // Delete the order
-            Log::info('Deleting order: ' . $id);
             $order->delete();
 
-            Log::info('Order deleted successfully: ' . $id);
+            Log::info("Order {$order->id} deleted by user {$user->id} ({$user->role})");
 
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Order deleted successfully'
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Order deleted successfully');
+            return redirect()->back()->with('success', 'Order deleted successfully.');
 
         } catch (\Exception $e) {
             Log::error('Error deleting order: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
-            $message = 'Failed to delete order: ' . $e->getMessage();
-
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $message
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', $message);
+            return redirect()->back()->with('error', 'Failed to delete order.');
         }
     }
 
@@ -459,5 +384,37 @@ class OrdersController extends Controller
             return $images;
         }
         return is_array($images) && !empty($images) ? $images[0] : '';
+    }
+
+
+    public function cancel(Orders $order)
+    {
+        try {
+            $user = Auth::user();
+
+            // Only the order owner may cancel
+            if ($order->user_id !== $user->id) {
+                return redirect()->back()->with('error', 'You do not have permission to cancel this order.');
+            }
+
+            $nonCancellable = ['confirmed', 'shipped', 'delivered', 'cancelled'];
+
+            if (in_array($order->order_status, $nonCancellable)) {
+                return redirect()->back()->with(
+                    'error',
+                    "This order cannot be cancelled because it is already {$order->order_status}."
+                );
+            }
+
+            $order->update(['order_status' => 'cancelled']);
+
+            Log::info("Order {$order->id} cancelled by user {$user->id}");
+
+            return redirect()->back()->with('success', 'Order cancelled successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Error cancelling order: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to cancel order.');
+        }
     }
 }

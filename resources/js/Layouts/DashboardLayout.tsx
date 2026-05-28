@@ -117,7 +117,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
         },
         {
             name: 'Orders',
-            href: '/dashboard/orders',
+            href: '/dashboard/admin/orders',
             icon: FiShoppingCart,
             current: url.startsWith('/dashboard/orders')
         },

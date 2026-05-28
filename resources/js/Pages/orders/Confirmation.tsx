@@ -46,27 +46,7 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending:    'bg-yellow-100 text-yellow-800 border-yellow-200',
-      processing: 'bg-blue-100 text-blue-800 border-blue-200',
-      shipped:    'bg-indigo-100 text-indigo-800 border-indigo-200',
-      delivered:  'bg-green-100 text-green-800 border-green-200',
-      cancelled:  'bg-red-100 text-red-800 border-red-200',
-      returned:   'bg-purple-100 text-purple-800 border-purple-200',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
 
-  const getPaymentStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      paid:     'bg-green-100 text-green-800 border-green-200',
-      pending:  'bg-yellow-100 text-yellow-800 border-yellow-200',
-      failed:   'bg-red-100 text-red-800 border-red-200',
-      refunded: 'bg-purple-100 text-purple-800 border-purple-200',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
 
   const getFullDeliveryAddress = () => order.recipient_address;
 
@@ -133,7 +113,6 @@ const Confirmation = ({ auth, order, wishlist }: OrderProps) => {
           <div className="excel-order-info">
             <span>Order #: {order.order_number}</span>
             <span>Date: {formatDate(order.created_at)}</span>
-            <span>Status: {order.order_status?.toUpperCase() || 'PENDING'}</span>
           </div>
         </div>
 

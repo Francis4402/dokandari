@@ -88,6 +88,16 @@ Route::middleware(['auth', 'role:superadmin, admin'])->group(function () {
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
 
+    Route::delete('/orders/{order}', [OrdersController::class, 'destroy'])
+        ->name('orders.destroy');
+
+    Route::patch('/orders/{order}', [OrdersController::class, 'update'])
+    ->name('admin.orders.update');
+
+    Route::post('/orders/bulk-update', [OrdersController::class, 'bulkUpdate'])->name('orders.bulk-update');
+
+    Route::get('/dashboard/admin/orders', [OrdersController::class, 'adminorders'])->name('dashboard.adminorders');
+
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])
     ->name('contacts.destroy');
 
@@ -101,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard/stores', [StoreController::class, 'index'])->name('dashboard.store');
     Route::get('/dashboard/orders', [OrdersController::class, 'dashboardIndex'])->name('dashboard.orders');
+
     Route::get('/dashboard/shipping', [ShippingController::class, 'index'])->name('dashboard.shipping');
     Route::get('/dashboard/payments', [PaymentController::class, 'index'])->name('dashboard.payment');
 
@@ -141,6 +152,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
+
+
+    Route::patch('/orders/{order}/cancel', [OrdersController::class, 'cancel'])
+        ->name('orders.cancel');
+
 
     Route::delete('/dashboard/orders/{id}', [OrdersController::class, 'destroy'])->name('orders.delete');
 
