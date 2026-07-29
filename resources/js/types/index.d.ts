@@ -187,6 +187,34 @@ export interface ReviewType {
 }
 
 
+export interface CustomerType {
+  id: string;
+  name: string;
+  email: string;
+  images: string | null;
+  role: 'superadmin' | 'admin' | 'agent' | 'deliveryman' | 'user';
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+
+  profile?: {
+    phone: string | null;
+    address: string | null;
+    city: string | null;
+    country: string | null;
+    date_of_birth: string | null;
+  };
+
+  stats?: {
+    totalOrders: number;
+    totalSpent: number;
+    avgOrderValue: number;
+    lastOrderDate: string | null;
+    ordersThisMonth: number;
+  };
+}
+
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: {
         user: User;

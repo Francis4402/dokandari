@@ -88,9 +88,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     workingHours: "Monday - Thursday: 12:00 AM - 8:00 PM\nSaturday: 10:00 AM - 4:00 PM\nFriday: Closed",
     socialMedia: {
       facebook: "https://facebook.com/multivendor",
-      twitter: "https://twitter.com/multivendor",
-      instagram: "https://instagram.com/multivendor",
-      linkedin: "https://linkedin.com/company/multivendor"
+    //   twitter: "https://twitter.com/multivendor",
+    //   instagram: "https://instagram.com/multivendor",
+    //   linkedin: "https://linkedin.com/company/multivendor"
     }
   };
 
@@ -369,7 +369,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
           </Dialog>
         </Transition>
 
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto md:px-0 px-5 py-8">
           {/* Header */}
           <div ref={headerRef} className="mb-12 text-center">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-center">
@@ -588,30 +588,6 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                     >
                       <FaFacebook className="h-6 w-6" />
                     </a>
-                    <a
-                      href={contactInfo.socialMedia.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                    >
-                      <FaTwitter className="h-6 w-6" />
-                    </a>
-                    <a
-                      href={contactInfo.socialMedia.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                    >
-                      <FaInstagram className="h-6 w-6" />
-                    </a>
-                    <a
-                      href={contactInfo.socialMedia.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                    >
-                      <FaLinkedin className="h-6 w-6" />
-                    </a>
                   </div>
                 </div>
               </div>
@@ -619,7 +595,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
           </div>
 
           {/* Departments Section */}
-          <div ref={contactRef} className="mb-16">
+          <div ref={contactRef} className="mt-32">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Direct Support</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">

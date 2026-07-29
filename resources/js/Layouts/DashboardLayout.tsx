@@ -104,6 +104,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
     ...(user.role === 'admin' || user.role === 'superadmin' ? [
         {
+            name: 'Customers',
+            href: '/dashboard/customers',
+            icon: FiUsers,
+            current: url.startsWith('/dashboard/customers')
+        },
+        {
             name: 'Products',
             href: '/dashboard/products',
             icon: FiPackage,
@@ -429,7 +435,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                                 } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
                             >
                                 <FiUser className="h-4 w-4 mr-3 text-gray-400" />
-                                Profile
+                                Your Profile
                             </Link>
                             )}
                         </Menu.Item>

@@ -57,12 +57,12 @@ export default function StoreShow({
   const [sortBy, setSortBy] = useState<string>("featured");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Get unique categories from products
+
   const categories = Array.from(
     new Set(products.map(p => p.category).filter(Boolean))
   );
 
-  // Merge product ratings with products
+
   const productsWithRatings = products.map(product => {
     const ratingData = productRatings[product.id];
     return {
@@ -72,7 +72,7 @@ export default function StoreShow({
     };
   });
 
-  // Filter and sort products using the merged data
+
   const filteredProducts = productsWithRatings
     .filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

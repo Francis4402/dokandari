@@ -6,7 +6,6 @@ import gsap from "gsap"
 import {
   FiSearch,
   FiShoppingBag,
-  FiHeart,
   FiUser,
   FiMenu,
   FiX,
@@ -18,6 +17,7 @@ import {
   FiGrid,
   FiChevronDown,
   FiShoppingCart,
+  FiHeart,
 } from "react-icons/fi"
 import { Dialog, Transition } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
@@ -25,30 +25,22 @@ import WishlistCountButton from "../buttons/WishListCountButton"
 
 const navigation = [
   { name: 'Home', href: '/', icon: FiHome },
-  { name: 'Dashboard', href: '/dashboard', icon: FiGrid },
-  { name: 'All Products', href: '/products', hasDropdown: true, icon: FiShoppingBag },
   { name: 'Deals', href: '/hotdeals', badge: 'HOT', icon: FiTag },
   { name: 'New Arrivals', href: '/', icon: FiZap },
 ]
-
 
 const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any}>) => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchPanelRef = useRef<HTMLDivElement>(null)
   const searchButtonRef = useRef<HTMLButtonElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   const {getTotalItems} = useStore();
-
   const cartItems = getTotalItems();
-  const wishlistItems = 5
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,14 +55,6 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
       }
 
       if (
-        dropdownOpen &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false)
-      }
-
-      if (
         userMenuOpen &&
         userMenuRef.current &&
         !userMenuRef.current.contains(event.target as Node)
@@ -82,7 +66,6 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         if (searchOpen) handleCloseSearch()
-        if (dropdownOpen) setDropdownOpen(false)
         if (userMenuOpen) setUserMenuOpen(false)
       }
     }
@@ -94,53 +77,12 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscapeKey)
     }
-  }, [searchOpen, dropdownOpen, userMenuOpen])
-
-
-  useGSAP(() => {
-    if (searchPanelRef.current) {
-      if (searchOpen) {
-        gsap.set(searchPanelRef.current, {
-          display: "block",
-          height: "auto"
-        })
-        gsap.fromTo(searchPanelRef.current,
-          {
-            opacity: 0,
-            y: -10
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.2,
-            ease: "power2.out"
-          }
-        )
-
-        setTimeout(() => {
-          if (searchInputRef.current) {
-            searchInputRef.current.focus()
-          }
-        }, 100)
-      } else {
-        gsap.to(searchPanelRef.current,
-          {
-            opacity: 0,
-            y: -10,
-            duration: 0.15,
-            ease: "power2.in",
-            onComplete: () => {
-              gsap.set(searchPanelRef.current, { display: "none" })
-            }
-          }
-        )
-      }
-    }
-  }, [searchOpen])
+  }, [searchOpen, userMenuOpen])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchValue.trim()) {
+      // Handle search
       setSearchOpen(false)
       setSearchValue("")
     }
@@ -155,91 +97,63 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
     setSearchValue("")
   }
 
-
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto md:px-0 px-4">
-          <div className="flex h-16 items-center justify-between gap-4">
-            {/* Left Section - Logo & Mobile Menu */}
-            <div className="flex items-center gap-4">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
-                aria-label="Menu"
-              >
-                <FiMenu className="h-5 w-5" />
-              </button>
-
-              {/* Logo */}
-              <Link href="/" className="flex items-center gap-2">
-                <div className="h-14 w-14 rounded-lg flex items-center justify-center">
-                  <img src="/Logo.png" alt="i" />
+      <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex h-20 items-center justify-between gap-4">
+            {/* Left Section - Logo */}
+            <div className="flex items-center gap-3">
+              <Link href="/" className="flex items-center gap-2.5 group">
+                <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-gradient-to-br transition-transform group-hover:scale-105">
+                  <img src="/logo.png" alt="HaatPoint" className="h-96 w-96 object-contain" />
                 </div>
-                <span className="hidden md:inline text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                  HaatPoint
-                </span>
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden lg:flex ml-6 space-x-1">
+              <nav className="hidden lg:flex ml-8 space-x-1">
                 {navigation.map((item) => (
-                  <div key={item.name} className="relative" ref={item.hasDropdown ? dropdownRef : undefined}>
-                    {item.hasDropdown ? (
-                      <>
-                        <button
-                          onClick={() => setDropdownOpen(!dropdownOpen)}
-                          className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors ${dropdownOpen ? 'bg-gray-100' : ''}`}
-                        >
-                          {item.name}
-                          <FiChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                      </>
-                    ) : (
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
-                      >
-                        {item.icon && <item.icon className="h-4 w-4" />}
-                        {item.name}
-                        {item.badge && (
-                          <span className="ml-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-gray-900"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.name}
+                    {item.badge && (
+                      <span className="ml-1 inline-flex items-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
+                        {item.badge}
+                      </span>
                     )}
-                  </div>
+                  </Link>
                 ))}
               </nav>
             </div>
 
-            {/* Middle Section - Desktop Search */}
-            <div className="flex-1 max-w-2xl">
-              <div className="hidden lg:block">
-                <form onSubmit={handleSearchSubmit} className="relative">
-                  <FiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            {/* Middle Section - Search */}
+            <div className="flex-1 max-w-xl hidden md:block">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <div className="relative">
+                  <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <input
                     type="search"
                     placeholder="Search products, brands, and more..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all duration-200 text-sm"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
-                </form>
-              </div>
+                </div>
+              </form>
             </div>
 
             {/* Right Section - Actions */}
-            <div className="flex items-center gap-2 relative">
+            <div className="flex items-center gap-1 md:gap-2">
               {/* Mobile Search Button */}
               <button
                 ref={searchButtonRef}
                 onClick={handleSearchButtonClick}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+                className="md:hidden p-2.5 rounded-lg hover:bg-gray-100 transition-colors relative"
                 aria-label="Search"
-                aria-expanded={searchOpen}
               >
                 {searchOpen ? (
                   <FiX className="h-5 w-5" />
@@ -248,123 +162,168 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                 )}
               </button>
 
-              {/* Desktop Action Buttons */}
-              <div className="flex items-center gap-1">
+              {/* Wishlist Button */}
+              <div className="hidden sm:block">
                 <WishlistCountButton wishlist={wishlist} />
-
-                <Link
-                  href={route('cart.index')}
-                  className="p-2 rounded-md hover:bg-gray-100 transition-colors relative"
-                >
-                  <FiShoppingBag className="h-5 w-5" />
-                  {cartItems > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-500 text-xs text-white">
-                      {cartItems}
-                    </span>
-                  )}
-                </Link>
               </div>
 
-              {/* User Dropdown with Transition */}
+              {/* Cart Button */}
+              <Link
+                href={route('cart.index')}
+                className="p-2.5 rounded-lg hover:bg-gray-100 transition-colors relative"
+                aria-label="Cart"
+              >
+                <FiShoppingBag className="h-5 w-5" />
+                {cartItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-[10px] font-semibold text-white ring-2 ring-white">
+                    {cartItems > 99 ? '99+' : cartItems}
+                  </span>
+                )}
+              </Link>
+
+              {/* User Dropdown */}
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                    {
-                        user ? (
-                            <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium">
-                                <img
-                                    src={
-                                        user.images
-                                            ? user.images.startsWith('http')
-                                                ? user.images
-                                                : `/storage/${user.images}`
-                                            : 'https://github.com/shadcn.png'
-                                    }
-                                    alt={user.name}
-                                    onError={() => 'https://github.com/shadcn.png'}
-                                />
-                            </div>
-                        ) : <div>
-                            <FiUser className="h-4 w-4" />
-                        </div>
-                    }
+                  <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-sm">
+                    {user ? (
+                      <img
+                        src={
+                          user.images
+                            ? user.images.startsWith('http')
+                              ? user.images
+                              : `/storage/${user.images}`
+                            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name)
+                        }
+                        alt={user.name}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                        }}
+                      />
+                    ) : (
+                      <FiUser className="h-4 w-4" />
+                    )}
                   </div>
+                  {user && (
+                    <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                      {user.name.split(' ')[0]}
+                    </span>
+                  )}
+                  <FiChevronDown className={`hidden sm:block h-4 w-4 text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <Transition
                   show={userMenuOpen}
                   as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
+                  enter="transition ease-out duration-200"
+                  enterFrom="transform opacity-0 scale-95 -translate-y-1"
+                  enterTo="transform opacity-100 scale-100 translate-y-0"
+                  leave="transition ease-in duration-150"
+                  leaveFrom="transform opacity-100 scale-100 translate-y-0"
+                  leaveTo="transform opacity-0 scale-95 -translate-y-1"
                 >
-                  <div className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50">
+                  <div className="absolute right-0 mt-2 w-72 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50 overflow-hidden">
                     {user ? (
                       <>
-                        <div className="px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                          <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                        <div className="px-4 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
+                              <img
+                                src={
+                                  user.images
+                                    ? user.images.startsWith('http')
+                                      ? user.images
+                                      : `/storage/${user.images}`
+                                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
+                                }
+                                alt={user.name}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 truncate">{user.name}</p>
+                              <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="py-1">
+
+                        <div className="py-1.5">
                           <Link
                             href="/dashboard"
                             onClick={() => setUserMenuOpen(false)}
-                            className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <FiGrid className="h-4 w-4" />
+                            <FiGrid className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
                             Dashboard
                           </Link>
                           <Link
                             href="/dashboard/profile"
                             onClick={() => setUserMenuOpen(false)}
-                            className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <FiUser className="h-4 w-4" />
-                            Profile
+                            <FiUser className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                            Profile Settings
                           </Link>
                           <Link
                             href="/dashboard/orders"
                             onClick={() => setUserMenuOpen(false)}
-                            className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <FiPackage className="h-4 w-4" />
-                            Orders
+                            <FiPackage className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                            Order History
+                          </Link>
+                          <Link
+                            href="/wishlist"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <FiHeart className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
+                            Wishlist
+                            {wishlist?.length > 0 && (
+                              <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-100 text-xs font-medium text-red-600">
+                                {wishlist.length}
+                              </span>
+                            )}
                           </Link>
                         </div>
-                        <div className="py-1">
+
+                        <div className="border-t border-gray-100 py-1.5">
                           <Link
                             href="/logout"
                             method="post"
                             as="button"
                             onClick={() => setUserMenuOpen(false)}
-                            className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                            className="group flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           >
-                            <FiLogOut className="h-4 w-4" />
+                            <FiLogOut className="h-4 w-4 group-hover:text-red-600" />
                             Log out
                           </Link>
                         </div>
                       </>
                     ) : (
-                      <div className="py-1">
+                      <div className="py-2">
                         <Link
                           href="/login"
                           onClick={() => setUserMenuOpen(false)}
-                          className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <FiUser className="h-4 w-4" />
+                          <FiUser className="h-4 w-4 text-gray-400" />
                           Sign in
                         </Link>
                         <Link
                           href="/register"
                           onClick={() => setUserMenuOpen(false)}
-                          className="group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
+                          <FiUser className="h-4 w-4 text-gray-400" />
                           Create account
                         </Link>
                       </div>
@@ -372,53 +331,58 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                   </div>
                 </Transition>
               </div>
-            </div>
 
-            {/* Mobile Search Panel */}
-            {searchOpen && (
-              <div
-                ref={searchPanelRef}
-                className="absolute left-0 right-0 top-full z-40 bg-white border-t border-b shadow-lg"
-                style={{ display: 'none' }}
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2.5 rounded-lg bg-gray-200 hover:bg-gray-100 transition-colors"
+                aria-label="Menu"
               >
-                <div className="p-4">
-                  <form onSubmit={handleSearchSubmit} className="mb-4">
-                    <div className="relative">
-                      <FiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      <input
-                        ref={searchInputRef}
-                        type="search"
-                        placeholder="What are you looking for?"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        aria-label="Search"
-                      />
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        type="submit"
-                        className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        Search
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCloseSearch}
-                        className="py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
+                <FiMenu className="h-5 w-5" />
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Search Panel */}
+          {searchOpen && (
+            <div
+              ref={searchPanelRef}
+              className="md:hidden py-4 border-t border-gray-100"
+            >
+              <form onSubmit={handleSearchSubmit}>
+                <div className="relative">
+                  <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    ref={searchInputRef}
+                    type="search"
+                    placeholder="What are you looking for?"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all duration-200 text-sm"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    Search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseSearch}
+                    className="py-2.5 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Mobile Menu Drawer using Headless UI */}
+      {/* Mobile Menu Drawer */}
       <Transition.Root show={isMobileMenuOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -434,80 +398,88 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-hidden">
             <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 left-0 flex max-w-full pr-10">
+              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <Transition.Child
                   as={Fragment}
                   enter="transform transition ease-in-out duration-300"
-                  enterFrom="-translate-x-full"
+                  enterFrom="translate-x-full"
                   enterTo="translate-x-0"
                   leave="transform transition ease-in-out duration-300"
                   leaveFrom="translate-x-0"
-                  leaveTo="-translate-x-full"
+                  leaveTo="translate-x-full"
                 >
-                  <Dialog.Panel className="pointer-events-auto w-screen max-w-xs sm:max-w-sm">
+                  <Dialog.Panel className="pointer-events-auto w-screen max-w-sm">
                     <div className="flex h-full flex-col bg-white shadow-xl">
                       {/* Drawer Header */}
-                      <div className="px-6 py-4 border-b">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="h-14 w-14 rounded-lg flex items-center justify-center">
-                              <img src="/Logo.png" alt="i" />
-                            </div>
-                            <Dialog.Title className="text-xl font-bold text-gray-900">
-                              HaatPoint
-                            </Dialog.Title>
+                      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                            <img src="/Logo.png" alt="HaatPoint" className="h-7 w-7 object-contain" />
                           </div>
-                          <button
-                            type="button"
-                            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <FiX className="h-5 w-5" aria-hidden="true" />
-                          </button>
+                          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
+                            HaatPoint
+                          </span>
                         </div>
+                        <button
+                          type="button"
+                          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <FiX className="h-5 w-5" />
+                        </button>
                       </div>
 
                       {/* Drawer Content */}
                       <div className="flex-1 overflow-y-auto py-6">
-                        {/* User Info Section */}
-                        {user ? (
+                        {/* User Info */}
+                        {user && (
                           <div className="px-6 mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg">
-                                {user.name.charAt(0)}
+                            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                              <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
+                                <img
+                                  src={
+                                    user.images
+                                      ? user.images.startsWith('http')
+                                        ? user.images
+                                        : `/storage/${user.images}`
+                                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
+                                  }
+                                  alt={user.name}
+                                  className="h-full w-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                                  }}
+                                />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-900 truncate">
-                                  {user.name}
-                                </p>
-                                <p className="text-sm text-gray-500 truncate">
-                                  {user.email}
-                                </p>
+                                <p className="font-semibold text-gray-900 truncate">{user.name}</p>
+                                <p className="text-sm text-gray-500 truncate">{user.email}</p>
                               </div>
                             </div>
                           </div>
-                        ) : null}
+                        )}
 
-                        {/* Main Navigation */}
+                        {/* Navigation */}
                         <nav className="space-y-1 px-4">
                           {navigation.map((item) => (
                             <Link
                               key={item.name}
                               href={item.href}
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                             >
                               <div className="flex items-center gap-3">
-                                {item.icon && <item.icon className="h-5 w-5" />}
+                                <item.icon className="h-5 w-5" />
                                 {item.name}
                               </div>
                               {item.badge && (
-                                <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                <span className="inline-flex items-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-medium text-white">
                                   {item.badge}
                                 </span>
                               )}
@@ -515,98 +487,76 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                           ))}
                         </nav>
 
-                        {/* Dashboard Section (if logged in) */}
+                        {/* Dashboard Links */}
                         {user && (
                           <>
                             <div className="border-t my-6" />
                             <div className="px-4">
-                              <h3 className="px-3 text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                              <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                                 Dashboard
                               </h3>
                               <nav className="space-y-1">
                                 <Link
                                   href="/dashboard"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
                                   <FiGrid className="h-5 w-5" />
-                                  Dashboard Home
-                                </Link>
-                                <Link
-                                  href="/dashboard/products"
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-                                >
-                                  <FiPackage className="h-5 w-5" />
-                                  Products
+                                  Dashboard
                                 </Link>
                                 <Link
                                   href="/dashboard/orders"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
                                   <FiShoppingCart className="h-5 w-5" />
                                   Orders
                                 </Link>
                                 <Link
-                                  href="/dashboard/analytics"
+                                  href="/wishlist"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                  <FiSearch className="h-5 w-5" />
-                                  Analytics
+                                  <FiHeart className="h-5 w-5" />
+                                  Wishlist
+                                  {wishlist?.length > 0 && (
+                                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-100 text-xs font-medium text-red-600">
+                                      {wishlist.length}
+                                    </span>
+                                  )}
                                 </Link>
                               </nav>
                             </div>
                           </>
                         )}
 
-                        {/* Account Actions */}
+                        {/* Auth Actions */}
                         <div className="border-t my-6" />
                         <div className="px-4">
                           {user ? (
-                            <div className="space-y-1">
-                              <Link
-                                href="/dashboard/profile"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-                              >
-                                <FiUser className="h-5 w-5" />
-                                Profile Settings
-                              </Link>
-                              <Link
-                                href="/track-order"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-                              >
-                                <FiShoppingBag className="h-5 w-5" />
-                                My Orders
-                              </Link>
-
-                              <Link
-                                href="/logout"
-                                method="post"
-                                as="button"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-                              >
-                                <FiLogOut className="h-5 w-5" />
-                                Log out
-                              </Link>
-                            </div>
+                            <Link
+                              href="/logout"
+                              method="post"
+                              as="button"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <FiLogOut className="h-5 w-5" />
+                              Log out
+                            </Link>
                           ) : (
                             <div className="space-y-3">
                               <Link
                                 href="/login"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700 transition-colors"
+                                className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700 transition-colors"
                               >
                                 Sign In
                               </Link>
                               <Link
                                 href="/register"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+                                className="flex w-full items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                               >
                                 Create Account
                               </Link>
@@ -615,14 +565,14 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                         </div>
                       </div>
 
-                      {/* Drawer Footer */}
-                      <div className="border-t px-6 py-4">
+                      {/* Footer */}
+                      <div className="border-t border-gray-100 px-6 py-4">
                         <div className="flex items-center justify-between text-sm text-gray-500">
                           <span>© {new Date().getFullYear()} HaatPoint</span>
                           <Link
                             href="/terms"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="hover:text-gray-700"
+                            className="hover:text-gray-700 transition-colors"
                           >
                             Terms
                           </Link>

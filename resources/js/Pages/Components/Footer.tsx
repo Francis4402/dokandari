@@ -112,15 +112,6 @@ const Footer: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 group">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-                  <BiPhone size={18} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Call us anytime</p>
-                  <p className="font-semibold text-gray-900">+880 1234-567890</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 group">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
                   <CgMail size={18} />
                 </div>
                 <div>

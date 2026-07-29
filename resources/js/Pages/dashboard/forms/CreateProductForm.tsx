@@ -25,7 +25,6 @@ import {
   FaChevronDown,
   FaWeightHanging,
   FaPalette,
-  FaStar,
   FaLink as FaLinkIcon,
   FaEye as FaEyeIcon,
 } from 'react-icons/fa';
@@ -117,7 +116,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     }
   };
 
-  // Auto-generate slug from name
+
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -127,12 +126,12 @@ export default function CreateProductForm({auth, store, categories}: productForm
       .trim();
   };
 
-  // Handle name change with auto slug generation
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setData('name', newName);
 
-    // Auto-generate slug only if slug is empty or was auto-generated
+
     if (!data.slug || data.slug === generateSlug(data.name)) {
       setData('slug', generateSlug(newName));
     }

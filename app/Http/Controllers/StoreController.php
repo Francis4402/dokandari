@@ -307,9 +307,9 @@ class StoreController extends Controller
         }
     }
 
-    public function destroy(int $id)
+    public function destroy(Store $store)
     {
-        $store = Store::findOrFail($id);
+        $store = Store::findOrFail($store);
 
 
         if ($store->logo && Storage::disk('public')->exists($store->logo)) {
