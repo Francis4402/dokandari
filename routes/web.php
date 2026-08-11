@@ -192,7 +192,7 @@ Route::get('/hotdeals', [ProductsController::class, 'hotdeals'])->name('products
 
 Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google', 'redirectToGoogle')->name('auth.google');
-    Route::get('/auth/google-callback', 'googleAuthentication')->name('auth.google-callback');
+    Route::get('/auth/google/callback', 'googleAuthentication')->name('auth.google-callback');
 });
 
 

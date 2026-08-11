@@ -43,8 +43,8 @@ class RegisteredUserController extends Controller
 
         $imagePath = null;
 
-        if ($request->hasFile('image')) {
-            $imagePath = $this->processAndStoreImage($request->file('image'));
+        if ($request->hasFile('images')) {
+            $imagePath = $this->processAndStoreImage($request->file('images'));
         }
 
 

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
-use function Laravel\Prompts\error;
 
 class SocialiteController extends Controller
 {
@@ -38,7 +37,7 @@ class SocialiteController extends Controller
 
             Auth::login($user);
 
-            return redirect('dashboard');
+            return redirect('/');
         } catch (\Exception $e) {
 
             Log::error('Google Login Error: ' . $e->getMessage());
@@ -46,7 +45,6 @@ class SocialiteController extends Controller
             return redirect('/')
                 ->with('error', 'Google authentication failed. Please try again.');
         }
-
 
     }
 }

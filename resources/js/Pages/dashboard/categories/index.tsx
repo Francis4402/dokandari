@@ -108,13 +108,6 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
         if (!file) return;
 
 
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            toast.error('Image size must be less than 5MB');
-            e.target.value = '';
-            return;
-        }
-
         setData('image', file);
 
         const reader = new FileReader();
@@ -178,23 +171,22 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
   const handleEdit = (category: categoryType) => {
     setCategoryToEdit(category);
 
-
     const parsed = parsesubcategory(category.subcategory);
-    setData({
-      categories: category.categories,
-      subcategory: parsed.length > 0 ? parsed : [''],
-      image: null,
-    });
+        setData({
+            categories: category.categories,
+            subcategory: parsed.length > 0 ? parsed : [''],
+            image: null,
+        });
 
-    if (category.image) {
-      setCurrentImagePath(`/storage/${category.image}`);
-    } else {
-      setCurrentImagePath(null);
-    }
+        if (category.image) {
+            setCurrentImagePath(`/storage/${category.image}`);
+        } else {
+            setCurrentImagePath(null);
+        }
 
-    setImagePreview(null);
-    setShowEditModal(true);
-  };
+        setImagePreview(null);
+        setShowEditModal(true);
+    };
 
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();

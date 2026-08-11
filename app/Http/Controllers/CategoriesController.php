@@ -41,7 +41,7 @@ class CategoriesController extends Controller
                 'categories' => 'required|string|max:255',
                 'subcategory'   => 'required|array|min:1',
                 'subcategory.*' => 'required|string|max:255',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+                'image' => 'image|mimes:jpeg,png,jpg,webp',
             ]);
 
             $category = new Categories();
@@ -101,7 +101,7 @@ class CategoriesController extends Controller
         $validated = $request->validate([
             'categories' => 'required|string|max:255',
             'subcategory' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'image|mimes:jpeg,png,jpg,webp',
             'remove_image' => 'nullable|boolean',
         ]);
 
