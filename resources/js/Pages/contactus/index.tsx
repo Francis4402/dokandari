@@ -1,3 +1,4 @@
+// ContactUsPage.tsx
 import { useState, useEffect, useRef, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
@@ -18,12 +19,13 @@ import {
   FaQuestionCircle,
   FaArrowLeft,
 } from "react-icons/fa";
-
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import Eyebrow from "../Components/Eyebrow";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -65,7 +67,6 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
 
   const isLoggedIn = !!auth.user;
 
-  // Show success modal when form was successful
   useEffect(() => {
     if (wasSuccessful) {
       setShowSuccessModal(true);
@@ -74,27 +75,21 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     }
   }, [wasSuccessful]);
 
-  // Show flash message if exists
   useEffect(() => {
     if (flash?.success) {
       setShowSuccessModal(true);
     }
   }, [flash]);
 
-  // Contact information
   const contactInfo = {
     phone: "01319052507",
     address: "Chittagong, TeriBazar",
     workingHours: "Monday - Thursday: 12:00 AM - 8:00 PM\nSaturday: 10:00 AM - 4:00 PM\nFriday: Closed",
     socialMedia: {
       facebook: "https://facebook.com/multivendor",
-    //   twitter: "https://twitter.com/multivendor",
-    //   instagram: "https://instagram.com/multivendor",
-    //   linkedin: "https://linkedin.com/company/multivendor"
     }
   };
 
-  // FAQ Data
   const faqs: FAQItem[] = [
     {
       id: 1,
@@ -128,7 +123,6 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     }
   ];
 
-  // Departments
   const departments = [
     {
       id: 1,
@@ -280,27 +274,27 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     return (
       <div
         ref={cardRef}
-        className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200 contact-card cursor-pointer"
+        className="contact-card group bg-white rounded-xl shadow-hard-sm p-6 hover:shadow-xl transition-all duration-300 border border-line cursor-pointer hover:-translate-y-1"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         <div className="flex items-start gap-4">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white">
+          <div className="h-12 w-12 rounded-full bg-marigold/10 group-hover:bg-marigold/20 flex items-center justify-center text-marigold transition-colors duration-300">
             {info.icon}
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-lg text-gray-900 mb-2">{info.name}</h3>
-            <p className="text-gray-600 text-sm mb-3">{info.description}</p>
+            <h3 className="font-bold text-lg text-ink mb-2">{info.name}</h3>
+            <p className="text-text-soft text-sm mb-3">{info.description}</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <FaEnvelope className="h-4 w-4 text-gray-400" />
-                <a href={`mailto:${info.email}`} className="text-amber-600 hover:text-amber-700 transition-colors">
+                <FaEnvelope className="h-4 w-4 text-text-soft" />
+                <a href={`mailto:${info.email}`} className="text-marigold hover:text-marigold-dark transition-colors">
                   {info.email}
                 </a>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <FaPhone className="h-4 w-4 text-gray-400" />
-                <a href={`tel:${info.phone}`} className="text-gray-700 hover:text-amber-600 transition-colors">
+                <FaPhone className="h-4 w-4 text-text-soft" />
+                <a href={`tel:${info.phone}`} className="text-text-soft hover:text-marigold transition-colors">
                   {info.phone}
                 </a>
               </div>
@@ -317,85 +311,90 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
         <meta name="description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Success Modal */}
-        <Transition appear show={showSuccessModal} as={Fragment}>
-          <Dialog as="div" className="relative z-50" onClose={() => setShowSuccessModal(false)}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-black bg-opacity-25" />
-            </Transition.Child>
+      <div className="min-h-screen bg-paper-dim py-20">
+        <div className="max-w-[1240px] mx-auto px-8">
+          {/* Success Modal */}
+          <Transition appear show={showSuccessModal} as={Fragment}>
+            <Dialog as="div" className="relative z-50" onClose={() => setShowSuccessModal(false)}>
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <div className="fixed inset-0 bg-black bg-opacity-25" />
+              </Transition.Child>
 
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4 text-center">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
-                    <div className="text-center">
-                      <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-                        <FaCheckCircle className="h-8 w-8 text-green-600" />
+              <div className="fixed inset-0 overflow-y-auto">
+                <div className="flex min-h-full items-center justify-center p-4 text-center">
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
+                  >
+                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all border border-line">
+                      <div className="text-center">
+                        <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                          <FaCheckCircle className="h-8 w-8 text-green-600" />
+                        </div>
+                        <Dialog.Title as="h3" className="text-2xl font-bold text-ink mb-2">
+                          Message Sent Successfully!
+                        </Dialog.Title>
+                        <p className="text-text-soft mb-6">
+                          Thank you for contacting us. We've received your message and will get back to you within 24 hours.
+                        </p>
+                        <button
+                          onClick={() => setShowSuccessModal(false)}
+                          className="w-full px-6 py-3 bg-gray-900 hover:bg-marigold text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105"
+                        >
+                          Continue Browsing
+                        </button>
                       </div>
-                      <Dialog.Title as="h3" className="text-2xl font-bold text-gray-900 mb-2">
-                        Message Sent Successfully!
-                      </Dialog.Title>
-                      <p className="text-gray-600 mb-6">
-                        Thank you for contacting us. We've received your message and will get back to you within 24 hours.
-                      </p>
-                      <button
-                        onClick={() => setShowSuccessModal(false)}
-                        className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
-                      >
-                        Continue Browsing
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+                    </Dialog.Panel>
+                  </Transition.Child>
+                </div>
               </div>
-            </div>
-          </Dialog>
-        </Transition>
+            </Dialog>
+          </Transition>
 
-        <div className="container mx-auto md:px-0 px-5 py-8">
           {/* Header */}
-          <div ref={headerRef} className="mb-12 text-center">
-            <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-center">
-              <Link href="/" className="hover:text-amber-600 transition-colors">Home</Link>
-              <span>/</span>
-              <span className="text-gray-900 font-medium">Contact Us</span>
+          <div ref={headerRef} className="flex justify-between items-end flex-wrap gap-4 mb-9">
+            <div>
+              <Eyebrow>We're here to help</Eyebrow>
+              <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Get in Touch</h1>
+              <p className="text-text-soft text-sm mt-2 max-w-2xl">
+                Have questions? We're here to help! Reach out to our team and we'll respond as soon as possible.
+              </p>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Get in Touch</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Have questions? We're here to help! Reach out to our team and we'll respond as soon as possible.
-            </p>
+            <Link
+              href="/"
+              className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors flex items-center gap-2"
+            >
+              <FaArrowLeft className="h-3 w-3" />
+              Back to Home
+            </Link>
           </div>
 
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <div ref={formRef} className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+              <div ref={formRef} className="bg-white rounded-2xl shadow-hard-sm border border-line overflow-hidden">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                      <FaPaperPlane className="h-6 w-6 text-white" />
+                    <div className="h-12 w-12 rounded-full bg-marigold/10 flex items-center justify-center">
+                      <FaPaperPlane className="h-6 w-6 text-marigold" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">Send us a Message</h2>
-                      <p className="text-gray-600">Fill out the form below and we'll get back to you soon</p>
+                      <h2 className="text-2xl font-bold text-ink">Send us a Message</h2>
+                      <p className="text-text-soft">Fill out the form below and we'll get back to you soon</p>
                     </div>
                   </div>
 
@@ -409,12 +408,12 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="name" className="block text-sm font-medium text-ink mb-2">
                           Your Name *
                         </label>
                         <div className="relative">
                           <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                            <FaUser className="h-5 w-5 text-gray-400" />
+                            <FaUser className="h-5 w-5 text-text-soft" />
                           </div>
                           <input
                             type="text"
@@ -422,9 +421,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             disabled={isLoggedIn}
-                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
-                              errors.name ? 'border-red-300' : 'border-gray-300'
-                            } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors ${
+                              errors.name ? 'border-red-300' : 'border-line'
+                            } ${isLoggedIn ? 'bg-paper-dim cursor-not-allowed' : 'bg-white'}`}
                             placeholder="John Doe"
                           />
                         </div>
@@ -437,12 +436,12 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                       </div>
 
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium text-ink mb-2">
                           Email Address *
                         </label>
                         <div className="relative">
                           <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                            <FaEnvelope className="h-5 w-5 text-gray-400" />
+                            <FaEnvelope className="h-5 w-5 text-text-soft" />
                           </div>
                           <input
                             type="email"
@@ -450,9 +449,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             disabled={isLoggedIn}
-                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
-                              errors.email ? 'border-red-300' : 'border-gray-300'
-                            } ${isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors ${
+                              errors.email ? 'border-red-300' : 'border-line'
+                            } ${isLoggedIn ? 'bg-paper-dim cursor-not-allowed' : 'bg-white'}`}
                             placeholder="john@example.com"
                           />
                         </div>
@@ -466,7 +465,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                     </div>
 
                     <div>
-                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="subject" className="block text-sm font-medium text-ink mb-2">
                         Subject *
                       </label>
                       <input
@@ -474,9 +473,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                         id="subject"
                         value={data.subject}
                         onChange={(e) => setData('subject', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors ${
-                          errors.subject ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors ${
+                          errors.subject ? 'border-red-300' : 'border-line'
+                        } bg-white`}
                         placeholder="What is this regarding?"
                       />
                       {errors.subject && (
@@ -488,7 +487,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                     </div>
 
                     <div>
-                      <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="message" className="block text-sm font-medium text-ink mb-2">
                         Your Message *
                       </label>
                       <textarea
@@ -497,9 +496,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                         onChange={(e) => setData('message', e.target.value)}
                         rows={6}
                         maxLength={400}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors resize-none ${
-                          errors.message ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors resize-none ${
+                          errors.message ? 'border-red-300' : 'border-line'
+                        } bg-white`}
                         placeholder="Please provide detailed information about your inquiry..."
                       />
                       {errors.message && (
@@ -508,7 +507,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                           {errors.message}
                         </p>
                       )}
-                      <div className="mt-2 text-sm text-gray-500 flex justify-end">
+                      <div className="mt-2 text-sm text-text-soft flex justify-end">
                         {data.message.length} / 400 characters
                       </div>
                     </div>
@@ -517,7 +516,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                       <button
                         type="submit"
                         disabled={processing}
-                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-4 bg-gray-900 hover:bg-marigold text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:scale-105"
                       >
                         {processing ? (
                           <>
@@ -539,52 +538,52 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
 
             {/* Contact Information */}
             <div className="lg:col-span-1">
-              <div className="bg-gradient-to-b from-amber-500 to-orange-500 rounded-2xl shadow-xl p-8 text-white">
+              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-hard-sm p-8 text-white border border-line sticky top-6">
                 <h2 className="text-2xl font-bold mb-8">Contact Information</h2>
 
                 <div className="space-y-8 mb-8">
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <FaPhone className="h-6 w-6" />
+                    <div className="h-12 w-12 rounded-full bg-marigold/20 flex items-center justify-center flex-shrink-0">
+                      <FaPhone className="h-6 w-6 text-marigold" />
                     </div>
                     <div>
                       <h3 className="font-bold text-lg mb-1">Phone</h3>
-                      <a href={`tel:${contactInfo.phone}`} className="hover:underline">
+                      <a href={`tel:${contactInfo.phone}`} className="hover:text-marigold transition-colors">
                         {contactInfo.phone}
                       </a>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <FaMapMarkerAlt className="h-6 w-6" />
+                    <div className="h-12 w-12 rounded-full bg-marigold/20 flex items-center justify-center flex-shrink-0">
+                      <FaMapMarkerAlt className="h-6 w-6 text-marigold" />
                     </div>
                     <div>
                       <h3 className="font-bold text-lg mb-1">Address</h3>
-                      <p>{contactInfo.address}</p>
+                      <p className="text-gray-300">{contactInfo.address}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <FaClock className="h-6 w-6" />
+                    <div className="h-12 w-12 rounded-full bg-marigold/20 flex items-center justify-center flex-shrink-0">
+                      <FaClock className="h-6 w-6 text-marigold" />
                     </div>
                     <div>
                       <h3 className="font-bold text-lg mb-1">Working Hours</h3>
-                      <p className="whitespace-pre-line">{contactInfo.workingHours}</p>
+                      <p className="text-gray-300 whitespace-pre-line">{contactInfo.workingHours}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Social Media */}
-                <div>
+                <div className="pt-6 border-t border-gray-700">
                   <h3 className="font-bold text-lg mb-4">Follow Us</h3>
                   <div className="flex gap-3">
                     <a
                       href={contactInfo.socialMedia.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                      className="h-12 w-12 rounded-full bg-white/10 hover:bg-marigold/20 flex items-center justify-center transition-colors hover:scale-110 duration-300"
                     >
                       <FaFacebook className="h-6 w-6" />
                     </a>
@@ -595,10 +594,11 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
           </div>
 
           {/* Departments Section */}
-          <div ref={contactRef} className="mt-32">
+          <div ref={contactRef} className="mt-16">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Direct Support</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
+              <Eyebrow>Direct Support</Eyebrow>
+              <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Get Direct Support</h2>
+              <p className="text-text-soft mt-2 max-w-2xl mx-auto">
                 Contact specific departments for specialized assistance with your inquiries
               </p>
             </div>
@@ -611,10 +611,11 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
           </div>
 
           {/* FAQ Section */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+          <div className="mt-16 bg-white rounded-2xl shadow-hard-sm border border-line p-8">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-              <p className="text-gray-600">Find quick answers to common questions</p>
+              <Eyebrow>Quick Answers</Eyebrow>
+              <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Frequently Asked Questions</h2>
+              <p className="text-text-soft mt-2">Find quick answers to common questions</p>
             </div>
 
             <div className="max-w-3xl mx-auto">
@@ -622,15 +623,15 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                 {faqs.map((faq) => (
                   <div
                     key={faq.id}
-                    className="border border-gray-200 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md"
+                    className="border border-line rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md"
                   >
                     <button
                       onClick={() => setActiveFAQ(activeFAQ === faq.id ? null : faq.id)}
-                      className="w-full px-6 py-4 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="w-full px-6 py-4 text-left flex items-center justify-between bg-paper-dim hover:bg-marigold/5 transition-colors"
                     >
-                      <span className="font-semibold text-gray-900">{faq.question}</span>
+                      <span className="font-semibold text-ink">{faq.question}</span>
                       <svg
-                        className={`w-5 h-5 text-gray-500 transform transition-transform ${
+                        className={`w-5 h-5 text-text-soft transform transition-transform ${
                           activeFAQ === faq.id ? 'rotate-180' : ''
                         }`}
                         fill="none"
@@ -641,8 +642,8 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                       </svg>
                     </button>
                     {activeFAQ === faq.id && (
-                      <div className="px-6 py-4 border-t border-gray-200">
-                        <p className="text-gray-600">{faq.answer}</p>
+                      <div className="px-6 py-4 border-t border-line">
+                        <p className="text-text-soft">{faq.answer}</p>
                       </div>
                     )}
                   </div>

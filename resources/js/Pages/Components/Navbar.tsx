@@ -154,7 +154,7 @@ const Navbar = ({ user, wishlist }: PropsWithChildren<{ user: any; wishlist: any
 
               {/* Wishlist */}
               <div className="hidden sm:block">
-                <WishlistCountButton wishlist={wishlist} />
+                {user && <WishlistCountButton wishlist={wishlist} />}
               </div>
 
               {/* Cart */}
