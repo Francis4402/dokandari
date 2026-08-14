@@ -197,7 +197,7 @@ Route::controller(SocialiteController::class)->group(function () {
 
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-
+Route::get('/products/{id}/reviews', [ReviewController::class, 'status'])->name('reviews.status');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

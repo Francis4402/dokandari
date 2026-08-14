@@ -9,8 +9,8 @@ const Categories = ({categories}: {categories: categoryType[]}) => {
 
 
   return (
-    <section className="pt-24 pb-5" id="categories">
-      <div className="max-w-[1240px] mx-auto px-8">
+    <section id="categories">
+      <div>
         <div className="mb-8">
           <Eyebrow>Browse the haat</Eyebrow>
           <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Shop by category</h2>

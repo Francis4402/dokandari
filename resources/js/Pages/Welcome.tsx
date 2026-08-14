@@ -91,19 +91,19 @@ export default function Welcome({
 
 
                 {featuredProducts.length > 0 && (
-                    <OfferedProducts product={featuredProducts} />
+                    <OfferedProducts product={featuredProducts} user={auth.user} />
                 )}
 
                 {trandingProducts.length > 0 && (
-                    <TrendingProducts trandingproduct={trandingProducts} />
+                    <TrendingProducts trandingproduct={trandingProducts} user={auth.user} />
                 )}
 
                 {topSellingProduct.length > 0 && (
-                    <TopSellingProduct products={topSellingProduct} />
+                    <TopSellingProduct products={topSellingProduct} user={auth.user} />
                 )}
 
                 {dailyDiscoverProduct.length > 0 && (
-                    <DailyDiscover discoverProduct={dailyDiscoverProduct} auth={auth} reviews={reviews} />
+                    <DailyDiscover discoverProduct={dailyDiscoverProduct} user={auth.user} reviews={reviews} />
                 )}
             </div>
             <VendorCTA />

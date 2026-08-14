@@ -1,5 +1,4 @@
-// TrendingProducts.tsx
-import { useRef } from "react";
+
 import { Link } from "@inertiajs/react";
 import { FiZap } from "react-icons/fi";
 import Eyebrow from "./Eyebrow";
@@ -9,10 +8,11 @@ import ProductCard from "@/Components/ProductCard";
 
 
 interface TrendingProductsProps {
-  trandingproduct: Product[];
+    trandingproduct: Product[];
+    user: any;
 }
 
-const TrendingProducts = ({ trandingproduct }: TrendingProductsProps) => {
+const TrendingProducts = ({ trandingproduct, user }: TrendingProductsProps) => {
   const ref = useRevealChildren();
 
   // Parse products
@@ -59,6 +59,7 @@ const TrendingProducts = ({ trandingproduct }: TrendingProductsProps) => {
                 product={product}
                 variant="trending"
                 showQuickView={true}
+                user={user}
               />
           ))}
         </div>

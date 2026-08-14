@@ -172,7 +172,7 @@ const Navbar = ({ user, wishlist }: PropsWithChildren<{ user: any; wishlist: any
               </Link>
 
               {/* User Dropdown */}
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative md:block hidden" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-sm hover:bg-[#EFECE3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/40"

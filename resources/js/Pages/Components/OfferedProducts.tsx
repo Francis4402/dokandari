@@ -1,4 +1,4 @@
-// OfferedProducts.tsx
+
 import { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { CiImageOn } from "react-icons/ci";
@@ -6,8 +6,13 @@ import { Product } from '@/types';
 import Eyebrow from './Eyebrow';
 import ProductCard from '@/Components/ProductCard';
 
+interface OfferedProductsProps {
+    product: Product[];
+    user: any;
 
-const OfferedProducts = ({ product }: { product: Product[] }) => {
+}
+
+const OfferedProducts = ({ product, user }: OfferedProductsProps) => {
     const [parsedProducts, setParsedProducts] = useState<Product[]>([]);
 
     useEffect(() => {
@@ -66,6 +71,7 @@ const OfferedProducts = ({ product }: { product: Product[] }) => {
                             badge={offer.sale_price && offer.sale_price < offer.regular_price ? 'Sale' : undefined}
                             variant="default"
                             showQuickView={true}
+                            user={user}
                         />
                     ))}
                 </div>

@@ -36,45 +36,33 @@ class ReviewController extends Controller
                 'product_id' => 'required|exists:products,id',
             ]);
 
-            $userId = Auth::id();
-
-
-            $existingReview = Review::where('user_id', $userId)
-                ->where('product_id', $request->product_id)
-                ->first();
-
-            if ($userId && $existingReview) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have already reviewed this product',
-                    'reviewed' => true,
-                    'count' => Review::where('product_id', $request->product_id)->count(),
-                ], 400);
-            }
-
-            // Create new review
             Review::create([
                 'product_id' => $request->product_id,
-                'user_id'    => $userId,
+                'user_id' => Auth::id(),
             ]);
-
-            $message = $userId ? 'Product reviewed successfully' : 'Product reviewed as guest';
 
             $count = Review::where('product_id', $request->product_id)->count();
 
             return response()->json([
-                'success'  => true,
-                'message'  => $message,
-                'reviewed' => true,
-                'count'    => $count,
+                'success' => true,
+                'message' => 'View recorded',
+                'count' => $count,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error processing review: ' . $e->getMessage(),
+                'message' => 'Error recording view: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function status(string $id)
+    {
+        $count = Review::where('product_id', $id)->count();
+
+        return response()->json([
+            'count' => $count,
+        ]);
     }
 
 

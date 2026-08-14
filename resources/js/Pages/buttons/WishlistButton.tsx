@@ -48,7 +48,6 @@ export default function WishlistButton({
             preserveScroll: true,
             preserveState: true,
             onSuccess: (response) => {
-                // Get the response data
                 const page = response as any;
                 const isNowInWishlist = !isInWishlist;
 
