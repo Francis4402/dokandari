@@ -1,305 +1,77 @@
-
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/autoplay';
+// OfferedProducts.tsx
 import { useEffect, useState } from 'react';
-import { FaShoppingCart, FaStar } from 'react-icons/fa';
-import { CiImageOn } from "react-icons/ci";
-import { FiZap } from 'react-icons/fi';
-import { BiHeart } from 'react-icons/bi';
-import { Product } from '@/types';
 import { Link } from '@inertiajs/react';
-import FormatPrice from '../utils/FormatePrice';
+import { CiImageOn } from "react-icons/ci";
+import { Product } from '@/types';
+import Eyebrow from './Eyebrow';
+import ProductCard from '@/Components/ProductCard';
 
 
-const OfferedProducts = ({product}: {product: Product[]}) => {
+const OfferedProducts = ({ product }: { product: Product[] }) => {
     const [parsedProducts, setParsedProducts] = useState<Product[]>([]);
 
     useEffect(() => {
         if (product && product.length > 0) {
-        const parsed = product.map(item => ({
-            ...item,
-            rating: typeof item.rating === 'string' ? parseFloat(item.rating) : Number(item.rating) || 0
-        }));
-        setParsedProducts(parsed);
+            const parsed = product.map(item => ({
+                ...item,
+                rating: typeof item.rating === 'string' ? parseFloat(item.rating) : Number(item.rating) || 0
+            }));
+            setParsedProducts(parsed);
         }
     }, [product]);
 
-    const calculateDiscount = (regularPrice: number, salePrice: number) => {
-        const regular = regularPrice;
-        const sale = salePrice;
-        if (regular <= 0 || sale >= regular) return '0%';
-        const discount = Math.round(((regular - sale) / regular) * 100);
-        return `${discount}%`;
-    };
-
-    const calculateSaveAmount = (regularPrice: number, salePrice: number) => {
-        const regular = regularPrice;
-        const sale = salePrice;
-        const saveAmount = regular - sale;
-        return saveAmount > 0 ? saveAmount.toFixed(0) : '0';
-    };
-
-
-    const renderStars = (rating: number) => {
-    const normalizedRating = Math.min(Math.max(Number(rating) || 0, 0), 5);
-
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => {
-          const isFilled = normalizedRating >= star;
-          const isHalfFilled = normalizedRating >= star - 0.5 && normalizedRating < star;
-
-          return (
-            <FaStar
-              key={star}
-              className={`w-3 h-3 ${
-                isFilled
-                  ? 'text-yellow-400 fill-yellow-400'
-                  : isHalfFilled
-                    ? 'text-yellow-400 fill-yellow-400 opacity-60'
-                    : 'text-gray-300 fill-gray-300'
-              }`}
-            />
-          );
-        })}
-        <span className="text-xs text-gray-500 ml-1">
-          ({normalizedRating.toFixed(1)})
-        </span>
-      </div>
-    );
-  };
-
-
-  const parseImages = (imagesString: string): string[] => {
-    if (!imagesString) return [];
-
-    try {
-
-      let cleanString = imagesString;
-      if (cleanString.startsWith('"') && cleanString.endsWith('"')) {
-        cleanString = cleanString.slice(1, -1);
-      }
-
-      // Parse the JSON
-      const parsed = JSON.parse(cleanString);
-
-      if (Array.isArray(parsed)) {
-        return parsed.map(img => {
-
-          if (img && typeof img === 'string') {
-
-            if (img.includes('/')) {
-              return img;
-            }
-            // Add the path
-            return `storage/${img}`;
-          }
-          return '';
-        }).filter(img => img !== '');
-      }
-
-      return [];
-    } catch (error) {
-      console.error('Error parsing images:', error, 'String:', imagesString);
-      return [];
-    }
-  };
-
-
-  const getFirstImage = (imagesString: string): string => {
-    const images = parseImages(imagesString);
-
-    if (images.length > 0) {
-
-      const imagePath = images[0];
-      if (imagePath.startsWith('http')) {
-        return imagePath;
-      } else if (imagePath.startsWith('/')) {
-        return imagePath;
-      } else {
-        return `/storage/${imagePath}`;
-      }
-    }
-
-    return 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=400&fit=crop';
-  };
-
-
-  const renderAllImages = (imagesString: string) => {
-    const images = parseImages(imagesString);
-
-    if (images.length === 0) {
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          <CiImageOn className="w-12 h-12 text-gray-400" />
-        </div>
-      );
+    if (!parsedProducts.length) {
+        return (
+            <section className="py-20" id="offers">
+                <div className="max-w-[1240px] mx-auto px-8">
+                    <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
+                        <div>
+                            <Eyebrow>Exclusive Deals</Eyebrow>
+                            <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Special Offers</h2>
+                        </div>
+                    </div>
+                    <div className="text-center py-12">
+                        <CiImageOn className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <p className="text-gray-600">No products available</p>
+                    </div>
+                </div>
+            </section>
+        );
     }
 
     return (
-      <div className="w-full h-full">
-        <img
-          src={getFirstImage(imagesString)}
-          alt={imagesString}
-          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => {
-            console.error('Image failed to load:', e.currentTarget.src);
-            e.currentTarget.src = 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=400&fit=crop';
-            e.currentTarget.classList.add('object-cover');
-          }}
-        />
-      </div>
-    );
-  };
+        <section className="py-20" id="offers">
+            <div className="max-w-[1240px] mx-auto px-8">
+                {/* Header */}
+                <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
+                    <div>
+                        <Eyebrow>Exclusive Deals</Eyebrow>
+                        <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Special Offers</h2>
+                        <p className="text-gray-500 mt-2">Don't miss out on these exclusive deals!</p>
+                    </div>
+                    <Link
+                        href="/offers"
+                        className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:text-primary transition-colors"
+                    >
+                        View all →
+                    </Link>
+                </div>
 
-  if (!parsedProducts.length) {
-    return (
-      <div className="mt-16">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <FiZap className="w-6 h-6 text-orange-500" />
-              <h2 className="text-2xl font-bold tracking-tight">Special Offers</h2>
-              <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 text-xs font-medium text-white">
-                Limited Time
-              </span>
+                {/* Products Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                    {parsedProducts.map((offer) => (
+                        <ProductCard
+                            key={offer.id}
+                            product={offer}
+                            badge={offer.sale_price && offer.sale_price < offer.regular_price ? 'Sale' : undefined}
+                            variant="default"
+                            showQuickView={true}
+                        />
+                    ))}
+                </div>
             </div>
-            <p className="text-gray-500">Don't miss out on these exclusive deals!</p>
-          </div>
-        </div>
-        <div className="h-px bg-gray-200 mb-6" />
-        <div className="text-center py-12">
-          <CiImageOn className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">No products available</p>
-        </div>
-      </div>
+        </section>
     );
-  }
-
-  return (
-    <div className="mt-16">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <FiZap className="w-6 h-6 text-orange-500" />
-            <h2 className="text-2xl font-bold tracking-tight">Special Offers</h2>
-            <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 text-xs font-medium text-white">
-              Limited Time
-            </span>
-          </div>
-          <p className="text-gray-500">Don't miss out on these exclusive deals!</p>
-        </div>
-      </div>
-
-      <div className="h-px bg-gray-200 mb-6" />
-
-      {/* Products Container */}
-      <div className="relative">
-        {/* Gradient fade effects */}
-        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-
-        {/* Responsive Swiper */}
-        <div className="swiper-container">
-          <Swiper
-            spaceBetween={30}
-            autoplay={{
-              delay: 2500,
-              disableOnInteraction: false,
-            }}
-            loop={true}
-            modules={[Autoplay, Pagination]}
-            breakpoints={{
-              320: { slidesPerView: 2 },
-              768: { slidesPerView: 4 },
-              1024: { slidesPerView: 5 },
-            }}
-            className="py-10"
-          >
-            {parsedProducts.map((offer, index) => {
-              const discount = calculateDiscount(offer.regular_price, offer.sale_price);
-              const saveAmount = calculateSaveAmount(offer.regular_price, offer.sale_price);
-
-              return (
-                <SwiperSlide key={offer.id || index} className="h-auto">
-                  <div className="overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-300 h-full hover:-translate-y-2 hover:shadow-xl group flex flex-col bg-white rounded-lg shadow-md">
-                    {/* Image Container */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-grow">
-                      <div className="aspect-square p-4 flex items-center justify-center">
-                        {renderAllImages(offer.images)}
-                      </div>
-
-                      {/* Discount Badge */}
-                      {discount !== '0%' && (
-                        <div className="absolute top-3 left-3">
-                          <span className="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
-                            -{discount} OFF
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Action Buttons Overlay */}
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <button
-                          className="inline-flex items-center justify-center rounded-full w-8 h-8 bg-white/90 hover:bg-white shadow-lg transition-colors"
-                        >
-                          <BiHeart className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Quick Add to Cart Button */}
-                      <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                        <Link href={`/`} className="w-full gap-2 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
-                          <FaShoppingCart className="w-4 h-4" />
-                          Quick View
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="p-4 pb-3 pt-4">
-                      <h3 className="text-base font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                        {offer.name}
-                      </h3>
-                    </div>
-
-                    <div className="px-4 pb-4 pt-0">
-                      {/* Rating */}
-                      <div className="mb-3">
-                        {renderStars(offer.rating as number)}
-                      </div>
-
-                      {/* Price */}
-                      <div className="flex flex-col items-center justify-between">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm font-bold text-primary">
-                            <FormatPrice price={offer.sale_price || offer.regular_price} />
-                          </span>
-                          {discount !== '0%' && (
-                            <span className="text-sm text-gray-500 line-through">
-                              <FormatPrice price={offer.regular_price} />
-                            </span>
-                          )}
-                        </div>
-                        {discount !== '0%' && (
-                          <span className="inline-flex items-center rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold">
-                            Save ৳{saveAmount}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </SwiperSlide>
-              );
-            })}
-          </Swiper>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default OfferedProducts;

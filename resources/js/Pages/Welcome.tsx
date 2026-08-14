@@ -2,7 +2,6 @@ import { Head } from '@inertiajs/react';
 import { categoryType, PageProps, Product, ReviewType } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
 import HeroSection from './Components/HeroSection';
-import NavRoutes from './Components/NavRoutes';
 import Categories from './Components/Categories';
 import Footer from './Components/Footer';
 import TrendingProducts from './Components/TrandingProducts';
@@ -10,6 +9,7 @@ import DailyDiscover from './Components/DailyDiscover';
 import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
 import TopSellingProduct from './Components/TopSellingProduct';
+import VendorCTA from './Components/VendorCTA';
 
 interface PaginatedProducts {
     data: Product[];
@@ -37,7 +37,7 @@ export default function Welcome({
 }: PageProps<{
     laravelVersion: string,
     phpVersion: string,
-    categories: categoryType,
+    categories: categoryType[],
     products: PaginatedProducts,
     wishlist: any,
     reviews: ReviewType[],
@@ -85,10 +85,9 @@ export default function Welcome({
                 <meta name="keywords" content={`shop, products, buy online, shopping`} />
                 <meta name="robots" content="index, follow" />
             </Head>
-            <div className='container mx-auto px-5 md:px-0'>
-                <NavRoutes />
+            <div className='max-w-[1240px] mx-auto px-8'>
                 <HeroSection />
-                <Categories categorie={categories} />
+                <Categories categories={categories} />
 
 
                 {featuredProducts.length > 0 && (
@@ -106,9 +105,8 @@ export default function Welcome({
                 {dailyDiscoverProduct.length > 0 && (
                     <DailyDiscover discoverProduct={dailyDiscoverProduct} auth={auth} reviews={reviews} />
                 )}
-
-                <CategorySection />
             </div>
+            <VendorCTA />
             <Footer/>
         </AppLayout>
     );

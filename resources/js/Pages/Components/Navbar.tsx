@@ -1,8 +1,6 @@
 import { PropsWithChildren, useState, useRef, useEffect, Fragment } from "react"
 import { Link } from "@inertiajs/react"
-import { useGSAP } from "@gsap/react"
 import React from "react"
-import gsap from "gsap"
 import {
   FiSearch,
   FiShoppingBag,
@@ -23,13 +21,14 @@ import { Dialog, Transition } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
 import WishlistCountButton from "../buttons/WishListCountButton"
 
+
 const navigation = [
-  { name: 'Home', href: '/', icon: FiHome },
-  { name: 'Deals', href: '/hotdeals', badge: 'HOT', icon: FiTag },
-  { name: 'New Arrivals', href: '/', icon: FiZap },
+  { name: "Home", href: "/", icon: FiHome },
+  { name: "Deals", href: "/hotdeals", badge: "HOT", icon: FiTag },
+  { name: "New Arrivals", href: "/", icon: FiZap },
 ]
 
-const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any}>) => {
+const Navbar = ({ user, wishlist }: PropsWithChildren<{ user: any; wishlist: any }>) => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -39,8 +38,8 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
   const searchButtonRef = useRef<HTMLButtonElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  const {getTotalItems} = useStore();
-  const cartItems = getTotalItems();
+  const { getTotalItems } = useStore()
+  const cartItems = getTotalItems()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,43 +53,36 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
         handleCloseSearch()
       }
 
-      if (
-        userMenuOpen &&
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false)
       }
     }
 
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         if (searchOpen) handleCloseSearch()
         if (userMenuOpen) setUserMenuOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscapeKey)
+    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("keydown", handleEscapeKey)
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscapeKey)
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleEscapeKey)
     }
   }, [searchOpen, userMenuOpen])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchValue.trim()) {
-      // Handle search
       setSearchOpen(false)
       setSearchValue("")
     }
   }
 
-  const handleSearchButtonClick = () => {
-    setSearchOpen(!searchOpen)
-  }
+  const handleSearchButtonClick = () => setSearchOpen(!searchOpen)
 
   const handleCloseSearch = () => {
     setSearchOpen(false)
@@ -99,29 +91,33 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-        <div className="container mx-auto px-4 md:px-6">
+      <header className="sticky top-0 z-[100] w-full border-b border-[#DAD5C7] bg-[#F7F5EF]/90 backdrop-blur-md">
+        <div className="max-w-[1240px] mx-auto px-4 md:px-8">
           <div className="flex h-20 items-center justify-between gap-4">
-            {/* Left Section - Logo */}
-            <div className="flex items-center gap-3">
+            {/* Left Section - Logo + nav */}
+            <div className="flex items-center gap-3 shrink-0">
               <Link href="/" className="flex items-center gap-2.5 group">
-                <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-gradient-to-br transition-transform group-hover:scale-105">
-                  <img src="/logo.png" alt="HaatPoint" className="h-96 w-96 object-contain" />
-                </div>
+                <img
+                  src="/MyLogo.png"
+                  alt="Haatpoint"
+                  className="h-[34px] w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                />
+                <span className="font-display font-extrabold text-[22px] tracking-[-0.01em] uppercase">
+                  Haatpoint
+                </span>
               </Link>
 
-              {/* Desktop Navigation */}
-              <nav className="hidden lg:flex ml-8 space-x-1">
+              <nav className="hidden lg:flex ml-6 gap-1">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700 hover:text-gray-900"
+                    className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold rounded-sm text-[#111013] hover:bg-[#EFECE3] transition-colors duration-150"
                   >
                     <item.icon className="h-4 w-4" />
                     {item.name}
                     {item.badge && (
-                      <span className="ml-1 inline-flex items-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
+                      <span className="ml-0.5 inline-flex items-center rounded-full bg-[#FF5A1F] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-white">
                         {item.badge}
                       </span>
                     )}
@@ -133,50 +129,44 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
             {/* Middle Section - Search */}
             <div className="flex-1 max-w-xl hidden md:block">
               <form onSubmit={handleSearchSubmit} className="relative">
-                <div className="relative">
-                  <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="search"
-                    placeholder="Search products, brands, and more..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all duration-200 text-sm"
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                  />
-                </div>
+                <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6A66]" />
+                <input
+                  type="search"
+                  placeholder="Search vendors, products, deals…"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border-[1.5px] border-[#111013] rounded-sm focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/40 transition-all duration-150 text-sm font-body"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                />
               </form>
             </div>
 
             {/* Right Section - Actions */}
-            <div className="flex items-center gap-1 md:gap-2">
+            <div className="flex items-center gap-1 md:gap-2 shrink-0">
               {/* Mobile Search Button */}
               <button
                 ref={searchButtonRef}
                 onClick={handleSearchButtonClick}
-                className="md:hidden p-2.5 rounded-lg hover:bg-gray-100 transition-colors relative"
+                className="md:hidden p-2.5 rounded-sm hover:bg-[#EFECE3] transition-colors relative"
                 aria-label="Search"
               >
-                {searchOpen ? (
-                  <FiX className="h-5 w-5" />
-                ) : (
-                  <FiSearch className="h-5 w-5" />
-                )}
+                {searchOpen ? <FiX className="h-5 w-5" /> : <FiSearch className="h-5 w-5" />}
               </button>
 
-              {/* Wishlist Button */}
+              {/* Wishlist */}
               <div className="hidden sm:block">
                 <WishlistCountButton wishlist={wishlist} />
               </div>
 
-              {/* Cart Button */}
+              {/* Cart */}
               <Link
-                href={route('cart.index')}
-                className="p-2.5 rounded-lg hover:bg-gray-100 transition-colors relative"
+                href={route("cart.index")}
+                className="p-2.5 rounded-sm hover:bg-[#EFECE3] transition-colors relative"
                 aria-label="Cart"
               >
-                <FiShoppingBag className="h-5 w-5" />
+                <FiShoppingBag className="h-5 w-5 text-[#111013]" />
                 {cartItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-[10px] font-semibold text-white ring-2 ring-white">
-                    {cartItems > 99 ? '99+' : cartItems}
+                  <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#FF5A1F] text-[10px] font-mono font-semibold text-white ring-2 ring-[#F7F5EF]">
+                    {cartItems > 99 ? "99+" : cartItems}
                   </span>
                 )}
               </Link>
@@ -185,23 +175,23 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-sm hover:bg-[#EFECE3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/40"
                 >
-                  <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-sm">
+                  <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-[#FF5A1F] to-[#D6430E] flex items-center justify-center text-white font-medium text-sm">
                     {user ? (
                       <img
                         src={
                           user.images
-                            ? user.images.startsWith('http')
+                            ? user.images.startsWith("http")
                               ? user.images
                               : `/storage/${user.images}`
-                            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name)
+                            : "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name)
                         }
                         alt={user.name}
                         className="h-full w-full object-cover"
                         onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
                         }}
                       />
                     ) : (
@@ -209,11 +199,15 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                     )}
                   </div>
                   {user && (
-                    <span className="hidden sm:inline text-sm font-medium text-gray-700">
-                      {user.name.split(' ')[0]}
+                    <span className="hidden sm:inline text-sm font-semibold text-[#111013]">
+                      {user.name.split(" ")[0]}
                     </span>
                   )}
-                  <FiChevronDown className={`hidden sm:block h-4 w-4 text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                  <FiChevronDown
+                    className={`hidden sm:block h-4 w-4 text-[#6B6A66] transition-transform duration-200 ${
+                      userMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
 
                 <Transition
@@ -226,16 +220,16 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                   leaveFrom="transform opacity-100 scale-100 translate-y-0"
                   leaveTo="transform opacity-0 scale-95 -translate-y-1"
                 >
-                  <div className="absolute right-0 mt-2 w-72 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-50 overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-72 origin-top-right rounded-sm bg-white border border-[#DAD5C7] shadow-[4px_4px_0_#111013] focus:outline-none z-50 overflow-hidden">
                     {user ? (
                       <>
-                        <div className="px-4 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+                        <div className="px-4 py-4 bg-[#EFECE3] border-b border-[#DAD5C7]">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
+                            <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-[#FF5A1F] to-[#D6430E] flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
                               <img
                                 src={
                                   user.images
-                                    ? user.images.startsWith('http')
+                                    ? user.images.startsWith("http")
                                       ? user.images
                                       : `/storage/${user.images}`
                                     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
@@ -243,59 +237,50 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                                 alt={user.name}
                                 className="h-full w-full object-cover"
                                 onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                                  const target = e.target as HTMLImageElement
+                                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
                                 }}
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900 truncate">{user.name}</p>
-                              <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                              <p className="font-semibold text-[#111013] truncate">{user.name}</p>
+                              <p className="text-sm text-[#6B6A66] truncate">{user.email}</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="py-1.5">
-                          <Link
-                            href="/dashboard"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <FiGrid className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-                            Dashboard
-                          </Link>
-                          <Link
-                            href="/dashboard/profile"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <FiUser className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-                            Profile Settings
-                          </Link>
-                          <Link
-                            href="/dashboard/orders"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <FiPackage className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-                            Order History
-                          </Link>
+                          {[
+                            { href: "/dashboard", icon: FiGrid, label: "Dashboard" },
+                            { href: "/dashboard/profile", icon: FiUser, label: "Profile Settings" },
+                            { href: "/dashboard/orders", icon: FiPackage, label: "Order History" },
+                          ].map((it) => (
+                            <Link
+                              key={it.href}
+                              href={it.href}
+                              onClick={() => setUserMenuOpen(false)}
+                              className="group flex items-center gap-3 px-4 py-2.5 text-sm text-[#111013] hover:bg-[#EFECE3] transition-colors"
+                            >
+                              <it.icon className="h-4 w-4 text-[#6B6A66] group-hover:text-[#D6430E]" />
+                              {it.label}
+                            </Link>
+                          ))}
                           <Link
                             href="/wishlist"
                             onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="group flex items-center gap-3 px-4 py-2.5 text-sm text-[#111013] hover:bg-[#EFECE3] transition-colors"
                           >
-                            <FiHeart className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
+                            <FiHeart className="h-4 w-4 text-[#6B6A66] group-hover:text-[#D6430E]" />
                             Wishlist
                             {wishlist?.length > 0 && (
-                              <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-100 text-xs font-medium text-red-600">
+                              <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#EFECE3] font-mono text-[10px] font-medium text-[#D6430E]">
                                 {wishlist.length}
                               </span>
                             )}
                           </Link>
                         </div>
 
-                        <div className="border-t border-gray-100 py-1.5">
+                        <div className="border-t border-[#DAD5C7] py-1.5">
                           <Link
                             href="/logout"
                             method="post"
@@ -313,17 +298,17 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                         <Link
                           href="/login"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#111013] hover:bg-[#EFECE3] transition-colors"
                         >
-                          <FiUser className="h-4 w-4 text-gray-400" />
+                          <FiUser className="h-4 w-4 text-[#6B6A66]" />
                           Sign in
                         </Link>
                         <Link
                           href="/register"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#111013] hover:bg-[#EFECE3] transition-colors"
                         >
-                          <FiUser className="h-4 w-4 text-gray-400" />
+                          <FiUser className="h-4 w-4 text-[#6B6A66]" />
                           Create account
                         </Link>
                       </div>
@@ -332,10 +317,10 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                 </Transition>
               </div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu (sidebar) Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2.5 rounded-lg bg-gray-200 hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-2.5 rounded-sm border border-[#111013] hover:bg-[#EFECE3] transition-colors"
                 aria-label="Menu"
               >
                 <FiMenu className="h-5 w-5" />
@@ -345,18 +330,15 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
 
           {/* Mobile Search Panel */}
           {searchOpen && (
-            <div
-              ref={searchPanelRef}
-              className="md:hidden py-4 border-t border-gray-100"
-            >
+            <div ref={searchPanelRef} className="md:hidden py-4 border-t border-[#DAD5C7]">
               <form onSubmit={handleSearchSubmit}>
                 <div className="relative">
-                  <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <FiSearch className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6A66]" />
                   <input
                     ref={searchInputRef}
                     type="search"
                     placeholder="What are you looking for?"
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all duration-200 text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border-[1.5px] border-[#111013] rounded-sm focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/40 transition-all duration-150 text-sm"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
@@ -364,14 +346,14 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                 <div className="flex gap-2 mt-3">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    className="flex-1 bg-[#FF5A1F] text-white py-2.5 px-4 rounded-sm hover:-translate-y-0.5 transition-transform text-sm font-bold shadow-[4px_4px_0_#111013]"
                   >
                     Search
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseSearch}
-                    className="py-2.5 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                    className="py-2.5 px-4 border-[1.5px] border-[#111013] rounded-sm hover:bg-[#EFECE3] transition-colors text-sm font-bold"
                   >
                     Cancel
                   </button>
@@ -382,13 +364,9 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
         </div>
       </header>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer (sidebar) */}
       <Transition.Root show={isMobileMenuOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50 lg:hidden"
-          onClose={setIsMobileMenuOpen}
-        >
+        <Dialog as="div" className="relative z-[100] lg:hidden" onClose={setIsMobileMenuOpen}>
           <Transition.Child
             as={Fragment}
             enter="ease-in-out duration-300"
@@ -398,7 +376,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" />
+            <div className="fixed inset-0 bg-[#111013]/50 backdrop-blur-sm transition-opacity" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-hidden">
@@ -414,24 +392,26 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                   leaveTo="translate-x-full"
                 >
                   <Dialog.Panel className="pointer-events-auto w-screen max-w-sm">
-                    <div className="flex h-full flex-col bg-white shadow-xl">
-                      {/* Drawer Header */}
-                      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-2.5">
-                          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
-                            <img src="/Logo.png" alt="HaatPoint" className="h-7 w-7 object-contain" />
+                    <div
+                      className="flex h-full flex-col bg-[#F7F5EF] shadow-2xl"
+                      style={{ backgroundColor: "#F7F5EF" }}
+                    >
+                      {/* Drawer Header — diagonal accent echoes the hero/CTA motif */}
+                      <div className="relative overflow-hidden border-b border-[#DAD5C7]">
+                        <div className="absolute -right-10 -top-14 w-40 h-40 bg-[#FF5A1F] opacity-90 [clip-path:polygon(30%_0,100%_0,100%_100%,0_100%)]" />
+                        <div className="relative flex items-center justify-between px-6 py-5">
+                          <div className="flex items-center gap-2.5">
+                            <img src="/MyLogo.png" alt="Haatpoint" className="h-8 w-auto object-contain" />
+                            <span className="font-display font-extrabold text-xl uppercase">Haatpoint</span>
                           </div>
-                          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                            HaatPoint
-                          </span>
+                          <button
+                            type="button"
+                            className="p-2 rounded-sm hover:bg-[#EFECE3] transition-colors relative z-10"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <FiX className="h-5 w-5" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <FiX className="h-5 w-5" />
-                        </button>
                       </div>
 
                       {/* Drawer Content */}
@@ -439,12 +419,12 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                         {/* User Info */}
                         {user && (
                           <div className="px-6 mb-6">
-                            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                              <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
+                            <div className="flex items-center gap-3 p-4 bg-[#EFECE3] rounded-sm border border-[#DAD5C7]">
+                              <div className="h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-[#FF5A1F] to-[#D6430E] flex items-center justify-center text-white font-medium text-lg flex-shrink-0">
                                 <img
                                   src={
                                     user.images
-                                      ? user.images.startsWith('http')
+                                      ? user.images.startsWith("http")
                                         ? user.images
                                         : `/storage/${user.images}`
                                       : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
@@ -452,14 +432,14 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                                   alt={user.name}
                                   className="h-full w-full object-cover"
                                   onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                                    const target = e.target as HTMLImageElement
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
                                   }}
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-900 truncate">{user.name}</p>
-                                <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                <p className="font-semibold text-[#111013] truncate">{user.name}</p>
+                                <p className="text-sm text-[#6B6A66] truncate">{user.email}</p>
                               </div>
                             </div>
                           </div>
@@ -472,14 +452,14 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                               key={item.name}
                               href={item.href}
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between rounded-sm px-4 py-3 text-base font-semibold text-[#111013] hover:bg-[#EFECE3] transition-colors"
                             >
                               <div className="flex items-center gap-3">
                                 <item.icon className="h-5 w-5" />
                                 {item.name}
                               </div>
                               {item.badge && (
-                                <span className="inline-flex items-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-medium text-white">
+                                <span className="inline-flex items-center rounded-full bg-[#FF5A1F] px-2.5 py-0.5 font-mono text-[10px] uppercase text-white">
                                   {item.badge}
                                 </span>
                               )}
@@ -490,16 +470,16 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                         {/* Dashboard Links */}
                         {user && (
                           <>
-                            <div className="border-t my-6" />
+                            <div className="border-t border-[#DAD5C7] my-6" />
                             <div className="px-4">
-                              <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                              <h3 className="px-3 font-mono text-[11px] font-semibold text-[#6B6A66] uppercase tracking-widest mb-2">
                                 Dashboard
                               </h3>
                               <nav className="space-y-1">
                                 <Link
                                   href="/dashboard"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-sm px-4 py-3 text-base font-semibold text-[#111013] hover:bg-[#EFECE3] transition-colors"
                                 >
                                   <FiGrid className="h-5 w-5" />
                                   Dashboard
@@ -507,7 +487,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                                 <Link
                                   href="/dashboard/orders"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-sm px-4 py-3 text-base font-semibold text-[#111013] hover:bg-[#EFECE3] transition-colors"
                                 >
                                   <FiShoppingCart className="h-5 w-5" />
                                   Orders
@@ -515,12 +495,12 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                                 <Link
                                   href="/wishlist"
                                   onClick={() => setIsMobileMenuOpen(false)}
-                                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-3 rounded-sm px-4 py-3 text-base font-semibold text-[#111013] hover:bg-[#EFECE3] transition-colors"
                                 >
                                   <FiHeart className="h-5 w-5" />
                                   Wishlist
                                   {wishlist?.length > 0 && (
-                                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-100 text-xs font-medium text-red-600">
+                                    <span className="ml-auto inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#EFECE3] font-mono text-[10px] font-medium text-[#D6430E]">
                                       {wishlist.length}
                                     </span>
                                   )}
@@ -531,7 +511,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                         )}
 
                         {/* Auth Actions */}
-                        <div className="border-t my-6" />
+                        <div className="border-t border-[#DAD5C7] my-6" />
                         <div className="px-4">
                           {user ? (
                             <Link
@@ -539,7 +519,7 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                               method="post"
                               as="button"
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                              className="flex w-full items-center gap-3 rounded-sm px-4 py-3 text-base font-semibold text-red-600 hover:bg-red-50 transition-colors"
                             >
                               <FiLogOut className="h-5 w-5" />
                               Log out
@@ -549,14 +529,14 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                               <Link
                                 href="/login"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700 transition-colors"
+                                className="flex w-full items-center justify-center gap-2 rounded-sm bg-[#FF5A1F] px-4 py-3 text-base font-bold text-white shadow-[4px_4px_0_#111013] hover:-translate-y-0.5 transition-transform"
                               >
                                 Sign In
                               </Link>
                               <Link
                                 href="/register"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex w-full items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="flex w-full items-center justify-center rounded-sm border-[1.5px] border-[#111013] px-4 py-3 text-base font-bold text-[#111013] hover:bg-[#EFECE3] transition-colors"
                               >
                                 Create Account
                               </Link>
@@ -566,13 +546,13 @@ const Navbar = ({ user, wishlist } : PropsWithChildren<{user: any, wishlist: any
                       </div>
 
                       {/* Footer */}
-                      <div className="border-t border-gray-100 px-6 py-4">
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <span>© {new Date().getFullYear()} HaatPoint</span>
+                      <div className="border-t border-[#DAD5C7] px-6 py-4">
+                        <div className="flex items-center justify-between font-mono text-xs text-[#6B6A66]">
+                          <span>© {new Date().getFullYear()} Haatpoint</span>
                           <Link
                             href="/terms"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="hover:text-gray-700 transition-colors"
+                            className="hover:text-[#D6430E] transition-colors"
                           >
                             Terms
                           </Link>

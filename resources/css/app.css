@@ -1,3 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-paper text-ink font-body;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  @apply font-display font-extrabold uppercase leading-[0.95] tracking-[-0.01em];
+}
+
+::selection {
+  background: #FF5A1F;
+  color: #fff;
+}
+
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+
+.clip-hero {
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+}
+.clip-cat {
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 88% 100%, 0 100%);
+}
+.clip-cta {
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%);
+}

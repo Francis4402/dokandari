@@ -1,351 +1,225 @@
-import { Product } from "@/types";
+
+import { useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { Link } from "@inertiajs/react";
-import gsap from "gsap";
-import { useRef, useState } from "react";
-import { FaHeart, FaRegHeart, FaShoppingCart, FaEye, FaStar, FaRegStar, FaArrowRight } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaEye } from "react-icons/fa";
+import Eyebrow from "./Eyebrow";
 import AddtoCartButton from "../buttons/AddtoCartButton";
 import FormatPrice from "../utils/FormatePrice";
+import { Product } from "@/types";
+import WishlistButton from "../buttons/WishlistButton";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface TopSellingProductProps {
   products: Product[];
 }
 
 const TopSellingProduct = ({ products }: TopSellingProductProps) => {
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const scope = useRef<HTMLElement>(null);
 
+  const topProducts = products.slice(0, 5);
 
-  useGSAP(() => {
-    const cards = cardsRef.current.filter(Boolean);
-
-    gsap.fromTo(cards,
-      { opacity: 0, y: 80, scale: 0.8 },
-      {
+  useGSAP(
+    () => {
+      const rows = gsap.utils.toArray(".board-row");
+      gsap.set(rows, { opacity: 0, y: 24 });
+      gsap.to(rows, {
         opacity: 1,
         y: 0,
-        scale: 1,
-        stagger: {
-          each: 0.08,
-          from: "start"
-        },
-        duration: 0.6,
-        ease: "back.out(1.4)"
-      }
-    );
-  }, [products]);
-
-
-  const calculateDiscount = (regularPrice: number, salePrice: number) => {
-    const regular = regularPrice;
-    const sale = salePrice;
-
-    if (isNaN(regular) || isNaN(sale) || regular <= 0 || sale >= regular) return 0;
-    return Math.round(((regular - sale) / regular) * 100);
-  };
-
-  const toggleWishlist = (productId: string) => {
-    setWishlist(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
-  const handleCardEnter = (index: number): void => {
-    const card = cardsRef.current[index];
-    if (!card) return;
-
-    gsap.to(card, {
-      y: -8,
-      scale: 1.02,
-      duration: 0.3,
-      ease: "power2.out"
-    });
-
-    const img = card.querySelector('img');
-    if (img) {
-      gsap.to(img, {
-        scale: 1.1,
-        duration: 0.4,
-        ease: "back.out(1.4)"
+        duration: 0.55,
+        ease: "power3.out",
+        stagger: 0.09,
+        scrollTrigger: { trigger: scope.current, start: "top 85%", once: true },
       });
-    }
 
-    const quickView = card.querySelector('.quick-view');
-    if (quickView) {
-      gsap.to(quickView, {
-        opacity: 1,
-        y: 0,
-        duration: 0.3
-      });
-    }
-  };
-
-  const handleCardLeave = (index: number): void => {
-    const card = cardsRef.current[index];
-    if (!card) return;
-
-    gsap.to(card, {
-      y: 0,
-      scale: 1,
-      duration: 0.3,
-      ease: "power2.out"
-    });
-
-    const img = card.querySelector('img');
-    if (img) {
-      gsap.to(img, {
-        scale: 1,
-        duration: 0.3,
-        ease: "power2.out"
-      });
-    }
-
-    const quickView = card.querySelector('.quick-view');
-    if (quickView) {
-      gsap.to(quickView, {
-        opacity: 0,
-        y: 10,
-        duration: 0.2
-      });
-    }
-  };
-
-  const renderStars = (rating: number | string | undefined) => {
-    let numericRating = 0;
-
-    if (typeof rating === 'number') {
-      numericRating = rating;
-    } else if (typeof rating === 'string') {
-      numericRating = parseFloat(rating);
-    }
-
-    numericRating = Math.min(Math.max(isNaN(numericRating) ? 0 : numericRating, 0), 5);
-    const roundedRating = Math.round(numericRating * 2) / 2;
-
-    return (
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => {
-          const starValue = i + 1;
-          return (
-            <span key={i}>
-              {starValue <= roundedRating ? (
-                <FaStar className="w-3 h-3 text-yellow-400" />
-              ) : starValue - 0.5 === roundedRating ? (
-                <div className="relative">
-                  <FaRegStar className="w-3 h-3 text-gray-300" />
-                  <div className="absolute top-0 left-0 overflow-hidden" style={{ width: '50%' }}>
-                    <FaStar className="w-3 h-3 text-yellow-400" />
-                  </div>
-                </div>
-              ) : (
-                <FaRegStar className="w-3 h-3 text-gray-300" />
-              )}
-            </span>
+      gsap.utils.toArray<HTMLElement>(".bar-fill").forEach((barElement) => {
+        const target = barElement.getAttribute("data-pct");
+        if (target) {
+          gsap.fromTo(
+            barElement,
+            { width: "0%" },
+            {
+              width: `${target}%`,
+              duration: 1,
+              ease: "power3.out",
+              scrollTrigger: { trigger: scope.current, start: "top 85%", once: true },
+            }
           );
-        })}
-        <span className="text-xs text-gray-500 ml-1">
-          ({numericRating.toFixed(1)})
-        </span>
-      </div>
-    );
-  };
-
-
+        }
+      });
+    },
+    { scope }
+  );
 
   const getImageSrc = (images: string) => {
-    if (!images) return '/otherplaceholder.jpg';
+    if (!images) return '/placeholder.jpg';
 
     try {
       const parsedImages = JSON.parse(images);
       if (Array.isArray(parsedImages) && parsedImages.length > 0 && parsedImages[0]) {
         return parsedImages[0];
       }
-    } catch (error) {
+    } catch {
       if (images.trim().startsWith('http') || images.trim().startsWith('/')) {
         return images.trim();
       }
     }
-    return '/otherplaceholder.jpg';
+    return '/placeholder.jpg';
+  };
+
+
+  const maxSold = Math.max(...topProducts.map(p => p.quantity || 0), 1);
+
+
+  const formatRank = (index: number) => {
+    return String(index + 1).padStart(2, '0');
   };
 
   return (
-    <div className="mt-16 px-4">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-          Top Selling Products
-        </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Get the best products that our customers love the most. Shop now and enjoy great deals!
-        </p>
-        <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full mx-auto mt-6"></div>
-      </div>
+    <section className="py-12 sm:py-16 md:py-20" id="topselling" ref={scope}>
+      <div className="px-4 sm:px-6 md:px-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 md:mb-9">
+          <div>
+            <Eyebrow>Ranked by units sold, this month</Eyebrow>
+            <h2 className="text-2xl sm:text-3xl md:text-[30px] lg:text-[36px] xl:text-[44px] font-bold">
+              Top Selling Products
+            </h2>
+          </div>
+          <Link
+            href="/products"
+            className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors whitespace-nowrap"
+          >
+            Full leaderboard →
+          </Link>
+        </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-        {products.map((product, index) => {
-          if (!product) return null;
+        {/* Leaderboard */}
+        <div className="border-t border-line overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="min-w-[500px] sm:min-w-0">
+            {topProducts.map((product, index) => {
+              const rank = formatRank(index);
+              const isFirst = index === 0;
+              const imageSrc = getImageSrc(product.images);
+              const soldCount = product.quantity || 0;
+              const percentage = Math.round((soldCount / maxSold) * 100);
+              const displayPrice = product.sale_price || product.regular_price;
+              const discount = product.sale_price && product.sale_price < product.regular_price
+                ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)
+                : 0;
 
-          const discount = calculateDiscount(product.regular_price, product.sale_price || 0);
-          const hasDiscount = discount > 0;
-
-          const currentStock = product.quantity || 0;
-
-          const isInWishlist = wishlist.includes(product.id);
-          const imageSrc = getImageSrc(product.images);
-
-          // Calculate save amount
-          const regularPriceNum = (product.regular_price || 0);
-          const salePriceNum = (product.sale_price || 0);
-          const saveAmount = hasDiscount ? regularPriceNum - salePriceNum : 0;
-
-          return (
-            <div
-              key={product.id}
-              ref={(el) => cardsRef.current[index] = el}
-              className="relative transform opacity-0 cursor-pointer h-full flex flex-col"
-              onMouseEnter={() => handleCardEnter(index)}
-              onMouseLeave={() => handleCardLeave(index)}
-            >
-              {/* Card */}
-              <div className="overflow-hidden border border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-300 group bg-white shadow-sm hover:shadow-xl flex flex-col h-full">
-
-                {/* Image Container */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
-                  <div className="aspect-square p-6">
-                    <img
-                      src={`/storage/${imageSrc}`}
-                      alt={product.name || 'Product image'}
-                      className="w-full h-full object-contain transition-transform duration-300"
-                      draggable="false"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/otherplaceholder.jpg';
-                      }}
-                    />
+              return (
+                <div
+                  key={product.id}
+                  className="board-row group grid grid-cols-7 items-center gap-2  md:py-5 border-b border-line transition-colors duration-200 hover:bg-marigold/[0.04]"
+                >
+                  {/* Rank */}
+                  <div
+                    className={`font-display font-black text-xl sm:text-2xl md:text-[30px] lg:text-[36px] ${
+                      isFirst ? "text-marigold" : "text-paper-dim"
+                    }`}
+                    style={!isFirst ? { WebkitTextStroke: "1.5px #111013" } : undefined}
+                  >
+                    {rank}
                   </div>
 
-                  {/* Discount Badge - Only show if there's a discount */}
-                  {hasDiscount && (
-                    <div className="absolute top-3 right-3">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
-                        -{discount}%
-                      </span>
+                  {/* Product Image */}
+                  <div className="relative flex-shrink-0">
+                    <div className="rounded w-9 h-9 sm:w-11 sm:h-11 md:w-[52px] md:h-[52px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                      <img
+                        src={`/storage/${imageSrc}`}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.jpg';
+                        }}
+                      />
                     </div>
-                  )}
-
-                  {/* Quick View Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="quick-view opacity-0 translate-y-4">
-                        <Link href={`/products/${product.slug}`}>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-colors">
-                                <FaEye className="w-4 h-4" />
-                                Quick View
-                            </button>
-                        </Link>
+                    {discount > 0 && (
+                      <div className="absolute -top-1 -right-1 hidden sm:block">
+                        <span className="inline-flex items-center px-1 py-0.5 rounded-full text-[8px] font-bold bg-red-500 text-white">
+                          -{discount}%
+                        </span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="absolute bottom-3 right-3 flex flex-col gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleWishlist(product.id);
-                      }}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
-                      aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-                    >
-                      {isInWishlist ? (
-                        <FaHeart className="w-4 h-4 text-red-500" />
-                      ) : (
-                        <FaRegHeart className="w-4 h-4 text-gray-600" />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <FaShoppingCart className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="p-4 flex-grow flex flex-col">
-                  <div className="flex-shrink-0 mb-3">
-                    <h3 className="text-base font-semibold leading-tight text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[48px]">
-                      {product.name || 'Unnamed Product'}
-                    </h3>
-                    {product.category && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 mt-2">
-                        {product.category}
-                      </span>
                     )}
                   </div>
 
-                  {/* Rating */}
-                  <div className="mb-3 flex-shrink-0">
-                    {renderStars(product.rating)}
-                  </div>
-
-                  {/* Available Stock */}
-                  <div className="mb-4 flex-shrink-0">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Stock:</span>
-                      <span className={`font-semibold ${currentStock > 10 ? 'text-green-600' : currentStock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
-                        {currentStock > 0 ? `${currentStock} available` : 'Out of stock'}
+                  {/* Product Info */}
+                  <div className="min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-[14.5px] mb-0.5 flex items-center gap-1 sm:gap-2">
+                      <span className="truncate">{product.name}</span>
+                      {isFirst && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold bg-marigold text-white whitespace-nowrap flex-shrink-0">
+                          #1
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-mono text-[8px] sm:text-[9px] md:text-[10.5px] text-text-soft uppercase flex flex-wrap items-center gap-1 sm:gap-2">
+                      <span className="truncate">{product.category}</span>
+                      <span className="text-[9px] sm:text-[10px] md:text-xs whitespace-nowrap">
+                        <FormatPrice price={displayPrice} />
                       </span>
                     </div>
                   </div>
 
-                  {/* Price Section */}
-                  <div className="mt-auto">
-                    <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold ">
-                          <FormatPrice price={product.sale_price || product.regular_price} />
-                        </span>
-                        {hasDiscount && (
-                          <span className="text-sm text-gray-500 line-through">
-                            <FormatPrice price={product.regular_price} />
-                          </span>
-                        )}
-                      </div>
-                      {saveAmount > 0 && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          Save {saveAmount}
-                        </span>
-                      )}
+                  {/* Progress Bar - Tablet/Desktop */}
+                  <div className="]">
+                    <div
+                      className=""
+                      data-pct={percentage}
+                    />
+                  </div>
+
+                  {/* Sold Count & Actions - Desktop */}
+                  <div className="flex">
+                    <div className="inline-flex gap-2 text-xs">
+                      <strong className="font-display block text-xl text-ink">{soldCount}</strong>
+                      sold this month
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <AddtoCartButton product={product} />
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1 ml-2">
+                      <WishlistButton productId={product.id} />
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <FaEye className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 hover:text-marigold" />
+                      </Link>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <AddtoCartButton product={product} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile View - Sold & Actions */}
+                  <div className="flex md:hidden items-center gap-1">
+                    <span className="text-[10px] font-mono text-text-soft whitespace-nowrap">
+                      <strong className="text-ink">{soldCount}</strong> sold
+                    </span>
+                    <WishlistButton productId={product.id} />
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* View All Button */}
-      <div className="text-center mt-12">
-        <button className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-300 hover:shadow-lg">
-          View All Products
-          <FaArrowRight className="w-4 h-4" />
-        </button>
-        <p className="text-sm text-gray-500 mt-4">
-          Showing {products.length} top selling products
-        </p>
+        {/* Mobile View All Button */}
+        <div className="mt-8 md:hidden">
+          <Link
+            href="/products"
+            className="w-full block text-center py-3 px-4 bg-gray-900 hover:bg-marigold text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            View All Products →
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

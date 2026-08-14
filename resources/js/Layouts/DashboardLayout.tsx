@@ -243,9 +243,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
                 {/* Sidebar content */}
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
-                  <div className="flex h-16 shrink-0 items-center justify-between">
-                    <div className="h-14 w-14 rounded-lg flex items-center justify-center">
-                        <img src="/Logo.png" alt="i" />
+                  <div className="flex h-16 shrink-0 items-center justify-between gap-2">
+                    <div className="h-6 w-6 rounded-lg flex items-center justify-center">
+                        <img src="/MyLogo.png" alt="i" />
                     </div>
                     <Link href='/'>
                       <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
@@ -305,22 +305,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       {/* Static sidebar for desktop */}
       <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-          <div className="flex h-16 shrink-0 items-center justify-between">
-            {!isCollapsed && (
-              <Link href="/" className="flex items-center">
-                <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                  <span className="text-white font-bold">ES</span>
+            <div className="flex h-16 shrink-0 items-center justify-between gap-2">
+                <div className="h-6 w-6 rounded-lg flex items-center justify-center">
+                    <img src="/MyLogo.png" alt="i" />
                 </div>
-                <h1 className="ml-3 text-xl font-bold text-gray-900">HaatPoint</h1>
-              </Link>
-            )}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              {isCollapsed ? <FiChevronRight className="h-5 w-5" /> : <FiChevronLeft className="h-5 w-5" />}
-            </button>
-          </div>
+                <Link href='/'>
+                    <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
+                </Link>
+                <button
+                    type="button"
+                    className="ml-auto rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors"
+                    onClick={() => setSidebarOpen(false)}
+                >
+                    <FiX className="h-6 w-6" aria-hidden="true" />
+                    <span className="sr-only">Close sidebar</span>
+                </button>
+            </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
