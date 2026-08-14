@@ -10,7 +10,6 @@ import {
   FaSpinner,
   FaArrowRight,
   FaGoogle,
-  FaStore,
 } from 'react-icons/fa';
 import { toast } from 'sonner';
 

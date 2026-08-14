@@ -85,7 +85,7 @@ export default function Welcome({
                 <meta name="keywords" content={`shop, products, buy online, shopping`} />
                 <meta name="robots" content="index, follow" />
             </Head>
-            <div className='max-w-[1240px] mx-auto px-8'>
+            <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
                 <HeroSection />
                 <Categories categories={categories} />
 

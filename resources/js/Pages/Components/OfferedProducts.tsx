@@ -22,8 +22,8 @@ const OfferedProducts = ({ product }: { product: Product[] }) => {
 
     if (!parsedProducts.length) {
         return (
-            <section className="py-20" id="offers">
-                <div className="max-w-[1240px] mx-auto px-8">
+            <section id="offers">
+                <div>
                     <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
                         <div>
                             <Eyebrow>Exclusive Deals</Eyebrow>
@@ -40,8 +40,8 @@ const OfferedProducts = ({ product }: { product: Product[] }) => {
     }
 
     return (
-        <section className="py-20" id="offers">
-            <div className="max-w-[1240px] mx-auto px-8">
+        <section className="" id="offers">
+            <div>
                 {/* Header */}
                 <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
                     <div>
@@ -58,7 +58,7 @@ const OfferedProducts = ({ product }: { product: Product[] }) => {
                 </div>
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                <div className="grid md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
                     {parsedProducts.map((offer) => (
                         <ProductCard
                             key={offer.id}

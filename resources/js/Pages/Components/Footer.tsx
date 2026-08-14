@@ -8,7 +8,7 @@ const footerCols = [
 
 export default function Footer() {
   return (
-    <footer className="pt-14 pb-7 border-t border-line">
+    <footer className="pt-20 pb-7 border-t border-line">
       <div className="max-w-[1240px] mx-auto px-8">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div>

@@ -132,8 +132,8 @@ const DailyDiscover = ({ discoverProduct, auth, reviews }: DailyDiscoverProduct)
   if (!discoverProduct || discoverProduct.length === 0) return null;
 
   return (
-    <section className="py-20 bg-paper-dim" id="daily-discover" ref={scope}>
-      <div className="max-w-[1240px] mx-auto px-8">
+    <section className="" id="daily-discover" ref={scope}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
           <div>
@@ -152,7 +152,7 @@ const DailyDiscover = ({ discoverProduct, auth, reviews }: DailyDiscoverProduct)
         </div>
 
         {/* Products Grid with ProductCard */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div className="grid md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           {discoverProduct.map((product) => {
             const reviewCount = reviewCounts[product.id] || 0;
             const isReviewed = userReviews[product.id] || false;

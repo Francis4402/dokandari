@@ -35,8 +35,8 @@ const TrendingProducts = ({ trandingproduct }: TrendingProductsProps) => {
   }
 
   return (
-    <section className="py-20 bg-paper-dim" id="trending">
-      <div className="max-w-[1240px] mx-auto px-8">
+    <section id="trending">
+      <div>
         {/* Header */}
         <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
           <div>
@@ -52,15 +52,14 @@ const TrendingProducts = ({ trandingproduct }: TrendingProductsProps) => {
         </div>
 
         {/* Products Horizontal Scroll */}
-        <div ref={ref} className="no-scrollbar flex gap-5 overflow-x-auto pb-3.5 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div ref={ref} className="grid md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {parsedProducts.map((product) => (
-            <div key={product.id} className="min-w-[230px] sm:min-w-[250px] md:min-w-[270px] shrink-0">
-              <ProductCard
+            <ProductCard
+                key={product.id}
                 product={product}
                 variant="trending"
                 showQuickView={true}
               />
-            </div>
           ))}
         </div>
       </div>
