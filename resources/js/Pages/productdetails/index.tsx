@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   FaStar,
@@ -49,8 +48,9 @@ interface ProductDetailsPageProps {
   } | null;
 }
 
-// Helper function to safely get numeric rating
+// Helper function to safely get numeric rating - FIXES the .toFixed error
 const getNumericRating = (rating: any): number => {
+  if (rating === null || rating === undefined) return 0;
   if (typeof rating === 'number') return rating;
   if (typeof rating === 'string') {
     const parsed = parseFloat(rating);
@@ -95,7 +95,6 @@ const ProductDetailsPage = ({
         }
       } catch (error) {
         console.error('Failed to fetch comments:', error);
-        // Fallback to initial props
         setComments(initialComments);
         setAverageRating(getNumericRating(initialAverageRating));
         setReviewCount(initialReviewCount);
@@ -414,12 +413,12 @@ const ProductDetailsPage = ({
                     </div>
                   </div>
 
-                  {/* Rating */}
+                  {/* Rating - FIXED: Use getNumericRating */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-2">
                       {renderStars(averageRating)}
                       <span className="text-2xl font-bold text-ink">
-                        {averageRating.toFixed(1)}
+                        {getNumericRating(averageRating).toFixed(1)}
                       </span>
                     </div>
                     <span className="text-text-soft text-sm">
@@ -693,14 +692,16 @@ const ProductDetailsPage = ({
                                 <span className="font-medium text-ink">{product.item_weight} kg</span>
                               </div>
                             )}
-                            {/* Product Rating in Specifications */}
+                            {/* Product Rating in Specifications - FIXED */}
                             <div className="flex justify-between pb-2 pt-2 border-t border-line mt-2">
                               <span className="text-text-soft">Product Rating</span>
                               <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-0.5">
                                   {renderStars(averageRating)}
                                 </div>
-                                <span className="font-medium text-ink">{averageRating.toFixed(1)}</span>
+                                <span className="font-medium text-ink">
+                                  {getNumericRating(averageRating).toFixed(1)}
+                                </span>
                                 <span className="text-xs text-text-soft">({reviewCount} reviews)</span>
                               </div>
                             </div>
@@ -726,7 +727,9 @@ const ProductDetailsPage = ({
                                 <div className="flex items-center gap-0.5">
                                   {renderStars(storeRating || store.rating || 0)}
                                 </div>
-                                <span className="font-medium text-ink">{(storeRating || store.rating || 0).toFixed(1)}</span>
+                                <span className="font-medium text-ink">
+                                  {(storeRating || store.rating || 0).toFixed(1)}
+                                </span>
                                 <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
                               </div>
                             </div>
@@ -748,14 +751,14 @@ const ProductDetailsPage = ({
                 {/* Reviews Tab */}
                 {activeTab === 'reviews' && (
                   <div className="space-y-8">
-                    {/* Rating Summary */}
+                    {/* Rating Summary - FIXED */}
                     <div>
                       <h3 className="text-2xl font-bold text-ink mb-6">Customer Reviews</h3>
                       <div className="text-center py-8 bg-paper-dim rounded-xl border border-line">
                         <div className="flex items-center justify-center space-x-4 mb-4">
                           {renderStars(averageRating)}
                           <span className="text-3xl font-bold text-ink">
-                            {averageRating.toFixed(1)}
+                            {getNumericRating(averageRating).toFixed(1)}
                           </span>
                         </div>
                         <div className="text-text-soft mb-6">
@@ -850,7 +853,9 @@ const ProductDetailsPage = ({
                         <div className="flex items-center gap-0.5">
                           {renderStars(storeRating || store.rating || 0)}
                         </div>
-                        <span className="font-medium text-ink">{(storeRating || store.rating || 0).toFixed(1)}</span>
+                        <span className="font-medium text-ink">
+                          {(storeRating || store.rating || 0).toFixed(1)}
+                        </span>
                         <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
                       </div>
                     </div>
