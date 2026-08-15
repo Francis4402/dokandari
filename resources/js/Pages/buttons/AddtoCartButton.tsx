@@ -3,7 +3,7 @@ import { FaShoppingCart } from 'react-icons/fa'
 import { toast } from 'sonner'
 import { useStore } from '../state/cartStore'
 
-interface addButtonProps {
+interface AddtoCartButtonProps {
     product: CartItem,
     className?: string;
     variant?: 'default' | 'icon' | 'full';
@@ -15,7 +15,7 @@ const AddtoCartButton = ({
     className = '',
     variant = 'full',
     size = 'md'
-}: addButtonProps) => {
+}: AddtoCartButtonProps) => {
     const addtoCart = useStore((state) => state.addToCart)
 
     const handleAddToCart = (e: React.MouseEvent) => {
