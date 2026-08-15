@@ -191,7 +191,7 @@ const ProductDetailsPage = ({
         <meta name="robots" content="index, follow" />
       </Head>
 
-      <div className="min-h-screen bg-paper-dim py-20">
+      <div className="min-h-screen py-20">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="flex mb-8 text-sm">
