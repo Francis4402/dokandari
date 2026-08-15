@@ -49,9 +49,10 @@ interface ProductDetailsPageProps {
 }
 
 // Helper function to safely get numeric rating - FIXES the .toFixed error
+// Handles: number, numeric string (e.g. from Laravel decimal casts), null, undefined
 const getNumericRating = (rating: any): number => {
   if (rating === null || rating === undefined) return 0;
-  if (typeof rating === 'number') return rating;
+  if (typeof rating === 'number') return isNaN(rating) ? 0 : rating;
   if (typeof rating === 'string') {
     const parsed = parseFloat(rating);
     return isNaN(parsed) ? 0 : parsed;
@@ -90,7 +91,7 @@ const ProductDetailsPage = ({
         const response = await axios.get(`/products/${product.id}/comments`);
         if (response.data.success) {
           setComments(response.data.data || []);
-          setAverageRating(getNumericRating(response.data.stats?.average || 0));
+          setAverageRating(getNumericRating(response.data.stats?.average ?? 0));
           setReviewCount(response.data.stats?.count || 0);
         }
       } catch (error) {
@@ -256,6 +257,13 @@ const ProductDetailsPage = ({
     return comments.filter(c => c.rating !== null && c.rating !== undefined).length;
   })();
 
+  // FIX: store.rating can come back from the API as a string (Laravel decimal
+  // columns serialize as strings), so `storeRating || store.rating || 0` was
+  // falling through to a raw string whenever storeRating was 0 (no comments
+  // yet), and strings don't have .toFixed(). Always coerce before display.
+  const displayStoreRating = getNumericRating(storeRating || store.rating || 0);
+  const displayStoreReviewCount = storeReviewCount || store.review_count || 0;
+
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title={product.name}>
@@ -407,13 +415,13 @@ const ProductDetailsPage = ({
                     </div>
                     <div className="flex items-center text-xs bg-paper-dim px-3 py-1.5 rounded-lg">
                       <span className="text-amber-500 mr-1">⭐</span>
-                      <span className="font-medium text-ink">{storeRating || store.rating || 0}</span>
+                      <span className="font-medium text-ink">{displayStoreRating.toFixed(1)}</span>
                       <span className="text-text-soft mx-1">•</span>
-                      <span className="text-text-soft">{storeReviewCount || store.review_count || 0} reviews</span>
+                      <span className="text-text-soft">{displayStoreReviewCount} reviews</span>
                     </div>
                   </div>
 
-                  {/* Rating - FIXED: Use getNumericRating */}
+                  {/* Rating */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-2">
                       {renderStars(averageRating)}
@@ -692,7 +700,7 @@ const ProductDetailsPage = ({
                                 <span className="font-medium text-ink">{product.item_weight} kg</span>
                               </div>
                             )}
-                            {/* Product Rating in Specifications - FIXED */}
+                            {/* Product Rating in Specifications */}
                             <div className="flex justify-between pb-2 pt-2 border-t border-line mt-2">
                               <span className="text-text-soft">Product Rating</span>
                               <div className="flex items-center gap-2">
@@ -725,12 +733,12 @@ const ProductDetailsPage = ({
                               <span className="text-text-soft">Store Rating</span>
                               <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-0.5">
-                                  {renderStars(storeRating || store.rating || 0)}
+                                  {renderStars(displayStoreRating)}
                                 </div>
                                 <span className="font-medium text-ink">
-                                  {(storeRating || store.rating || 0).toFixed(1)}
+                                  {displayStoreRating.toFixed(1)}
                                 </span>
-                                <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
+                                <span className="text-xs text-text-soft">({displayStoreReviewCount} reviews)</span>
                               </div>
                             </div>
                             <div className="flex justify-between pb-2 border-b border-line">
@@ -751,7 +759,7 @@ const ProductDetailsPage = ({
                 {/* Reviews Tab */}
                 {activeTab === 'reviews' && (
                   <div className="space-y-8">
-                    {/* Rating Summary - FIXED */}
+                    {/* Rating Summary */}
                     <div>
                       <h3 className="text-2xl font-bold text-ink mb-6">Customer Reviews</h3>
                       <div className="text-center py-8 bg-paper-dim rounded-xl border border-line">
@@ -851,12 +859,12 @@ const ProductDetailsPage = ({
                       <span className="font-medium text-ink">⭐ Store Rating:</span><br />
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex items-center gap-0.5">
-                          {renderStars(storeRating || store.rating || 0)}
+                          {renderStars(displayStoreRating)}
                         </div>
                         <span className="font-medium text-ink">
-                          {(storeRating || store.rating || 0).toFixed(1)}
+                          {displayStoreRating.toFixed(1)}
                         </span>
-                        <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
+                        <span className="text-xs text-text-soft">({displayStoreReviewCount} reviews)</span>
                       </div>
                     </div>
                     <div className="text-text-soft">
