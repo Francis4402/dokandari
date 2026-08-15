@@ -1,3 +1,4 @@
+// Navbar.tsx
 import { PropsWithChildren, useState, useRef, useEffect, Fragment } from "react"
 import { Link } from "@inertiajs/react"
 import React from "react"
@@ -16,6 +17,7 @@ import {
   FiChevronDown,
   FiShoppingCart,
   FiHeart,
+  FiMail,
 } from "react-icons/fi"
 import { Dialog, Transition } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
@@ -26,6 +28,7 @@ const navigation = [
   { name: "Home", href: "/", icon: FiHome },
   { name: "Deals", href: "/hotdeals", badge: "HOT", icon: FiTag },
   { name: "New Arrivals", href: "/", icon: FiZap },
+  { name: "Contact Us", href: "/contactus", icon: FiMail },
 ]
 
 const Navbar = ({ user, wishlist }: PropsWithChildren<{ user: any; wishlist: any }>) => {

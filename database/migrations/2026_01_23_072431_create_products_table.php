@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->uuid('store_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('images');
+            $table->text('images');
             $table->string('slug')->nullable();
             $table->string('category');
             $table->string('subcategory');

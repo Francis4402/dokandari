@@ -1,3 +1,4 @@
+// HotDeals.tsx
 import { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Product } from '@/types';
@@ -10,11 +11,13 @@ import {
   BsChevronRight,
   BsGrid3X3Gap,
   BsEye,
+  BsX
 } from 'react-icons/bs';
 import {
   FiShoppingBag,
   FiTruck,
-  FiClock
+  FiClock,
+  FiTag
 } from 'react-icons/fi';
 import {
   RiFireFill,
@@ -25,6 +28,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import AddtoCartButton from '../buttons/AddtoCartButton';
 import WishlistButton from '../buttons/WishlistButton';
 import FormatPrice from '../utils/FormatePrice';
+
 
 interface HotDealsPageProps {
     products: {
@@ -51,10 +55,8 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [selectedDiscount, setSelectedDiscount] = useState<string>('all');
 
-    // Get products array from paginated data
     const productsData = products.data || [];
 
-    // Filter products that have sale_price (hot deals)
     const hotDealsProducts = useMemo(() => {
         return productsData.filter(product =>
             product.sale_price &&
@@ -63,13 +65,11 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         );
     }, [productsData]);
 
-    // Get unique categories from hot deals
     const categories = useMemo(() => {
         const uniqueCategories = new Set(hotDealsProducts.map(p => p.category).filter(Boolean));
         return ['all', ...uniqueCategories];
     }, [hotDealsProducts]);
 
-    // Discount filter options
     const discountOptions = [
         { id: 'all', label: 'All Discounts' },
         { id: '10', label: '10% or more' },
@@ -81,27 +81,21 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         { id: '70', label: '70% or more' },
     ];
 
-
-    // Calculate discount percentage
     const calculateDiscount = (regularPrice: number, salePrice?: number): number => {
         if (!salePrice || salePrice >= regularPrice) return 0;
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
     };
 
-    // Get product rating
     const getProductRating = (product: Product): { average: number; count: number } => {
         if (productRatings[product.id]) {
             return productRatings[product.id];
         }
-
         const rating = typeof product.rating === 'string'
             ? parseFloat(product.rating)
             : (product.rating || 0);
-
         return { average: rating, count: 0 };
     };
 
-    // Render stars
     const renderStars = (averageRating: number): JSX.Element => {
         const fullStars = Math.floor(averageRating);
         const hasHalfStar = averageRating % 1 >= 0.5;
@@ -137,7 +131,6 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         return '/placeholder-image.jpg';
     };
 
-    // Sort options
     const sortOptions = [
         { id: 'discount-high', label: 'Discount: High to Low' },
         { id: 'discount-low', label: 'Discount: Low to High' },
@@ -149,7 +142,6 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
     const filteredProducts = useMemo(() => {
         let filtered = [...hotDealsProducts];
 
-        // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(product =>
@@ -158,12 +150,10 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
             );
         }
 
-        // Category filter
         if (selectedCategory !== 'all') {
             filtered = filtered.filter(product => product.category === selectedCategory);
         }
 
-        // Discount filter
         if (selectedDiscount !== 'all') {
             const minDiscount = parseInt(selectedDiscount);
             filtered = filtered.filter(product => {
@@ -172,13 +162,11 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
             });
         }
 
-        // Price range filter
         filtered = filtered.filter(product => {
             const price = product.sale_price || product.regular_price;
             return price >= priceRange[0] && price <= priceRange[1];
         });
 
-        // Sorting
         switch (sortBy) {
             case 'discount-high':
                 filtered.sort((a, b) => {
@@ -222,16 +210,155 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
         return filtered;
     }, [hotDealsProducts, searchQuery, selectedCategory, selectedDiscount, priceRange, sortBy]);
 
-    // Stats
     const totalDeals = hotDealsProducts.length;
+
+    // Mobile Filter Drawer
+    const FilterDrawer = () => (
+        <div className={`fixed inset-0 z-50 lg:hidden ${showMobileFilters ? 'block' : 'hidden'}`}>
+            <div
+                className="absolute inset-0 bg-black/50"
+                onClick={() => setShowMobileFilters(false)}
+            />
+            <div className="absolute right-0 top-0 h-full w-[320px] max-w-[85vw] bg-white shadow-2xl overflow-y-auto p-6 animate-slide-in">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-ink">Filters</h3>
+                    <button
+                        onClick={() => setShowMobileFilters(false)}
+                        className="p-2 hover:bg-paper-dim rounded-lg transition-colors"
+                    >
+                        <BsX className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Categories */}
+                <div className="mb-6">
+                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-3">
+                        Categories
+                    </h4>
+                    <div className="space-y-1">
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                onClick={() => {
+                                    setSelectedCategory(category);
+                                    setShowMobileFilters(false);
+                                }}
+                                className={`block w-full text-left py-2 px-3 rounded-lg text-sm transition-all duration-200 ${
+                                    selectedCategory === category
+                                        ? 'bg-marigold/10 text-marigold font-medium'
+                                        : 'text-text-soft hover:text-ink hover:bg-paper-dim'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span>{category === 'all' ? 'All Categories' : category}</span>
+                                    <span className="text-xs text-text-soft">
+                                        ({hotDealsProducts.filter(p => category === 'all' || p.category === category).length})
+                                    </span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Discount Filter */}
+                <div className="mb-6">
+                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-3">
+                        Discount
+                    </h4>
+                    <div className="space-y-1">
+                        {discountOptions.map(option => (
+                            <button
+                                key={option.id}
+                                onClick={() => {
+                                    setSelectedDiscount(option.id);
+                                    setShowMobileFilters(false);
+                                }}
+                                className={`block w-full text-left py-2 px-3 rounded-lg text-sm transition-all duration-200 ${
+                                    selectedDiscount === option.id
+                                        ? 'bg-marigold/10 text-marigold font-medium'
+                                        : 'text-text-soft hover:text-ink hover:bg-paper-dim'
+                                }`}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Price Range */}
+                <div className="mb-6">
+                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-3">
+                        Price Range
+                    </h4>
+                    <div className="space-y-3">
+                        <input
+                            type="range"
+                            min="0"
+                            max="10000"
+                            step="100"
+                            value={priceRange[1]}
+                            onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                            className="w-full h-1.5 bg-paper-dim rounded-lg appearance-none cursor-pointer accent-marigold"
+                        />
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-soft">
+                                <FormatPrice price={priceRange[0]} />
+                            </span>
+                            <span className="text-sm text-text-soft">
+                                <FormatPrice price={priceRange[1]} />
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sort By */}
+                <div className="mb-6">
+                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-3">
+                        Sort by
+                    </h4>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => {
+                            setSortBy(e.target.value);
+                            setShowMobileFilters(false);
+                        }}
+                        className="w-full p-2.5 text-sm border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors bg-white"
+                    >
+                        {sortOptions.map(option => (
+                            <option key={option.id} value={option.id}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Clear Filters */}
+                <button
+                    onClick={() => {
+                        setSelectedCategory('all');
+                        setSelectedDiscount('all');
+                        setPriceRange([0, 10000]);
+                        setSearchQuery('');
+                        setSortBy('discount-high');
+                        setShowMobileFilters(false);
+                    }}
+                    className="w-full py-2.5 text-sm border border-line text-text-soft rounded-lg hover:bg-paper-dim hover:text-ink transition-colors"
+                >
+                    Clear all filters
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
             <Head title="Hot Deals | Shop" />
 
+            <FilterDrawer />
+
             {/* Hero Banner */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
-                <div className="container mx-auto px-4 py-12">
+            <div className="bg-gradient-to-r from-marigold to-marigold-dark text-white">
+                <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="flex flex-col md:flex-row items-center justify-between">
                         <div className="text-center md:text-left mb-6 md:mb-0">
                             <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
@@ -245,20 +372,20 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                 {totalDeals} products on sale
                             </p>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 text-center">
+                        <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 text-center border border-white/30">
                             <RiFlashlightFill className="text-4xl mx-auto mb-2" />
                             <p className="text-2xl font-bold">Flash Sale</p>
                             <p className="text-sm opacity-90">Ends in:</p>
-                            <div className="flex gap-2 mt-2">
-                                <div className="bg-white/30 rounded px-3 py-1">
+                            <div className="flex gap-2 mt-2 justify-center">
+                                <div className="bg-white/30 rounded-lg px-3 py-1.5">
                                     <span className="text-xl font-bold">12</span>
                                     <span className="text-xs ml-1">h</span>
                                 </div>
-                                <div className="bg-white/30 rounded px-3 py-1">
+                                <div className="bg-white/30 rounded-lg px-3 py-1.5">
                                     <span className="text-xl font-bold">45</span>
                                     <span className="text-xs ml-1">m</span>
                                 </div>
-                                <div className="bg-white/30 rounded px-3 py-1">
+                                <div className="bg-white/30 rounded-lg px-3 py-1.5">
                                     <span className="text-xl font-bold">30</span>
                                     <span className="text-xs ml-1">s</span>
                                 </div>
@@ -268,19 +395,19 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                 </div>
             </div>
 
-            {/* Page Header with Search */}
-            <div className="bg-gray-50 border-b">
-                <div className="container mx-auto px-4 py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="min-h-screen bg-paper-dim py-8">
+                <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Header with Search */}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                         <div>
                             {/* Breadcrumb */}
-                            <nav className="text-sm text-gray-600 mb-2">
+                            <nav className="text-sm text-text-soft">
                                 <ol className="flex items-center space-x-2">
                                     <li>
-                                        <Link href="/" className="hover:text-blue-600">Home</Link>
+                                        <Link href="/" className="hover:text-marigold transition-colors">Home</Link>
                                     </li>
-                                    <li><BsChevronRight className="text-gray-400 text-xs" /></li>
-                                    <li className="text-gray-900 font-medium">Hot Deals</li>
+                                    <li><BsChevronRight className="text-text-soft text-xs" /></li>
+                                    <li className="text-ink font-medium">Hot Deals</li>
                                 </ol>
                             </nav>
                         </div>
@@ -288,233 +415,230 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                         <div className="flex items-center gap-3">
                             {/* Search */}
                             <div className="relative">
-                                <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                                <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft text-sm" />
                                 <input
                                     type="text"
                                     placeholder="Search deals..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 w-full md:w-64"
+                                    className="pl-9 pr-4 py-2 text-sm border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors w-full sm:w-48 md:w-56 lg:w-64 bg-white"
                                 />
                             </div>
 
-                            {/* Filter Toggle Button (Mobile) */}
+                            {/* Filter Toggle Button (Mobile/Tablet) */}
                             <button
-                                onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                className="lg:hidden flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                onClick={() => setShowMobileFilters(true)}
+                                className="lg:hidden flex items-center justify-center gap-2 px-4 py-2 border border-line rounded-lg text-text-soft hover:bg-paper-dim hover:text-ink transition-colors"
                             >
                                 <BsFilter />
                                 <span className="text-sm">Filters</span>
+                                <span className="text-xs bg-marigold/10 text-marigold px-1.5 py-0.5 rounded-full">
+                                    {selectedCategory !== 'all' || selectedDiscount !== 'all' || searchQuery ? '!' : ''}
+                                </span>
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Discount Categories */}
-            <div className="bg-white border-b">
-                <div className="container mx-auto px-4">
-                    <div className="flex overflow-x-auto py-3 gap-2">
-                        {discountOptions.map((option) => (
-                            <button
-                                key={option.id}
-                                onClick={() => setSelectedDiscount(option.id)}
-                                className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors text-sm font-medium ${
-                                    selectedDiscount === option.id
-                                        ? 'bg-orange-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
+                    {/* Discount Categories */}
+                    <div className="bg-white rounded-xl shadow-hard-sm border border-line p-2 mb-8 overflow-x-auto">
+                        <div className="flex gap-1 min-w-max">
+                            {discountOptions.map((option) => (
+                                <button
+                                    key={option.id}
+                                    onClick={() => setSelectedDiscount(option.id)}
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg whitespace-nowrap transition-all duration-300 text-xs sm:text-sm font-medium ${
+                                        selectedDiscount === option.id
+                                            ? 'bg-marigold text-white shadow-md'
+                                            : 'text-text-soft hover:bg-paper-dim hover:text-ink'
+                                    }`}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div className="container mx-auto px-4 py-6">
-                <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Sidebar Filters */}
-                    <div className={`lg:w-1/4 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
-                        <div className="bg-white border border-gray-200 rounded-lg p-5 sticky top-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                <RiDiscountPercentFill className="text-orange-500" />
-                                Filter Deals
-                            </h3>
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+                        {/* Sidebar Filters - Desktop */}
+                        <div className="hidden lg:block lg:w-1/4">
+                            <div className="bg-white rounded-xl shadow-hard-sm border border-line p-6 sticky top-6">
+                                <h3 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                                    <RiDiscountPercentFill className="text-marigold" />
+                                    Filter Deals
+                                </h3>
 
-                            {/* Categories */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                                    Categories
-                                </h4>
-                                <div className="space-y-1">
-                                    {categories.map(category => (
-                                        <button
-                                            key={category}
-                                            onClick={() => setSelectedCategory(category)}
-                                            className={`block w-full text-left py-2 px-3 rounded-md text-sm ${
-                                                selectedCategory === category
-                                                    ? 'bg-orange-50 text-orange-600 font-medium'
-                                                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span>{category === 'all' ? 'All Categories' : category}</span>
-                                                <span className="text-xs text-gray-400">
-                                                    ({hotDealsProducts.filter(p => category === 'all' || p.category === category).length})
-                                                </span>
-                                            </div>
-                                        </button>
-                                    ))}
+                                {/* Categories */}
+                                <div className="mb-6">
+                                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-4">
+                                        Categories
+                                    </h4>
+                                    <div className="space-y-1">
+                                        {categories.map(category => (
+                                            <button
+                                                key={category}
+                                                onClick={() => setSelectedCategory(category)}
+                                                className={`block w-full text-left py-2 px-3 rounded-lg text-sm transition-all duration-200 ${
+                                                    selectedCategory === category
+                                                        ? 'bg-marigold/10 text-marigold font-medium'
+                                                        : 'text-text-soft hover:text-ink hover:bg-paper-dim'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span>{category === 'all' ? 'All Categories' : category}</span>
+                                                    <span className="text-xs text-text-soft">
+                                                        ({hotDealsProducts.filter(p => category === 'all' || p.category === category).length})
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                {/* Filter by Price */}
+                                <div className="mb-6">
+                                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-4">
+                                        Price Range
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="10000"
+                                            step="100"
+                                            value={priceRange[1]}
+                                            onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                                            className="w-full h-1.5 bg-paper-dim rounded-lg appearance-none cursor-pointer accent-marigold"
+                                        />
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-text-soft">
+                                                <FormatPrice price={priceRange[0]} />
+                                            </span>
+                                            <span className="text-sm text-text-soft">
+                                                <FormatPrice price={priceRange[1]} />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Sort by */}
+                                <div className="mb-6">
+                                    <h4 className="font-mono text-xs font-semibold text-text-soft uppercase tracking-wider mb-4">
+                                        Sort by
+                                    </h4>
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="w-full p-2.5 text-sm border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent transition-colors bg-white"
+                                    >
+                                        {sortOptions.map(option => (
+                                            <option key={option.id} value={option.id}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Clear Filters */}
+                                <button
+                                    onClick={() => {
+                                        setSelectedCategory('all');
+                                        setSelectedDiscount('all');
+                                        setPriceRange([0, 10000]);
+                                        setSearchQuery('');
+                                        setSortBy('discount-high');
+                                    }}
+                                    className="w-full py-2.5 text-sm border border-line text-text-soft rounded-lg hover:bg-paper-dim hover:text-ink transition-colors"
+                                >
+                                    Clear all filters
+                                </button>
                             </div>
 
-                            {/* Filter by Price */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                                    Price Range
-                                </h4>
-                                <div className="space-y-3">
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="10000"
-                                        step="100"
-                                        value={priceRange[1]}
-                                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                                        className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                                    />
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">
-                                            <FormatPrice price={priceRange[0]} />
-                                        </span>
-                                        <span className="text-sm text-gray-600">
-                                            <FormatPrice price={priceRange[1]} />
-                                        </span>
+                            {/* Deal Info */}
+                            <div className="mt-6 p-5 bg-gradient-to-r from-marigold/10 to-marigold/5 border border-marigold/20 rounded-xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <FiClock className="text-marigold text-xl" />
+                                    <h4 className="font-medium text-ink">Limited Time Offers</h4>
+                                </div>
+                                <p className="text-sm text-text-soft mb-3">
+                                    These deals won't last long! Grab them before they're gone.
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <FiTruck className="text-green-600" />
+                                    <h4 className="font-medium text-ink">Free Shipping</h4>
+                                </div>
+                                <p className="text-sm text-text-soft">
+                                    On all orders over ৳1000
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="lg:w-3/4">
+                            {/* Results Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div className="text-sm text-text-soft">
+                                    Showing <span className="font-medium text-ink">{filteredProducts.length}</span> hot deals
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {/* View Toggle */}
+                                    <div className="flex items-center border border-line rounded-lg overflow-hidden bg-white">
+                                        <button
+                                            onClick={() => setViewMode('grid')}
+                                            className={`p-2 transition-colors ${
+                                                viewMode === 'grid'
+                                                    ? 'bg-gray-900 text-white'
+                                                    : 'bg-white text-text-soft hover:bg-paper-dim'
+                                            }`}
+                                            title="Grid view"
+                                        >
+                                            <BsGrid3X3Gap size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => setViewMode('list')}
+                                            className={`p-2 border-l border-line transition-colors ${
+                                                viewMode === 'list'
+                                                    ? 'bg-gray-900 text-white'
+                                                    : 'bg-white text-text-soft hover:bg-paper-dim'
+                                            }`}
+                                            title="List view"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Sort by */}
-                            <div className="mb-6">
-                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                                    Sort by
-                                </h4>
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full p-2.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
-                                >
-                                    {sortOptions.map(option => (
-                                        <option key={option.id} value={option.id}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            {/* Products Grid/List */}
+                            {filteredProducts.length > 0 ? (
+                                <div className={`
+                                    ${viewMode === 'grid'
+                                        ? 'grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5'
+                                        : 'space-y-4'
+                                    }
+                                `}>
+                                    {filteredProducts.map((product: Product) => {
+                                        const imageSrc = getImageSrc(product.images);
+                                        const discountPercentage = calculateDiscount(product.regular_price, product.sale_price);
+                                        const displayPrice = product.sale_price || product.regular_price;
+                                        const { average: avgRating, count: reviewCount } = getProductRating(product);
 
-                            {/* Clear Filters */}
-                            <button
-                                onClick={() => {
-                                    setSelectedCategory('all');
-                                    setSelectedDiscount('all');
-                                    setPriceRange([0, 10000]);
-                                    setSearchQuery('');
-                                    setSortBy('discount-high');
-                                }}
-                                className="w-full mt-6 py-2.5 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                            >
-                                Clear all filters
-                            </button>
-                        </div>
-
-                        {/* Deal Info */}
-                        <div className="mt-6 p-5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
-                            <div className="flex items-center gap-3 mb-3">
-                                <FiClock className="text-orange-600 text-xl" />
-                                <h4 className="font-medium text-gray-900">Limited Time Offers</h4>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-3">
-                                These deals won't last long! Grab them before they're gone.
-                            </p>
-                            <div className="flex items-center gap-3">
-                                <FiTruck className="text-green-600" />
-                                <h4 className="font-medium text-gray-900">Free Shipping</h4>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                                On all orders over ৳1000
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="lg:w-3/4">
-                        {/* Results Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div className="text-gray-600 text-sm">
-                                Showing <span className="font-medium text-gray-900">{filteredProducts.length}</span> hot deals
-                            </div>
-                            <div className="flex items-center gap-3">
-                                {/* View Toggle */}
-                                <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                                    <button
-                                        onClick={() => setViewMode('grid')}
-                                        className={`p-2 ${
-                                            viewMode === 'grid'
-                                                ? 'bg-gray-100 text-gray-700'
-                                                : 'bg-white text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                        title="Grid view"
-                                    >
-                                        <BsGrid3X3Gap size={16} />
-                                    </button>
-                                    <button
-                                        onClick={() => setViewMode('list')}
-                                        className={`p-2 border-l border-gray-300 ${
-                                            viewMode === 'list'
-                                                ? 'bg-gray-100 text-gray-700'
-                                                : 'bg-white text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                        title="List view"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Products Grid/List */}
-                        {filteredProducts.length > 0 ? (
-                            <div className={`
-                                ${viewMode === 'grid'
-                                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
-                                    : 'space-y-4'
-                                }
-                            `}>
-                                {filteredProducts.map((product: Product) => {
-                                    const imageSrc = getImageSrc(product.images);
-                                    const discountPercentage = calculateDiscount(product.regular_price, product.sale_price);
-                                    const displayPrice = product.sale_price || product.regular_price;
-                                    const { average: avgRating, count: reviewCount } = getProductRating(product);
-
-                                    if (viewMode === 'grid') {
-                                        return (
-                                            <div key={product.id} className="group">
-                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative">
+                                        if (viewMode === 'grid') {
+                                            return (
+                                                <div key={product.id} className="group bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative">
                                                     {/* Hot Deal Badge */}
-                                                    <div className="absolute top-0 left-0 bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-1.5 rounded-br-lg z-10 flex items-center gap-1">
-                                                        <RiFireFill className="animate-pulse" />
-                                                        <span className="font-bold text-sm">{discountPercentage}% OFF</span>
+                                                    <div className="absolute top-0 left-0 bg-gradient-to-r from-marigold to-marigold-dark text-white px-3 sm:px-4 py-1.5 rounded-br-lg z-10 flex items-center gap-1">
+                                                        <RiFireFill className="animate-pulse text-xs sm:text-sm" />
+                                                        <span className="font-bold text-xs sm:text-sm">{discountPercentage}% OFF</span>
                                                     </div>
 
                                                     {/* Image Container */}
-                                                    <div className="relative aspect-square overflow-hidden bg-gray-100">
+                                                    <div className="relative aspect-square overflow-hidden bg-paper-dim">
                                                         <img
                                                             src={`/storage/${imageSrc}`}
                                                             alt={product.name}
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                             onError={(e) => {
                                                                 e.currentTarget.src = '/otherplaceholder.jpg';
                                                             }}
@@ -524,13 +648,14 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                         <div className="absolute top-3 right-3">
                                                             <WishlistButton
                                                                 productId={product.id.toString()}
+                                                                className="bg-white/90 hover:bg-white shadow-lg"
                                                             />
                                                         </div>
 
                                                         {/* Quick View Overlay */}
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                                                             <Link href={`/products/${product.slug}`}>
-                                                                <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors shadow-lg">
+                                                                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-ink text-xs sm:text-sm font-medium rounded-lg hover:bg-marigold hover:text-white transition-all duration-300 shadow-lg hover:scale-105">
                                                                     <BsEye className="inline mr-1" /> Quick View
                                                                 </button>
                                                             </Link>
@@ -538,86 +663,79 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                     </div>
 
                                                     {/* Product Info */}
-                                                    <div className="p-4">
+                                                    <div className="p-3 sm:p-4">
                                                         {/* Category */}
-                                                        <div className="mb-2">
-                                                            <span className="text-xs text-gray-500 uppercase tracking-wider">
+                                                        <div className="mb-1 sm:mb-2">
+                                                            <span className="text-[9px] sm:text-[10px] font-mono text-text-soft uppercase tracking-wider">
                                                                 {product.category || 'Uncategorized'}
                                                             </span>
                                                         </div>
 
                                                         {/* Product Name */}
-                                                        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1 group-hover:text-orange-600 transition-colors">
+                                                        <h3 className="font-semibold text-sm sm:text-base text-ink mb-1 sm:mb-2 line-clamp-1 group-hover:text-marigold transition-colors">
                                                             {product.name}
                                                         </h3>
 
                                                         {/* Rating */}
-                                                        <div className="mb-3 flex items-center">
+                                                        <div className="mb-2 sm:mb-3 flex items-center">
                                                             {renderStars(avgRating)}
                                                             {reviewCount > 0 && (
-                                                                <span className="text-xs text-gray-400 ml-1">
-                                                                    ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                                                                <span className="text-[10px] sm:text-xs text-text-soft ml-1">
+                                                                    ({reviewCount})
                                                                 </span>
                                                             )}
                                                         </div>
 
                                                         {/* Price */}
-                                                        <div className="mb-3">
+                                                        <div className="mb-2 sm:mb-3">
                                                             <div className="flex items-center justify-between">
-                                                                <div>
-                                                                    <span className="font-bold text-orange-600 text-lg">
+                                                                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                                                    <span className="font-bold text-sm sm:text-base text-marigold">
                                                                         <FormatPrice price={displayPrice} />
                                                                     </span>
-                                                                    <span className="ml-2 text-sm text-gray-400 line-through">
+                                                                    <span className="text-[10px] sm:text-sm text-text-soft line-through">
                                                                         <FormatPrice price={product.regular_price} />
                                                                     </span>
                                                                 </div>
-                                                                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">
+                                                                <span className="text-[9px] sm:text-xs bg-green-100 text-green-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold">
                                                                     Save <FormatPrice price={product.regular_price - displayPrice} />
                                                                 </span>
                                                             </div>
                                                         </div>
 
                                                         {/* Stock Status */}
-                                                        <div className="mb-3">
-                                                            {product.quantity > 0 ? (
-                                                                <div className="flex items-center justify-between text-xs">
-                                                                    <span className="text-green-600">In Stock</span>
-                                                                    {product.quantity < 10 && (
-                                                                        <span className="text-orange-600">
-                                                                            Only {product.quantity} left!
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-red-600 text-xs">Out of Stock</span>
-                                                            )}
-                                                        </div>
+                                                        {product.quantity > 0 && (
+                                                            <div className="mb-2 sm:mb-3">
+                                                                {product.quantity < 10 && (
+                                                                    <span className="text-[9px] sm:text-xs text-orange-600 font-medium">
+                                                                        🔥 Only {product.quantity} left!
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
 
                                                         <AddtoCartButton product={product} />
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    } else {
-                                        // List View
-                                        return (
-                                            <div key={product.id} className="group">
-                                                <div className="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                                                    <div className="flex flex-col md:flex-row">
+                                            );
+                                        } else {
+                                            // List View
+                                            return (
+                                                <div key={product.id} className="group bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden hover:shadow-xl transition-all duration-300">
+                                                    <div className="flex flex-col sm:flex-row">
                                                         {/* Image */}
-                                                        <div className="md:w-1/4 relative">
-                                                            <div className="aspect-square md:h-full overflow-hidden bg-gray-100">
+                                                        <div className="sm:w-1/4 relative">
+                                                            <div className="aspect-square sm:h-full overflow-hidden bg-paper-dim">
                                                                 <img
                                                                     src={`/storage/${imageSrc}`}
                                                                     alt={product.name}
-                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                                     onError={(e) => {
                                                                         e.currentTarget.src = '/otherplaceholder.jpg';
                                                                     }}
                                                                 />
                                                             </div>
-                                                            <div className="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                                            <div className="absolute top-3 left-3 bg-gradient-to-r from-marigold to-marigold-dark text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm font-bold shadow-lg">
                                                                 -{discountPercentage}%
                                                             </div>
 
@@ -625,54 +743,46 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                             <div className="absolute top-3 right-3">
                                                                 <WishlistButton
                                                                     productId={product.id}
+                                                                    className="bg-white/90 hover:bg-white shadow-lg"
                                                                 />
-                                                            </div>
-
-                                                            {/* Quick View Overlay for List View */}
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                <Link href={`/products/${product.slug}`}>
-                                                                    <button className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors shadow-lg">
-                                                                        <BsEye className="inline mr-1" /> Quick View
-                                                                    </button>
-                                                                </Link>
                                                             </div>
                                                         </div>
 
                                                         {/* Product Details */}
-                                                        <div className="md:w-3/4 p-6">
-                                                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                                        <div className="sm:w-3/4 p-4 sm:p-6">
+                                                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                                                 <div className="flex-1">
                                                                     {/* Category */}
-                                                                    <div className="mb-2">
-                                                                        <span className="text-xs text-gray-500 uppercase tracking-wider">
+                                                                    <div className="mb-1 sm:mb-2">
+                                                                        <span className="text-[9px] sm:text-[10px] font-mono text-text-soft uppercase tracking-wider">
                                                                             {product.category || 'Uncategorized'}
                                                                         </span>
                                                                     </div>
 
                                                                     {/* Product Name */}
-                                                                    <h3 className="text-lg font-medium text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                                                                    <h3 className="text-base sm:text-lg font-semibold text-ink mb-1 sm:mb-2 group-hover:text-marigold transition-colors">
                                                                         {product.name}
                                                                     </h3>
 
                                                                     {/* Description */}
-                                                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                                                    <p className="text-text-soft text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
                                                                         {product.description}
                                                                     </p>
 
                                                                     {/* Rating & Stock */}
-                                                                    <div className="flex items-center gap-4 mb-4">
+                                                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                                                                         <div className="flex items-center">
                                                                             {renderStars(avgRating)}
                                                                             {reviewCount > 0 && (
-                                                                                <span className="text-xs text-gray-400 ml-1">
+                                                                                <span className="text-[10px] sm:text-xs text-text-soft ml-1">
                                                                                     ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
                                                                                 </span>
                                                                             )}
                                                                         </div>
-                                                                        <div className={`inline-flex items-center gap-1 text-sm ${
+                                                                        <div className={`inline-flex items-center gap-1 text-[10px] sm:text-sm ${
                                                                             product.inStock ? 'text-green-600' : 'text-red-600'
                                                                         }`}>
-                                                                            <div className={`w-2 h-2 rounded-full ${
+                                                                            <div className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${
                                                                                 product.inStock ? 'bg-green-500' : 'bg-red-500'
                                                                             }`}></div>
                                                                             {product.inStock ? 'In Stock' : 'Out of Stock'}
@@ -680,20 +790,20 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                     </div>
 
                                                                     {/* Savings Info */}
-                                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                                                                        <p className="text-green-700 text-sm">
+                                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3">
+                                                                        <p className="text-green-700 text-[10px] sm:text-sm">
                                                                             <span className="font-bold">You Save:</span> <FormatPrice price={product.regular_price - displayPrice} /> ({discountPercentage}% off)
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="md:w-48">
+                                                                <div className="sm:w-48">
                                                                     {/* Price */}
-                                                                    <div className="mb-4">
-                                                                        <div className="text-2xl font-bold text-orange-600">
+                                                                    <div className="mb-3 sm:mb-4">
+                                                                        <div className="text-xl sm:text-2xl font-bold text-marigold">
                                                                             <FormatPrice price={displayPrice} />
                                                                         </div>
-                                                                        <div className="text-sm text-gray-400 line-through">
+                                                                        <div className="text-xs sm:text-sm text-text-soft line-through">
                                                                             <FormatPrice price={product.regular_price} />
                                                                         </div>
                                                                     </div>
@@ -705,101 +815,86 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    }
-                                })}
-                            </div>
-                        ) : (
-                            // No Results
-                            <div className="text-center py-12">
-                                <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <FiShoppingBag className="text-orange-500 text-3xl" />
+                                            );
+                                        }
+                                    })}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    No deals found
-                                </h3>
-                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                    Try adjusting your filters to find more great deals.
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        setSelectedCategory('all');
-                                        setSelectedDiscount('all');
-                                        setPriceRange([0, 10000]);
-                                        setSearchQuery('');
-                                        setSortBy('discount-high');
-                                    }}
-                                    className="px-6 py-2.5 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
-                                >
-                                    Clear all filters
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Pagination */}
-                        {filteredProducts.length > 0 && products.last_page > 1 && (
-                            <div className="mt-8 pt-6 border-t border-gray-200">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="text-sm text-gray-600">
-                                        Showing 1-{Math.min(filteredProducts.length, products.per_page)} of {products.total} products
+                            ) : (
+                                // No Results
+                                <div className="text-center py-8 sm:py-12 bg-white rounded-xl shadow-hard-sm border border-line">
+                                    <div className="w-16 sm:w-20 h-16 sm:h-20 mx-auto mb-4 sm:mb-6 bg-paper-dim rounded-full flex items-center justify-center">
+                                        <FiShoppingBag className="text-text-soft text-2xl sm:text-3xl" />
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        {/* <Link
-                                            href={products.links?.prev || '#'}
-                                            className={`px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors ${
-                                                !products.links?.prev ? 'opacity-50 cursor-not-allowed' : ''
-                                            }`}
-                                        >
-                                            Previous
-                                        </Link> */}
+                                    <h3 className="text-lg sm:text-xl font-bold text-ink mb-2">
+                                        No deals found
+                                    </h3>
+                                    <p className="text-sm sm:text-base text-text-soft mb-4 sm:mb-6 max-w-md mx-auto px-4">
+                                        Try adjusting your filters to find more great deals.
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedCategory('all');
+                                            setSelectedDiscount('all');
+                                            setPriceRange([0, 10000]);
+                                            setSearchQuery('');
+                                            setSortBy('discount-high');
+                                        }}
+                                        className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gray-900 hover:bg-marigold text-white text-sm font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105"
+                                    >
+                                        Clear all filters
+                                    </button>
+                                </div>
+                            )}
 
-                                        {[...Array(products.last_page)].map((_, i) => {
-                                            const page = i + 1;
-                                            const isCurrentPage = products.current_page === page;
+                            {/* Pagination */}
+                            {filteredProducts.length > 0 && products.last_page > 1 && (
+                                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-line">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="text-xs sm:text-sm text-text-soft">
+                                            Showing 1-{Math.min(filteredProducts.length, products.per_page)} of {products.total} products
+                                        </div>
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                            {[...Array(Math.min(products.last_page, 5))].map((_, i) => {
+                                                const page = i + 1;
+                                                const isCurrentPage = products.current_page === page;
 
-                                            if (
-                                                page === 1 ||
-                                                page === products.last_page ||
-                                                (page >= products.current_page - 1 && page <= products.current_page + 1)
-                                            ) {
                                                 return (
                                                     <Link
                                                         key={page}
                                                         href={`?page=${page}`}
-                                                        className={`px-3 py-1.5 border border-gray-300 text-sm rounded-md transition-colors ${
+                                                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 border border-line text-xs sm:text-sm rounded-lg transition-colors ${
                                                             isCurrentPage
-                                                                ? 'bg-orange-600 text-white border-orange-600'
-                                                                : 'text-gray-700 hover:bg-gray-50'
+                                                                ? 'bg-gray-900 text-white border-gray-900'
+                                                                : 'text-text-soft hover:bg-paper-dim hover:text-ink'
                                                         }`}
                                                     >
                                                         {page}
                                                     </Link>
                                                 );
-                                            } else if (
-                                                page === products.current_page - 2 ||
-                                                page === products.current_page + 2
-                                            ) {
-                                                return <span key={page} className="px-2">...</span>;
-                                            }
-                                            return null;
-                                        })}
-
-                                        {/* <Link
-                                            href={products.links?.next || '#'}
-                                            className={`px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors ${
-                                                !products.links?.next ? 'opacity-50 cursor-not-allowed' : ''
-                                            }`}
-                                        >
-                                            Next
-                                        </Link> */}
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Add animation styles */}
+            <style>{`
+                @keyframes slide-in {
+                    from {
+                        transform: translateX(100%);
+                    }
+                    to {
+                        transform: translateX(0);
+                    }
+                }
+                .animate-slide-in {
+                    animation: slide-in 0.3s ease-out;
+                }
+            `}</style>
         </AppLayout>
     );
 };

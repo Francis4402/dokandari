@@ -1,7 +1,7 @@
 // ProductCard.tsx
 import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FiZap } from "react-icons/fi";
 import { BsStarFill } from "react-icons/bs";
 import axios from "axios";
@@ -16,10 +16,8 @@ interface ProductCardProps {
   user: User;
   variant?: "default" | "trending" | "featured";
   showQuickView?: boolean;
-  /** initial count to show before any view is recorded this session — pass
-   *  product.reviews_count if your backend eager-loads it, or a
-   *  pre-computed count from the parent list. Defaults to 0. */
-  reviewCount?: number;
+  initialReviewCount?: number;
+  initialAverageRating?: number;
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -34,6 +32,20 @@ const CATEGORY_EMOJI: Record<string, string> = {
   Gaming: "🎮",
   Automotive: "🚗",
 };
+
+const CATEGORY_GRADIENT: Record<string, [string, string]> = {
+  Electronics: ["#EEF1F5", "#D8DEE9"],
+  Fashion: ["#FFF0F0", "#FFE1EC"],
+  "Home & Living": ["#FFF7ED", "#FFE8CC"],
+  Beauty: ["#FDF2F8", "#FCE4F6"],
+  Food: ["#FFF7ED", "#FFE4C7"],
+  Books: ["#EFF6FF", "#DCE9FE"],
+  Sports: ["#ECFDF5", "#D2F5E3"],
+  Toys: ["#FEFCE8", "#FDF3C7"],
+  Gaming: ["#F5F3FF", "#E7E1FE"],
+  Automotive: ["#F3F4F6", "#E2E4E8"],
+};
+const DEFAULT_GRADIENT: [string, string] = ["#F7F5EF", "#EFECE3"];
 
 function getImageSrc(images: string): string {
   if (!images) return "";
@@ -55,19 +67,42 @@ function calculateDiscount(regularPrice: number, salePrice: number): number {
   return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
 }
 
+// Render stars based on average rating
+const renderStars = (rating: number) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {[...Array(fullStars)].map((_, i) => (
+        <FaStar key={`full-${i}`} className="w-3 h-3 text-amber-400 fill-current" />
+      ))}
+      {hasHalfStar && <FaStarHalfAlt className="w-3 h-3 text-amber-400 fill-current" />}
+      {[...Array(emptyStars)].map((_, i) => (
+        <FaRegStar key={`empty-${i}`} className="w-3 h-3 text-gray-300" />
+      ))}
+    </div>
+  );
+};
+
 const ProductCard = ({
   product,
   badge,
   variant = "default",
   showQuickView = true,
   user,
-  reviewCount: initialReviewCount = 0,
+  initialReviewCount = 0,
+  initialAverageRating = 0,
 }: ProductCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
   const [reviewCount, setReviewCount] = useState(initialReviewCount);
+  const [averageRating, setAverageRating] = useState(initialAverageRating);
+  const [loading, setLoading] = useState(true);
 
   const imageSrc = getImageSrc(product.images);
   const emoji = "emoji" in product ? (product as any).emoji : CATEGORY_EMOJI[product.category ?? ""] ?? "📦";
+  const [gradientFrom, gradientTo] = CATEGORY_GRADIENT[product.category ?? ""] ?? DEFAULT_GRADIENT;
   const vendor = ("vendor" in product ? (product as any).vendor : null) ?? product.category ?? "General";
 
   const discount = calculateDiscount(product.regular_price, product.sale_price);
@@ -75,46 +110,83 @@ const ProductCard = ({
   const displayPrice = product.sale_price || product.regular_price;
   const showImage = imageSrc && !imageFailed;
 
-  // Pull the real count from the server on mount instead of only trusting
-  // whatever the parent page happened to pass in — this way the badge is
-  // correct everywhere ProductCard is used, for logged-in users and guests
-  // alike (the endpoint doesn't require auth).
+  // Fetch real review data using the route: /products/{product}/comments
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+
     axios
-      .get(`/products/${product.id}/reviews`)
+      .get(`/products/${product.id}/comments`)
       .then((res) => {
-        if (!cancelled) setReviewCount(res.data.count);
+        if (!cancelled) {
+          // The response has 'data' (comments) and 'stats' (rating statistics)
+          const stats = res.data.stats || {};
+          setReviewCount(stats.count || 0);
+          setAverageRating(stats.average || 0);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        console.error("Failed to fetch review count:", err);
+        console.error("Failed to fetch review data:", err);
+        setLoading(false);
+        // Keep initial values on error
+        setReviewCount(initialReviewCount);
+        setAverageRating(initialAverageRating);
       });
     return () => {
       cancelled = true;
     };
-  }, [product.id]);
+  }, [product.id, initialReviewCount, initialAverageRating]);
 
-  // Fires on every quick-view click — each open counts, not just the first.
+  // Handle quick view click - This increments the view count
+  // Note: Your CommentController's store method handles both comments and ratings
   const handleQuickView = () => {
-    setReviewCount((c) => c + 1);
-    axios.post("/reviews", { product_id: product.id }).catch((err) => {
-      console.error("Failed to record product view:", err);
-    });
+    // Optimistically update the review count
+    setReviewCount((prev) => prev + 1);
+
+    // Send a request to record the view (using your existing /comments route)
+    // You might want to create a separate endpoint for views, or use the existing one
+    axios
+      .post("/comments", {
+        product_id: product.id,
+        comment: null, // No comment, just a view
+        rating: null // No rating, just a view
+      })
+      .then((res) => {
+        // If the response has updated stats, use them
+        if (res.data.stats) {
+          setReviewCount(res.data.stats.count || reviewCount + 1);
+          setAverageRating(res.data.stats.average || averageRating);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to record product view:", err);
+        // Revert optimistic update
+        setReviewCount((prev) => prev - 1);
+      });
   };
+
+  // Determine if we should show the rating section
+  const hasRealReviews = reviewCount > 0 || averageRating > 0;
 
   return (
     <div className="group bg-white border border-[#DAD5C7] rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[4px_4px_0_#111013]">
       {/* Image Container */}
-      <div className="relative h-[180px] flex items-center justify-center text-[56px] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden">
         {showImage ? (
           <img
             src={imageSrc}
             alt={product.name}
-            className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <span>{emoji}</span>
+          <div
+            className="w-full h-full flex items-center justify-center text-6xl transition-transform duration-500 group-hover:scale-105"
+            style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}
+          >
+            {emoji}
+          </div>
         )}
 
         {/* Badge */}
@@ -139,11 +211,13 @@ const ProductCard = ({
           </span>
         )}
 
-        {/* View count badge — always visible, logged in or not */}
-        <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full px-2 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] z-10">
-          <BsStarFill className="text-amber-400 text-[9px]" />
-          {reviewCount}
-        </span>
+        {/* Review count badge - bottom left (only show if there are reviews) */}
+        {reviewCount > 0 && (
+          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full px-2 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] z-10">
+            <BsStarFill className="text-amber-400 text-[9px]" />
+            {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+          </span>
+        )}
 
         {/* Action Buttons */}
         <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 z-20">
@@ -183,10 +257,24 @@ const ProductCard = ({
           {product.name}
         </h3>
 
-        {/* Rating */}
-        {product.rating > 0 && (
-          <div className="flex items-center gap-1 mb-2">
-            <span className="text-xs font-mono text-[#6B6A66]">★ {Number(product.rating).toFixed(1)}</span>
+        {/* Rating - Only show if there are real reviews */}
+        {hasRealReviews && !loading ? (
+          <div className="flex items-center gap-2 mb-2">
+            {renderStars(averageRating)}
+            <span className="text-xs font-mono text-[#6B6A66]">
+              {averageRating.toFixed(1)}
+            </span>
+            <span className="text-xs font-mono text-[#6B6A66]">
+              ({reviewCount})
+            </span>
+          </div>
+        ) : loading ? (
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-mono text-[#6B6A66]">No reviews yet</span>
           </div>
         )}
 

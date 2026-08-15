@@ -26,7 +26,6 @@ import AppLayout from "@/Layouts/AppLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import Eyebrow from "../Components/Eyebrow";
 
-
 gsap.registerPlugin(ScrollTrigger);
 
 interface ContactForm {
@@ -53,10 +52,11 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
-  const contactRef = useRef<HTMLDivElement>(null);
+  const faqRef = useRef<HTMLDivElement>(null);
 
   const { data, setData, post, processing, reset, wasSuccessful } = useForm({
     name: auth.user?.name || "",
@@ -66,6 +66,10 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
   });
 
   const isLoggedIn = !!auth.user;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (wasSuccessful) {
@@ -202,53 +206,82 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     });
   };
 
+  // Initialize GSAP animations after component mounts
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (!isMounted) return;
+
+    // Give DOM time to render
+    const timer = setTimeout(() => {
+      // Refresh ScrollTrigger to ensure it picks up all elements
+      ScrollTrigger.refresh();
+
+      // Header animation
       if (headerRef.current) {
         gsap.from(headerRef.current.children, {
           y: -30,
           opacity: 0,
           duration: 0.8,
           stagger: 0.15,
-          ease: "power3.out"
+          ease: "power3.out",
+          clearProps: "all"
         });
       }
 
+      // Form animation
       if (formRef.current) {
         gsap.from(formRef.current, {
           scrollTrigger: {
             trigger: formRef.current,
             start: "top bottom-=100",
-            toggleActions: "play none none reverse"
+            toggleActions: "play none none reverse",
+            id: "formAnimation"
           },
           y: 60,
           opacity: 0,
           duration: 0.8,
-          ease: "power2.out"
+          ease: "power2.out",
+          clearProps: "all"
         });
       }
 
-      if (contactRef.current) {
-        const cards = contactRef.current.querySelectorAll('.contact-card');
-        gsap.from(cards, {
+      // FAQ animation
+      if (faqRef.current) {
+        const faqItems = faqRef.current.querySelectorAll('.faq-item');
+
+        gsap.set(faqItems, { y: 30, opacity: 0 });
+
+        gsap.to(faqItems, {
           scrollTrigger: {
-            trigger: contactRef.current,
-            start: "top bottom-=100",
-            toggleActions: "play none none reverse"
+            trigger: faqRef.current,
+            start: "top bottom-=50",
+            toggleActions: "play none none reverse",
+            id: "faqAnimation"
           },
-          y: 60,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out"
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.08,
+          ease: "power2.out",
+          clearProps: "all"
         });
       }
-    });
+    }, 100);
 
-    return () => ctx.revert();
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      // Kill all ScrollTrigger animations
+      ScrollTrigger.getAll().forEach(st => st.kill());
+    };
+  }, [isMounted]);
 
-  const ContactCard = ({ info, index }: { info: any; index: number }) => {
+  // Re-run animations when component updates
+  useEffect(() => {
+    if (isMounted) {
+      ScrollTrigger.refresh();
+    }
+  }, [isMounted]);
+
+  const ContactCard = ({ info }: { info: any; index: number }) => {
     const cardRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
@@ -312,7 +345,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
       </Head>
 
       <div className="min-h-screen bg-paper-dim py-20">
-        <div className="max-w-[1240px] mx-auto px-8">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Success Modal */}
           <Transition appear show={showSuccessModal} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={() => setShowSuccessModal(false)}>
@@ -593,8 +626,8 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
             </div>
           </div>
 
-          {/* Departments Section */}
-          <div ref={contactRef} className="mt-16">
+          {/* Departments Section - NO ANIMATIONS */}
+          <div className="mt-16">
             <div className="text-center mb-12">
               <Eyebrow>Direct Support</Eyebrow>
               <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Get Direct Support</h2>
@@ -604,14 +637,41 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {departments.map((dept, index) => (
-                <ContactCard key={dept.id} info={dept} index={index} />
+              {departments.map((dept) => (
+                <div
+                  key={dept.id}
+                  className="group bg-white rounded-xl shadow-hard-sm p-6 hover:shadow-xl transition-all duration-300 border border-line cursor-pointer hover:-translate-y-1"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-full bg-marigold/10 group-hover:bg-marigold/20 flex items-center justify-center text-marigold transition-colors duration-300">
+                      {dept.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-ink mb-2">{dept.name}</h3>
+                      <p className="text-text-soft text-sm mb-3">{dept.description}</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <FaEnvelope className="h-4 w-4 text-text-soft" />
+                          <a href={`mailto:${dept.email}`} className="text-marigold hover:text-marigold-dark transition-colors">
+                            {dept.email}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <FaPhone className="h-4 w-4 text-text-soft" />
+                          <a href={`tel:${dept.phone}`} className="text-text-soft hover:text-marigold transition-colors">
+                            {dept.phone}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 bg-white rounded-2xl shadow-hard-sm border border-line p-8">
+          <div ref={faqRef} className="mt-16 bg-white rounded-2xl shadow-hard-sm border border-line p-8">
             <div className="text-center mb-10">
               <Eyebrow>Quick Answers</Eyebrow>
               <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Frequently Asked Questions</h2>
@@ -623,7 +683,7 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
                 {faqs.map((faq) => (
                   <div
                     key={faq.id}
-                    className="border border-line rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md"
+                    className="faq-item border border-line rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md"
                   >
                     <button
                       onClick={() => setActiveFAQ(activeFAQ === faq.id ? null : faq.id)}

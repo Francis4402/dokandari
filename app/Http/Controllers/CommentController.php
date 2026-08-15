@@ -154,4 +154,61 @@ class CommentController extends Controller
 
         return redirect()->back();
     }
+
+
+    public function getProductComments($productId)
+    {
+        $product = Products::findOrFail($productId);
+
+        // Get all comments with user data
+        $comments = Comment::with('user')
+            ->where('product_id', $product->id)
+            ->latest()
+            ->get()
+            ->map(function ($comment) {
+                return [
+                    'id' => (string) $comment->id,
+                    'user_id' => (string) $comment->user_id,
+                    'product_id' => (string) $comment->product_id,
+                    'store_id' => (string) $comment->store_id,
+                    'comment' => $comment->comment,
+                    'rating' => $comment->rating,
+                    'created_at' => $comment->created_at,
+                    'updated_at' => $comment->updated_at,
+                    'user' => $comment->user ? [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'images' => $comment->user->images ?? '',
+                        'email' => $comment->user->email,
+                    ] : null,
+                ];
+            });
+
+        // Calculate rating statistics
+        $ratings = $comments->filter(function($comment) {
+            return $comment['rating'] !== null;
+        });
+
+        $count = $ratings->count();
+        $average = $count > 0 ? $ratings->avg('rating') : 0;
+
+        // Check if current user has reviewed this product
+        $userReviewed = false;
+        if (Auth::check()) {
+            $userReviewed = Comment::where('user_id', Auth::id())
+                ->where('product_id', $product->id)
+                ->whereNotNull('rating')
+                ->exists();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $comments,
+            'stats' => [
+                'count' => $count,
+                'average' => round($average, 1),
+                'user_reviewed' => $userReviewed,
+            ]
+        ]);
+    }
 }

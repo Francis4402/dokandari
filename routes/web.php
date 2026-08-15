@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessagesController;
@@ -195,13 +196,14 @@ Route::controller(SocialiteController::class)->group(function () {
     Route::get('/auth/google/callback', 'googleAuthentication')->name('auth.google-callback');
 });
 
+Route::controller(Controller::class)->group(function () {
+    Route::get('/privacy-policy', 'privacypolicy')->name('privacy.policy');
+    Route::get('/terms-and-conditions', 'termsandconditions')->name('terms.and.conditions');
+});
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 Route::get('/products/{id}/reviews', [ReviewController::class, 'status'])->name('reviews.status');
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('profile.edit');

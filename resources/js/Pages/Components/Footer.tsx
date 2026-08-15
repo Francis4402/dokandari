@@ -1,9 +1,19 @@
-
+// Footer.tsx (simplified)
+import { Link } from '@inertiajs/react';
 
 const footerCols = [
-  { heading: "Shop", links: ["Categories", "Featured", "Trending", "Daily discover"] },
-  { heading: "Vendors", links: ["Start selling", "Vendor dashboard", "Payout schedule"] },
-  { heading: "Support", links: ["Track an order", "Returns", "Contact us"] },
+  {
+    heading: "Shop",
+    links: ["Categories", "Featured", "Trending", "Daily discover"]
+  },
+  {
+    heading: "Vendors",
+    links: ["Start selling", "Vendor dashboard", "Payout schedule"]
+  },
+  {
+    heading: "Support",
+    links: ["Track an order", "Returns", "Contact us"]
+  },
 ];
 
 export default function Footer() {
@@ -28,7 +38,7 @@ export default function Footer() {
                 {col.heading}
               </h4>
               {col.links.map((l) => (
-                <a key={l} href="#" className="block mb-2.5 text-sm">
+                <a key={l} href="#" className="block mb-2.5 text-sm text-text-soft hover:text-marigold transition-colors">
                   {l}
                 </a>
               ))}
@@ -36,9 +46,17 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="flex justify-between flex-wrap gap-2.5 pt-5 border-t border-line font-mono text-xs text-text-soft">
-          <span>© 2026 Haatpoint. All rights reserved.</span>
-          <span>Dhaka · Chattogram · Sylhet · Khulna</span>
+        <div className="flex flex-col sm:flex-row justify-between flex-wrap gap-2.5 pt-5 border-t border-line font-mono text-xs text-text-soft">
+          <span>© {new Date().getFullYear()} Haatpoint. All rights reserved.</span>
+          <div className="flex gap-4 flex-wrap">
+            <Link href="/privacy-policy" className="hover:text-marigold transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms-and-conditions" className="hover:text-marigold transition-colors">
+              Terms of Service
+            </Link>
+            <span>Dhaka · Chattogram</span>
+          </div>
         </div>
       </div>
     </footer>
