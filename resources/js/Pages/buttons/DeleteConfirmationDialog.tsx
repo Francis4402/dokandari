@@ -1,7 +1,6 @@
-
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
+import { FaExclamationTriangle, FaTimes, FaTrash } from 'react-icons/fa';
 
 interface DeleteConfirmationDialogProps {
     isOpen: boolean;
@@ -32,7 +31,7 @@ export default function DeleteConfirmationDialog({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black bg-opacity-50" />
+                    <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
@@ -46,7 +45,8 @@ export default function DeleteConfirmationDialog({
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-hard-sm border border-line transition-all">
+                                {/* Header */}
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center space-x-3">
                                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -54,29 +54,32 @@ export default function DeleteConfirmationDialog({
                                         </div>
                                         <Dialog.Title
                                             as="h3"
-                                            className="text-lg font-medium leading-6 text-gray-900"
+                                            className="text-lg font-display font-extrabold uppercase text-ink tracking-[-0.01em]"
                                         >
                                             {title}
                                         </Dialog.Title>
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-text-soft hover:text-ink transition-colors p-1 rounded-lg hover:bg-paper-dim"
+                                        disabled={isDeleting}
                                     >
                                         <FaTimes className="h-5 w-5" />
                                     </button>
                                 </div>
 
+                                {/* Message */}
                                 <div className="mt-2">
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-text-soft leading-relaxed">
                                         {message}
                                     </p>
                                 </div>
 
+                                {/* Actions */}
                                 <div className="mt-6 flex justify-end space-x-3">
                                     <button
                                         type="button"
-                                        className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 transition-colors"
+                                        className="inline-flex justify-center rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-text-soft hover:bg-paper-dim hover:text-ink transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marigold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         onClick={onClose}
                                         disabled={isDeleting}
                                     >
@@ -84,7 +87,7 @@ export default function DeleteConfirmationDialog({
                                     </button>
                                     <button
                                         type="button"
-                                        className="inline-flex justify-center rounded-lg border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="inline-flex items-center justify-center rounded-lg border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 hover:shadow-hard-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                         onClick={onConfirm}
                                         disabled={isDeleting}
                                     >
@@ -97,7 +100,10 @@ export default function DeleteConfirmationDialog({
                                                 Deleting...
                                             </>
                                         ) : (
-                                            'Delete Order'
+                                            <>
+                                                <FaTrash className="w-4 h-4 mr-2" />
+                                                Delete
+                                            </>
                                         )}
                                     </button>
                                 </div>

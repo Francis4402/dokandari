@@ -1,5 +1,4 @@
-// buttons/AddtoCartButton.tsx
-import { CartItem, storeType } from '@/types'
+import { CartItem } from '@/types'
 import { FaShoppingCart } from 'react-icons/fa'
 import { toast } from 'sonner'
 import { useStore } from '../state/cartStore'

@@ -1,4 +1,4 @@
-// ProductDetailsPage.tsx
+// ProductDetailsPage.tsx - Fixed version
 import { useState } from "react";
 import {
   FaStar,
@@ -67,15 +67,35 @@ const ProductDetailsPage = ({
   const cartItem = getItemById(product.id.toString());
   const currentCartQuantity = cartItem?.cartQty || 0;
 
+  // Fixed: Properly parse product images
   const productImages = (() => {
-    try {
-      const parsed = JSON.parse(product.images);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    } catch {
-      return [product.images];
+    if (!product.images) return ['/otherplaceholder.jpg'];
+
+    if (Array.isArray(product.images)) {
+      return product.images.length > 0 ? product.images : ['/otherplaceholder.jpg'];
     }
+
+    if (typeof product.images === 'string') {
+      try {
+        if (product.images.startsWith('[') || product.images.startsWith('"')) {
+          const parsed = JSON.parse(product.images);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+          if (typeof parsed === 'string' && parsed) {
+            return [parsed];
+          }
+        }
+        if (product.images.trim()) {
+          return [product.images.trim()];
+        }
+      } catch {
+        if (product.images.trim()) {
+          return [product.images.trim()];
+        }
+      }
+    }
+
     return ['/otherplaceholder.jpg'];
   })();
 
@@ -88,7 +108,7 @@ const ProductDetailsPage = ({
   })();
 
   const renderStars = (rating: number = averageRating) => {
-    const numericRating = rating || 0;
+    const numericRating = typeof rating === 'number' ? rating : parseFloat(rating) || 0;
     const fullStars = Math.floor(numericRating);
     const hasHalfStar = numericRating % 1 >= 0.5;
 
@@ -107,7 +127,22 @@ const ProductDetailsPage = ({
     );
   };
 
-  const currentImage = productImages[selectedImageIndex] || '/placeholder-image.jpg';
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '/otherplaceholder.jpg';
+
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    if (imagePath.startsWith('/storage/') || imagePath.startsWith('/')) {
+      return imagePath;
+    }
+
+    return `/storage/${imagePath}`;
+  };
+
+  const currentImage = productImages[selectedImageIndex] || '/otherplaceholder.jpg';
+  const currentImageUrl = getImageUrl(currentImage);
 
   const handleAddToCart = (): void => {
     if (!product.inStock || product.quantity === 0) {
@@ -168,7 +203,6 @@ const ProductDetailsPage = ({
     }
   ];
 
-  // Calculate store rating from comments
   const storeRating = (() => {
     if (!comments || comments.length === 0) return 0;
     const ratings = comments.filter(c => c.rating !== null && c.rating !== undefined);
@@ -177,7 +211,6 @@ const ProductDetailsPage = ({
     return Math.round((total / ratings.length) * 10) / 10;
   })();
 
-  // Calculate store review count
   const storeReviewCount = (() => {
     if (!comments) return 0;
     return comments.filter(c => c.rating !== null && c.rating !== undefined).length;
@@ -191,7 +224,7 @@ const ProductDetailsPage = ({
         <meta name="robots" content="index, follow" />
       </Head>
 
-      <div className="min-h-screen py-20">
+      <div className="min-h-screen bg-paper-dim py-20">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="flex mb-8 text-sm">
@@ -227,7 +260,7 @@ const ProductDetailsPage = ({
                 {/* Main Image */}
                 <div className="relative overflow-hidden rounded-xl bg-paper-dim aspect-square border border-line">
                   <img
-                    src={`/storage/${currentImage}`}
+                    src={currentImageUrl}
                     alt={product.name}
                     className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-105"
                     onError={(e) => {
@@ -272,7 +305,7 @@ const ProductDetailsPage = ({
                         }`}
                       >
                         <img
-                          src={`/storage/${image}`}
+                          src={getImageUrl(image)}
                           alt={`${product.name} ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -316,7 +349,7 @@ const ProductDetailsPage = ({
                     {product.name}
                   </h1>
 
-                  {/* Store Info */}
+                  {/* Store Info - Fixed: removed <p> wrapper */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-full bg-marigold/10 flex items-center justify-center">
@@ -329,7 +362,7 @@ const ProductDetailsPage = ({
                         >
                           {store.name}
                         </Link>
-                        <p className="text-xs text-text-soft">{store.storetype} Store</p>
+                        <div className="text-xs text-text-soft">{store.storetype} Store</div>
                       </div>
                     </div>
                     <div className="flex items-center text-xs bg-paper-dim px-3 py-1.5 rounded-lg">
@@ -340,12 +373,12 @@ const ProductDetailsPage = ({
                     </div>
                   </div>
 
-                  {/* Rating */}
+                  {/* Rating - Fixed: removed <p> wrapper */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-2">
                       {renderStars()}
                       <span className="text-2xl font-bold text-ink">
-                        {averageRating.toFixed(1)}
+                        {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
                       </span>
                     </div>
                     <span className="text-text-soft text-sm">
@@ -446,7 +479,6 @@ const ProductDetailsPage = ({
                         return;
                       }
                       handleAddToCart();
-                      // Navigate to checkout
                       window.location.href = '/checkout';
                     }}
                     disabled={!product.inStock || product.quantity === 0}
@@ -627,7 +659,9 @@ const ProductDetailsPage = ({
                                 <div className="flex items-center gap-0.5">
                                   {renderStars(averageRating)}
                                 </div>
-                                <span className="font-medium text-ink">{averageRating.toFixed(1)}</span>
+                                <span className="font-medium text-ink">
+                                  {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
+                                </span>
                                 <span className="text-xs text-text-soft">({reviewCount} reviews)</span>
                               </div>
                             </div>
@@ -653,7 +687,9 @@ const ProductDetailsPage = ({
                                 <div className="flex items-center gap-0.5">
                                   {renderStars(storeRating || store.rating || 0)}
                                 </div>
-                                <span className="font-medium text-ink">{(storeRating || store.rating || 0).toFixed(1)}</span>
+                                <span className="font-medium text-ink">
+                                  {(storeRating || store.rating || 0).toFixed(1)}
+                                </span>
                                 <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
                               </div>
                             </div>
@@ -682,7 +718,7 @@ const ProductDetailsPage = ({
                         <div className="flex items-center justify-center space-x-4 mb-4">
                           {renderStars()}
                           <span className="text-3xl font-bold text-ink">
-                            {averageRating.toFixed(1)}
+                            {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
                           </span>
                         </div>
                         <p className="text-text-soft mb-6">
@@ -773,15 +809,17 @@ const ProductDetailsPage = ({
                   <div className="space-y-2">
                     <p className="text-text-soft">
                       <span className="font-medium text-ink">⭐ Store Rating:</span><br />
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-0.5">
-                          {renderStars(storeRating || store.rating || 0)}
-                        </div>
-                        <span className="font-medium text-ink">{(storeRating || store.rating || 0).toFixed(1)}</span>
-                        <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
-                      </div>
                     </p>
-                    <p className="text-text-soft">
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-0.5">
+                        {renderStars(storeRating || store.rating || 0)}
+                      </div>
+                      <span className="font-medium text-ink">
+                        {(storeRating || store.rating || 0).toFixed(1)}
+                      </span>
+                      <span className="text-xs text-text-soft">({storeReviewCount || store.review_count || 0} reviews)</span>
+                    </div>
+                    <p className="text-text-soft mt-2">
                       <span className="font-medium text-ink">📧 Email:</span><br />
                       {store.email || 'N/A'}
                     </p>

@@ -13,7 +13,7 @@ import FormatPrice from "@/Pages/utils/FormatePrice";
 interface ProductCardProps {
   product: Product;
   badge?: string;
-  user: User;
+  user: User | null;
   variant?: "default" | "trending" | "featured";
   showQuickView?: boolean;
   initialReviewCount?: number;
@@ -119,7 +119,6 @@ const ProductCard = ({
       .get(`/products/${product.id}/comments`)
       .then((res) => {
         if (!cancelled) {
-          // The response has 'data' (comments) and 'stats' (rating statistics)
           const stats = res.data.stats || {};
           setReviewCount(stats.count || 0);
           setAverageRating(stats.average || 0);
@@ -129,7 +128,6 @@ const ProductCard = ({
       .catch((err) => {
         console.error("Failed to fetch review data:", err);
         setLoading(false);
-        // Keep initial values on error
         setReviewCount(initialReviewCount);
         setAverageRating(initialAverageRating);
       });
@@ -138,32 +136,31 @@ const ProductCard = ({
     };
   }, [product.id, initialReviewCount, initialAverageRating]);
 
-  // Handle quick view click - This increments the view count
-  // Note: Your CommentController's store method handles both comments and ratings
+  // Handle quick view click - Only if user is logged in
   const handleQuickView = () => {
-    // Optimistically update the review count
-    setReviewCount((prev) => prev + 1);
+    // Only send request if user is logged in
+    if (user) {
+      // Optimistically update the review count
+      setReviewCount((prev) => prev + 1);
 
-    // Send a request to record the view (using your existing /comments route)
-    // You might want to create a separate endpoint for views, or use the existing one
-    axios
-      .post("/comments", {
-        product_id: product.id,
-        comment: null, // No comment, just a view
-        rating: null // No rating, just a view
-      })
-      .then((res) => {
-        // If the response has updated stats, use them
-        if (res.data.stats) {
-          setReviewCount(res.data.stats.count || reviewCount + 1);
-          setAverageRating(res.data.stats.average || averageRating);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to record product view:", err);
-        // Revert optimistic update
-        setReviewCount((prev) => prev - 1);
-      });
+      axios
+        .post("/comments", {
+          product_id: product.id,
+          comment: null,
+          rating: null
+        })
+        .then((res) => {
+          if (res.data.stats) {
+            setReviewCount(res.data.stats.count || reviewCount + 1);
+            setAverageRating(res.data.stats.average || averageRating);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to record product view:", err);
+          // Revert optimistic update
+          setReviewCount((prev) => prev - 1);
+        });
+    }
   };
 
   // Determine if we should show the rating section
