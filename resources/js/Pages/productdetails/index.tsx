@@ -1,4 +1,5 @@
-// ProductDetailsPage.tsx - Fixed version
+// ProductDetailsPage.tsx - Fixed version with proper rating handling
+
 import { useState } from "react";
 import {
   FaStar,
@@ -39,7 +40,7 @@ interface ProductDetailsPageProps {
   };
   wishlist: any;
   comments?: Comments[];
-  averageRating?: number;
+  averageRating?: number | string;
   reviewCount?: number;
   userReview?: {
     id: string;
@@ -47,6 +48,16 @@ interface ProductDetailsPageProps {
     rating: number | null;
   } | null;
 }
+
+// Helper function to safely get numeric rating
+const getNumericRating = (rating: any): number => {
+  if (typeof rating === 'number') return rating;
+  if (typeof rating === 'string') {
+    const parsed = parseFloat(rating);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
 
 const ProductDetailsPage = ({
   product,
@@ -67,7 +78,9 @@ const ProductDetailsPage = ({
   const cartItem = getItemById(product.id.toString());
   const currentCartQuantity = cartItem?.cartQty || 0;
 
-  // Fixed: Properly parse product images
+  // Convert rating to number safely
+  const numericAverageRating = getNumericRating(averageRating);
+
   const productImages = (() => {
     if (!product.images) return ['/otherplaceholder.jpg'];
 
@@ -107,8 +120,8 @@ const ProductDetailsPage = ({
     return Math.round(((regular - sale) / regular) * 100);
   })();
 
-  const renderStars = (rating: number = averageRating) => {
-    const numericRating = typeof rating === 'number' ? rating : parseFloat(rating) || 0;
+  const renderStars = (rating: number) => {
+    const numericRating = getNumericRating(rating);
     const fullStars = Math.floor(numericRating);
     const hasHalfStar = numericRating % 1 >= 0.5;
 
@@ -207,7 +220,7 @@ const ProductDetailsPage = ({
     if (!comments || comments.length === 0) return 0;
     const ratings = comments.filter(c => c.rating !== null && c.rating !== undefined);
     if (ratings.length === 0) return 0;
-    const total = ratings.reduce((sum, c) => sum + (c.rating || 0), 0);
+    const total = ratings.reduce((sum, c) => sum + getNumericRating(c.rating || 0), 0);
     return Math.round((total / ratings.length) * 10) / 10;
   })();
 
@@ -349,7 +362,7 @@ const ProductDetailsPage = ({
                     {product.name}
                   </h1>
 
-                  {/* Store Info - Fixed: removed <p> wrapper */}
+                  {/* Store Info */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-full bg-marigold/10 flex items-center justify-center">
@@ -373,12 +386,12 @@ const ProductDetailsPage = ({
                     </div>
                   </div>
 
-                  {/* Rating - Fixed: removed <p> wrapper */}
+                  {/* Rating - Fixed: safe number handling */}
                   <div className="flex items-center flex-wrap gap-4 mb-6">
                     <div className="flex items-center space-x-2">
-                      {renderStars()}
+                      {renderStars(numericAverageRating)}
                       <span className="text-2xl font-bold text-ink">
-                        {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
+                        {numericAverageRating.toFixed(1)}
                       </span>
                     </div>
                     <span className="text-text-soft text-sm">
@@ -657,10 +670,10 @@ const ProductDetailsPage = ({
                               <span className="text-text-soft">Product Rating</span>
                               <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-0.5">
-                                  {renderStars(averageRating)}
+                                  {renderStars(numericAverageRating)}
                                 </div>
                                 <span className="font-medium text-ink">
-                                  {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
+                                  {numericAverageRating.toFixed(1)}
                                 </span>
                                 <span className="text-xs text-text-soft">({reviewCount} reviews)</span>
                               </div>
@@ -716,9 +729,9 @@ const ProductDetailsPage = ({
                       <h3 className="text-2xl font-bold text-ink mb-6">Customer Reviews</h3>
                       <div className="text-center py-8 bg-paper-dim rounded-xl border border-line">
                         <div className="flex items-center justify-center space-x-4 mb-4">
-                          {renderStars()}
+                          {renderStars(numericAverageRating)}
                           <span className="text-3xl font-bold text-ink">
-                            {typeof averageRating === 'number' ? averageRating.toFixed(1) : '0.0'}
+                            {numericAverageRating.toFixed(1)}
                           </span>
                         </div>
                         <p className="text-text-soft mb-6">
