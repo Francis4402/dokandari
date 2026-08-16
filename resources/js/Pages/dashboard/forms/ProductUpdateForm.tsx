@@ -1,3 +1,4 @@
+// EditProductForm.tsx
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { categoryType, storeType, Product } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -36,6 +37,8 @@ import {
 import { toast } from 'sonner';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import Eyebrow from '@/Pages/Components/Eyebrow';
+
 
 interface EditProductFormProps {
   auth: {
@@ -46,7 +49,6 @@ interface EditProductFormProps {
   product: Product;
 }
 
-// Custom Quill modules configuration
 const quillModules = {
   toolbar: [
     [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -102,7 +104,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
-  // Generate slug function
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -112,18 +113,14 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
       .trim();
   };
 
-  // Handle name change with auto slug generation
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setData('name', newName);
-
-    // Auto-generate slug only if slug is empty or matches the previously auto-generated pattern
     if (!data.slug || data.slug === generateSlug(product.name)) {
       setData('slug', generateSlug(newName));
     }
   };
 
-  // Parse subcategory from the selected category
   const parsesubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
     try {
@@ -133,9 +130,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     }
   };
 
-  // Initialize form data and existing images
   useEffect(() => {
-    // Parse existing images
     if (product.images) {
       try {
         const parsedImages = JSON.parse(product.images);
@@ -146,12 +141,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
       }
     }
 
-    // Show sale price if exists
     if (product.sale_price) {
       setShowSalePrice(true);
     }
 
-    // Initialize colors from product data
     if (product.color) {
       try {
         const parsedColors = JSON.parse(product.color);
@@ -168,14 +161,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     }
   }, [product]);
 
-  // Update available subcategory when category changes
   useEffect(() => {
     if (data.category) {
       const selectedCat = categories.find(cat => cat.categories === data.category);
       if (selectedCat && selectedCat.subcategory) {
         const subcategory = parsesubcategory(selectedCat.subcategory);
         setAvailablesubcategory(subcategory);
-
         if (data.subcategory && !subcategory.includes(data.subcategory)) {
           setData('subcategory', '');
         }
@@ -189,13 +180,11 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     }
   }, [data.category, categories]);
 
-  // Sync color inputs with form data
   useEffect(() => {
     const validColors = colorInputs.filter(color => color.trim() !== '');
     setData('color', validColors);
   }, [colorInputs]);
 
-  // Clean up object URLs
   useEffect(() => {
     return () => {
       imagePreviews.forEach(preview => {
@@ -206,7 +195,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     };
   }, []);
 
-  // Color input functions
   const addColorInput = () => {
     setColorInputs([...colorInputs, '']);
   };
@@ -220,7 +208,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
   const removeColorInput = (index: number) => {
     const newInputs = colorInputs.filter((_, i) => i !== index);
     setColorInputs(newInputs);
-
     if (newInputs.length === 0) {
       setColorInputs(['']);
     }
@@ -234,16 +221,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     const files = Array.from(e.target.files || []);
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
     const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
 
     if (oversizedFiles.length > 0) {
       toast.error(
         `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
-        {
-          duration: 5000,
-          position: 'top-center',
-        }
+        { duration: 5000, position: 'top-center' }
       );
       return;
     }
@@ -288,8 +271,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     e.preventDefault();
 
     const formData = new FormData();
-
-    // Add all form fields
     formData.append('name', data.name);
     formData.append('slug', data.slug);
     formData.append('category', data.category);
@@ -306,12 +287,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
 
-    // Add images
     data.images.forEach((file: File, index: number) => {
       formData.append(`images[${index}]`, file);
     });
 
-    // Add images to remove
     formData.append('images_to_remove', JSON.stringify(imagesToRemove));
     formData.append('_method', 'PUT');
 
@@ -335,7 +314,6 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
     field: keyof typeof data
   ) => {
     const value = e.target.value;
-
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setData(field, value as any);
     }
@@ -349,42 +327,38 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="max-w-7xl mx-auto p-5">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <FaEdit className="h-8 w-8 text-purple-600" />
-                Edit Product
-              </h1>
-              <p className="text-gray-600 mt-1 flex items-center gap-2">
-                <FaStore className="h-4 w-4" />
-                Update product in {store.name}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Product ID: {product.id}
-              </p>
-            </div>
-            <Link
-              href={route('dashboard.products')}
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaArrowLeft className="h-4 w-4 mr-2" />
-              Back to Products
-            </Link>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <Eyebrow>Update product information</Eyebrow>
+            <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Edit Product</h1>
+            <p className="text-text-soft mt-1 flex items-center gap-2">
+              <FaStore className="h-4 w-4 text-marigold" />
+              Update product in <span className="font-medium text-ink">{store.name}</span>
+            </p>
+            <p className="text-xs text-text-soft mt-1">
+              Product ID: <span className="font-mono">{product.id}</span>
+            </p>
           </div>
+          <Link
+            href={route('dashboard.products')}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-line text-text-soft hover:text-ink hover:bg-paper-dim font-medium rounded-xl transition-all duration-300"
+          >
+            <FaArrowLeft className="h-4 w-4" />
+            Back to Products
+          </Link>
         </div>
 
         {/* Store Status */}
-        <div className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="mb-6 bg-gradient-to-r from-marigold to-marigold-dark rounded-2xl shadow-hard-sm p-6 text-white border border-line/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-white/20">
                 <FaStore className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">Editing Product</h3>
+                <h3 className="font-display font-extrabold uppercase text-lg">Editing Product</h3>
                 <p className="opacity-90">
                   Updating product in: <span className="font-semibold">{store.name}</span>
                 </p>
@@ -402,10 +376,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
             {/* Left Column */}
             <div className="space-y-6">
               {/* Product Information Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaBox className="h-5 w-5 text-purple-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Information</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaBox className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Information</h2>
                 </div>
 
                 <div className="space-y-6">
@@ -413,18 +387,18 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Product Name */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaTag className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaTag className="h-4 w-4 text-marigold" />
                         Product Name <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
-                        <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="text"
                           value={data.name}
                           onChange={handleNameChange}
                           placeholder="Your Product Name"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                         />
                       </div>
                       {errors.name && (
@@ -437,19 +411,19 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                     {/* Slug Field */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaLink className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaLink className="h-4 w-4 text-marigold" />
                         Product Slug
                       </label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
-                          <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                           <input
                             type="text"
                             value={data.slug}
                             onChange={(e) => setData('slug', e.target.value)}
                             placeholder="premium-wireless-headphones"
-                            className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500"
+                            className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                           />
                         </div>
                         <button
@@ -460,13 +434,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             toast.success('Slug regenerated!');
                           }}
                           disabled={!data.name}
-                          className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-3 border border-line rounded-xl hover:bg-paper-dim transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-text-soft hover:text-ink"
                         >
                           <FaArrowRight className="h-4 w-4" />
                           Regenerate
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-text-soft mt-1">
                         Slug is automatically generated from the product name
                       </p>
                       {errors.slug && (
@@ -482,24 +456,24 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Main Category */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Main Category <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
+                          className="w-full rounded-xl border border-line px-4 py-3 text-left flex justify-between items-center hover:border-marigold transition-colors bg-white"
                         >
-                          <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
+                          <span className={data.category ? 'text-ink' : 'text-text-soft'}>
                             {data.category || 'Select main category'}
                           </span>
                           <FaChevronDown
-                            className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
+                            className={`h-5 w-5 text-text-soft transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
                           />
                         </button>
                         {showCategoryDropdown && (
-                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
                             {categories.map(cat => (
                               <button
                                 key={cat.id}
@@ -508,12 +482,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                                   setData('category', cat.categories);
                                   setShowCategoryDropdown(false);
                                 }}
-                                className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                  data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
+                                className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                  data.category === cat.categories ? 'bg-marigold/10 text-marigold' : 'text-ink'
                                 }`}
                               >
                                 {cat.categories}
-                                {data.category === cat.categories && <HiCheck className="h-5 w-5 text-purple-600" />}
+                                {data.category === cat.categories && <HiCheck className="h-5 w-5 text-marigold" />}
                               </button>
                             ))}
                           </div>
@@ -529,7 +503,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                     {/* Sub Category */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Sub Category
                       </label>
                       <div className="relative">
@@ -537,24 +511,24 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           type="button"
                           onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
                           disabled={!data.category}
-                          className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                          className={`w-full rounded-xl border px-4 py-3 text-left flex justify-between items-center transition-colors ${
                             !data.category
-                              ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                              : 'border-gray-300 hover:border-gray-400'
+                              ? 'border-line bg-paper-dim text-text-soft cursor-not-allowed'
+                              : 'border-line hover:border-marigold bg-white'
                           }`}
                         >
-                          <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
+                          <span className={data.subcategory ? 'text-ink' : 'text-text-soft'}>
                             {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
                           </span>
                           {data.category && (
                             <FaChevronDown
-                              className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                              className={`h-5 w-5 text-text-soft transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
                             />
                           )}
                         </button>
 
                         {data.category && showSubcategoryDropdown && (
-                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
                             {availablesubcategory.length > 0 ? (
                               availablesubcategory.map((subcat, index) => (
                                 <button
@@ -564,16 +538,16 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                                     setData('subcategory', subcat);
                                     setShowSubcategoryDropdown(false);
                                   }}
-                                  className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                    data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                  className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                    data.subcategory === subcat ? 'bg-marigold/10 text-marigold' : 'text-ink'
                                   }`}
                                 >
                                   {subcat}
-                                  {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                                  {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-marigold" />}
                                 </button>
                               ))
                             ) : (
-                              <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                              <div className="px-4 py-3 text-sm text-text-soft text-center">
                                 No subcategory available for this category
                               </div>
                             )}
@@ -593,18 +567,18 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Quantity */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaHashtag className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaHashtag className="h-4 w-4 text-marigold" />
                         Quantity <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="number"
                           min="0"
                           value={data.quantity}
                           onChange={(e) => handleNumberInput(e, 'quantity')}
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink"
                         />
                       </div>
                       {errors.quantity && (
@@ -617,12 +591,12 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                     {/* Item Weight */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaWeightHanging className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaWeightHanging className="h-4 w-4 text-marigold" />
                         Item Weight (kg) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="number"
                           min="0"
@@ -630,7 +604,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           value={data.item_weight}
                           onChange={(e) => handleNumberInput(e, 'item_weight')}
                           placeholder="0.5"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                         />
                       </div>
                       {errors.item_weight && (
@@ -644,21 +618,21 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                   {/* Row 4: Colors */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Colors <span className="text-xs font-normal text-gray-500">(Add multiple)</span>
+                    <label className="block text-sm font-medium text-ink mb-2">
+                      Colors <span className="text-xs font-normal text-text-soft">(Add multiple)</span>
                     </label>
 
                     <div className="space-y-2">
                       {colorInputs.map((color, index) => (
                         <div key={index} className="flex gap-2">
                           <div className="relative flex-1">
-                            <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                             <input
                               type="text"
                               value={color}
                               onChange={(e) => updateColorInput(index, e.target.value)}
                               placeholder="Enter color name..."
-                              className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                             />
                           </div>
 
@@ -666,7 +640,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             <button
                               type="button"
                               onClick={addColorInput}
-                              className="px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                              className="px-4 py-3 bg-marigold text-white font-medium rounded-xl hover:bg-marigold-dark transition-colors flex items-center gap-2 hover:shadow-lg"
                             >
                               <FaPlus className="h-4 w-4" />
                               Add
@@ -675,7 +649,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             <button
                               type="button"
                               onClick={() => removeColorInput(index)}
-                              className="px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                              className="px-4 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
                             >
                               <FaTimes className="h-4 w-4" />
                               Remove
@@ -689,7 +663,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     {getValidColors().length > 0 && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">
+                          <span className="text-sm font-medium text-ink">
                             Added Colors ({getValidColors().length})
                           </span>
                           <button
@@ -705,11 +679,9 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           {getValidColors().map((color, index) => (
                             <div
                               key={index}
-                              className="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-lg"
+                              className="inline-flex items-center px-3 py-1.5 bg-paper-dim border border-line rounded-xl"
                             >
-                              <span className="text-sm font-medium text-gray-800">
-                                {color}
-                              </span>
+                              <span className="text-sm font-medium text-ink">{color}</span>
                             </div>
                           ))}
                         </div>
@@ -726,7 +698,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
 
                   {/* Row 5: Rating */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
                       <FaStar className="h-4 w-4 text-yellow-500" />
                       Rating (0-5)
                     </label>
@@ -740,7 +712,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         value={data.rating}
                         onChange={(e) => handleNumberInput(e, 'rating')}
                         placeholder="0.0"
-                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                       />
                     </div>
                     {errors.rating && (
@@ -754,21 +726,21 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
               </div>
 
               {/* Pricing Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaDollarSign className="h-5 w-5 text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Pricing</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaDollarSign className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Pricing</h2>
                 </div>
 
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Regular Price */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Regular Price ($) <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
-                        <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="number"
                           step="0.01"
@@ -776,7 +748,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                           value={data.regular_price}
                           onChange={(e) => handleNumberInput(e, 'regular_price')}
                           placeholder="99.99"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                         />
                       </div>
                       {errors.regular_price && (
@@ -790,8 +762,8 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     {/* Sale Price */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                          <FaPercent className="h-4 w-4" />
+                        <label className="text-sm font-medium text-ink flex items-center gap-2">
+                          <FaPercent className="h-4 w-4 text-marigold" />
                           Sale Price ($)
                         </label>
                         <div className="flex items-center gap-2">
@@ -803,9 +775,9 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                               setShowSalePrice(e.target.checked);
                               if (!e.target.checked) setData('sale_price', '');
                             }}
-                            className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            className="h-4 w-4 rounded border-line text-marigold focus:ring-marigold"
                           />
-                          <label htmlFor="enable_sale" className="text-sm text-gray-600">
+                          <label htmlFor="enable_sale" className="text-sm text-text-soft">
                             Enable
                           </label>
                         </div>
@@ -814,7 +786,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       {showSalePrice && (
                         <div>
                           <div className="relative">
-                            <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                             <input
                               type="number"
                               step="0.01"
@@ -823,7 +795,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                               value={data.sale_price}
                               onChange={(e) => handleNumberInput(e, 'sale_price')}
                               placeholder="79.99"
-                              className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold bg-white text-ink placeholder:text-text-soft"
                             />
                           </div>
                           {data.regular_price && data.sale_price && discountPercentage > 0 && (
@@ -832,7 +804,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                                 <FaPercent className="h-3 w-3 mr-1" />
                                 Save {discountPercentage}%
                               </span>
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-text-soft">
                                 Save ${(parseFloat(data.regular_price) - parseFloat(data.sale_price)).toFixed(2)}
                               </span>
                             </div>
@@ -851,10 +823,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
               </div>
 
               {/* Description Card with Quill.js */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaBookOpen className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaBookOpen className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Description</h2>
                 </div>
 
                 <div>
@@ -868,10 +840,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     className="h-64 mb-12"
                   />
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-gray-500">
-                      <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
+                    <p className="text-xs text-text-soft">
+                      <span className="font-medium text-ink">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-text-soft">
                       Use the toolbar to format your text with rich styling
                     </p>
                   </div>
@@ -889,11 +861,11 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
             {/* Right Column */}
             <div className="space-y-6">
               {/* Images Upload Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaImage className="h-5 w-5 text-orange-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Images</h2>
-                  <span className="text-xs text-gray-500">
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaImage className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Images</h2>
+                  <span className="text-xs text-text-soft ml-1">
                     ({existingImages.length + data.images.length} total)
                   </span>
                 </div>
@@ -909,7 +881,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   />
 
                   <div className="mb-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">Existing Images</h3>
+                    <h3 className="text-sm font-medium text-ink mb-3">Existing Images</h3>
                     {existingImages.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {existingImages.map((img, i) => (
@@ -917,7 +889,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             <img
                               src={`/storage/${img}`}
                               alt={`Product ${i + 1}`}
-                              className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                              className="w-full h-32 object-cover rounded-xl group-hover:opacity-75 transition-opacity border border-line"
                               onError={(e) => {
                                 e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
                               }}
@@ -931,7 +903,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                               <FaTrash className="h-3 w-3" />
                             </button>
                             {imagesToRemove.includes(img) && (
-                              <div className="absolute inset-0 bg-red-500 bg-opacity-50 rounded-lg flex items-center justify-center">
+                              <div className="absolute inset-0 bg-red-500 bg-opacity-50 rounded-xl flex items-center justify-center">
                                 <span className="text-white text-sm font-semibold">Removed</span>
                               </div>
                             )}
@@ -939,7 +911,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">No existing images</p>
+                      <p className="text-sm text-text-soft">No existing images</p>
                     )}
                   </div>
 
@@ -947,30 +919,30 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     onClick={() => imagesInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                       data.images.length === 0
-                        ? 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                        : 'border-gray-200'
+                        ? 'border-line hover:border-marigold hover:bg-marigold/5'
+                        : 'border-line'
                     }`}
                   >
                     {data.images.length === 0 ? (
                       <div className="space-y-4">
-                        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
-                          <FaUpload className="h-10 w-10 text-purple-500" />
+                        <div className="mx-auto w-20 h-20 rounded-full bg-marigold/10 flex items-center justify-center">
+                          <FaUpload className="h-10 w-10 text-marigold" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">Click to add more images</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB each</p>
+                          <p className="text-sm font-medium text-ink">Click to add more images</p>
+                          <p className="text-xs text-text-soft mt-1">PNG, JPG up to 5MB each</p>
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-gray-700">New Images to Add</h3>
+                        <h3 className="text-sm font-medium text-ink">New Images to Add</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                           {imagePreviews.slice(existingImages.length).map((preview, i) => (
                             <div key={i + existingImages.length} className="relative group">
                               <img
                                 src={preview}
                                 alt={`New image ${i + 1}`}
-                                className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                                className="w-full h-32 object-cover rounded-xl group-hover:opacity-75 transition-opacity border border-line"
                               />
                               <button
                                 type="button"
@@ -986,13 +958,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             </div>
                           ))}
                         </div>
-                        <p className="text-sm text-gray-600">Click to add more images</p>
+                        <p className="text-sm text-text-soft">Click to add more images</p>
                       </div>
                     )}
                   </div>
 
                   {imagesToRemove.length > 0 && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
                       <p className="text-sm text-yellow-800">
                         <FaInfoCircle className="inline h-4 w-4 mr-1" />
                         {imagesToRemove.length} image(s) will be removed on update
@@ -1001,8 +973,8 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   )}
 
                   {data.images.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
-                      <FaImage className="h-3 w-3" />
+                    <p className="text-xs text-text-soft mt-3 flex items-center gap-1">
+                      <FaImage className="h-3 w-3 text-marigold" />
                       {data.images.length} new image(s) to add
                     </p>
                   )}
@@ -1016,10 +988,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
               </div>
 
               {/* Stock Status Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaShoppingCart className="h-5 w-5 text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Stock Status</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaShoppingCart className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Stock Status</h2>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1028,10 +1000,10 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     id="inStock"
                     checked={data.inStock}
                     onChange={(e) => setData('inStock', e.target.checked)}
-                    className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="h-5 w-5 rounded border-line text-marigold focus:ring-marigold"
                   />
-                  <label htmlFor="inStock" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <FaBox className="h-4 w-4" />
+                  <label htmlFor="inStock" className="text-sm font-medium text-ink flex items-center gap-2">
+                    <FaBox className="h-4 w-4 text-marigold" />
                     In Stock
                   </label>
                 </div>
@@ -1044,14 +1016,14 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
               </div>
 
               {/* Preview Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaEye className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Preview</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaEye className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Preview</h2>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="border border-gray-200 rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="border border-line rounded-xl overflow-hidden group hover:shadow-hard-sm transition-shadow">
                     {imagePreviews[0] ? (
                       <div className="relative">
                         <img
@@ -1066,21 +1038,20 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         )}
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors">
-                        <FaBox className="h-16 w-16 text-gray-400 group-hover:text-gray-500 transition-colors" />
+                      <div className="w-full h-48 bg-paper-dim flex items-center justify-center group-hover:bg-paper-dim/80 transition-colors">
+                        <FaBox className="h-16 w-16 text-text-soft" />
                       </div>
                     )}
                     <div className="p-4">
-                      <h3 className="font-bold text-gray-800 truncate">
+                      <h3 className="font-bold text-ink truncate">
                         {data.name || 'Product Name'}
                       </h3>
 
-                      {/* Category and Color display */}
                       <div className="space-y-2 mt-2">
                         {/* Categories */}
                         <div className="flex flex-wrap gap-1">
                           {data.category && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-marigold/10 text-marigold">
                               {data.category}
                             </span>
                           )}
@@ -1097,13 +1068,13 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                             {getValidColors().slice(0, 3).map((color, index) => (
                               <span
                                 key={index}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-paper-dim text-ink border border-line"
                               >
                                 {color}
                               </span>
                             ))}
                             {getValidColors().length > 3 && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-text-soft">
                                 +{getValidColors().length - 3} more
                               </span>
                             )}
@@ -1115,19 +1086,19 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       <div className="mt-2">
                         {data.sale_price ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-green-600">
+                            <span className="text-xl font-bold text-marigold">
                               ${parseFloat(data.sale_price).toFixed(2)}
                             </span>
-                            <span className="text-sm text-gray-500 line-through">
+                            <span className="text-sm text-text-soft line-through">
                               ${parseFloat(data.regular_price).toFixed(2)}
                             </span>
                           </div>
                         ) : data.regular_price ? (
-                          <span className="text-xl font-bold text-gray-800">
+                          <span className="text-xl font-bold text-ink">
                             ${parseFloat(data.regular_price).toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-xl font-bold text-gray-400">
+                          <span className="text-xl font-bold text-text-soft">
                             $0.00
                           </span>
                         )}
@@ -1139,15 +1110,15 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                         }`}>
                           {data.inStock ? 'In Stock' : 'Out of Stock'}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-text-soft">
                           Qty: {data.quantity || 0}
                         </span>
                       </div>
 
                       {/* Weight and Rating */}
-                      <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                      <div className="flex items-center justify-between mt-2 text-xs text-text-soft">
                         <span className="flex items-center gap-1">
-                          <FaWeightHanging className="h-3 w-3" />
+                          <FaWeightHanging className="h-3 w-3 text-marigold" />
                           {data.item_weight || 0}kg
                         </span>
                         <span className="flex items-center gap-1">
@@ -1157,7 +1128,7 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                       </div>
 
                       {data.slug && (
-                        <div className="mt-2 text-xs text-gray-500 truncate flex items-center gap-1">
+                        <div className="mt-2 text-xs text-text-soft truncate flex items-center gap-1">
                           <FaLink className="h-3 w-3" />
                           {data.slug}
                         </div>
@@ -1165,60 +1136,60 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t border-line">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaStore className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaStore className="h-3 w-3 text-marigold" />
                           Store
                         </span>
-                        <span className="font-medium text-gray-800">{store.name}</span>
+                        <span className="font-medium text-ink">{store.name}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaBox className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaBox className="h-3 w-3 text-marigold" />
                           Categories
                         </span>
                         <div className="text-right">
-                          <div className="font-medium text-gray-800">{data.category || 'None'}</div>
+                          <div className="font-medium text-ink">{data.category || 'None'}</div>
                           {data.subcategory && (
-                            <div className="text-xs text-gray-500">{data.subcategory}</div>
+                            <div className="text-xs text-text-soft">{data.subcategory}</div>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaTag className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaTag className="h-3 w-3 text-marigold" />
                           Colors
                         </span>
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-ink">
                           {getValidColors().length || 'None'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaImage className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaImage className="h-3 w-3 text-marigold" />
                           Total Images
                         </span>
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-ink">
                           {existingImages.length + data.images.length} ({imagesToRemove.length} to remove)
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaWeightHanging className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaWeightHanging className="h-3 w-3 text-marigold" />
                           Weight
                         </span>
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-ink">
                           {data.item_weight || 0}kg
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
+                        <span className="text-text-soft flex items-center gap-2">
                           <FaStar className="h-3 w-3 text-yellow-500" />
                           Rating
                         </span>
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-ink">
                           {parseFloat(data.rating).toFixed(1) || '0.0'}
                         </span>
                       </div>
@@ -1228,11 +1199,11 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
               </div>
 
               {/* Action Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
                 <button
                   type="submit"
                   disabled={processing || !data.name || !data.category || !data.regular_price || !data.description}
-                  className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+                  className="w-full bg-gray-900 hover:bg-marigold text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {processing ? (
                     <>
@@ -1247,30 +1218,30 @@ export default function EditProductForm({ auth, store, categories, product }: Ed
                   )}
                 </button>
 
-                <div className="mt-6 pt-6 border-t">
-                  <div className="text-xs text-gray-500 space-y-2">
+                <div className="mt-6 pt-6 border-t border-line">
+                  <div className="text-xs text-text-soft space-y-2">
                     <p className="flex items-center gap-2">
-                      <FaInfoCircle className="h-3 w-3" />
-                      <span>Product will be updated in: <span className="font-medium text-gray-700">{store.name}</span></span>
+                      <FaInfoCircle className="h-3 w-3 text-marigold" />
+                      <span>Product will be updated in: <span className="font-medium text-ink">{store.name}</span></span>
                     </p>
                     <p className="flex items-center gap-2">
                       <HiOutlineExclamationCircle className="h-3 w-3" />
                       <span>All required fields marked with * must be filled</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaPercent className="h-3 w-3" />
+                      <FaPercent className="h-3 w-3 text-marigold" />
                       <span>Remove sale price by unchecking "Enable Sale Price"</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaImage className="h-3 w-3" />
+                      <FaImage className="h-3 w-3 text-marigold" />
                       <span>Click on existing images to remove them</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaPalette className="h-3 w-3" />
+                      <FaPalette className="h-3 w-3 text-marigold" />
                       <span>Add colors by entering names and clicking Add</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaBookOpen className="h-3 w-3" />
+                      <FaBookOpen className="h-3 w-3 text-marigold" />
                       <span>Rich text editor allows formatted product descriptions</span>
                     </p>
                   </div>

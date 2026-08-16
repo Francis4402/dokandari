@@ -1,3 +1,4 @@
+// CreateStoreForm.tsx
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { PageProps } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -28,6 +29,7 @@ import {
 } from 'react-icons/hi2';
 import { FaAddressBook } from "react-icons/fa6";
 import { toast } from 'sonner';
+import Eyebrow from '@/Pages/Components/Eyebrow';
 
 
 const STORE_TYPES = [
@@ -63,22 +65,21 @@ export default function CreateStoreForm({auth}: PageProps) {
     mobile: ''
   });
 
-    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Logo must be less than 5MB');
+      e.target.value = '';
+      return;
+    }
 
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Logo must be less than 5MB');
-            e.target.value = '';
-            return;
-        }
-
-        setData('logo', file);
-        const preview = URL.createObjectURL(file);
-        setLogoPreview(preview);
-        toast.success('Logo uploaded successfully!');
-    };
+    setData('logo', file);
+    const preview = URL.createObjectURL(file);
+    setLogoPreview(preview);
+    toast.success('Logo uploaded successfully!');
+  };
 
   const removeLogo = () => {
     if (logoPreview) URL.revokeObjectURL(logoPreview);
@@ -104,21 +105,18 @@ export default function CreateStoreForm({auth}: PageProps) {
       onSuccess: () => {
         toast.success('Store created successfully!');
         router.visit(route('dashboard.store'));
-        // Reset form
         reset();
         if (logoPreview) URL.revokeObjectURL(logoPreview);
         setLogoPreview(null);
         setShowStoreTypeDropdown(false);
-
-        // Set default values
         setData({
-            name: '',
-            logo: null,
-            storetype: '',
-            address: '',
-            license: '',
-            national_id: '',
-            mobile: ''
+          name: '',
+          logo: null,
+          storetype: '',
+          address: '',
+          license: '',
+          national_id: '',
+          mobile: ''
         });
       },
       onError: () => {
@@ -126,7 +124,6 @@ export default function CreateStoreForm({auth}: PageProps) {
       }
     });
   };
-
 
   React.useEffect(() => {
     return () => {
@@ -142,53 +139,47 @@ export default function CreateStoreForm({auth}: PageProps) {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="max-w-4xl mx-auto p-5">
+      <div className="max-w-4xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <FaStore className="h-8 w-8 text-purple-600" />
-                Create Your Store
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Set up your online store to start selling products
-              </p>
-            </div>
-            <button
-              onClick={() => window.history.back()}
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
-            </button>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <Eyebrow>Start your online business</Eyebrow>
+            <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Create Your Store</h1>
+            <p className="text-text-soft mt-1">Set up your online store to start selling products</p>
           </div>
+          <button
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-line text-text-soft hover:text-ink hover:bg-paper-dim font-medium rounded-xl transition-all duration-300"
+          >
+            <FaArrowLeft className="h-4 w-4" />
+            Go Back
+          </button>
         </div>
 
         {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Store Information Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-              <FaBuilding className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Store Information</h2>
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+              <FaBuilding className="h-5 w-5 text-marigold" />
+              <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Store Information</h2>
             </div>
 
             <div className="space-y-6">
               {/* Store Name */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaTag className="h-4 w-4" />
+                <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                  <FaTag className="h-4 w-4 text-marigold" />
                   Store Name <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <FaStore className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaStore className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                   <input
                     type="text"
                     value={data.name}
                     onChange={(e) => setData('name', e.target.value)}
                     placeholder="e.g., My Awesome Store"
-                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                     disabled={processing}
                   />
                 </div>
@@ -198,25 +189,26 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.name}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-text-soft mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Choose a unique name that represents your brand
                 </p>
               </div>
 
+              {/* Address */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaAddressBook className="h-4 w-4" />
+                <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                  <FaAddressBook className="h-4 w-4 text-marigold" />
                   Address <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <FaBuilding className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaBuilding className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                   <input
                     type="text"
                     value={data.address}
                     onChange={(e) => setData('address', e.target.value)}
                     placeholder="Address of your store"
-                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                     disabled={processing}
                   />
                 </div>
@@ -226,25 +218,26 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.address}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-text-soft mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Enter the full address of your store
                 </p>
               </div>
 
+              {/* Mobile */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaMobile className="h-4 w-4" />
+                <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                  <FaMobile className="h-4 w-4 text-marigold" />
                   Mobile <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <FaMobileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaMobileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                   <input
-                    type="number"
+                    type="tel"
                     value={data.mobile}
                     onChange={(e) => setData('mobile', e.target.value)}
                     placeholder="Enter your mobile number"
-                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                     disabled={processing}
                   />
                 </div>
@@ -254,7 +247,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.mobile}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-text-soft mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Enter your mobile number
                 </p>
@@ -262,24 +255,24 @@ export default function CreateStoreForm({auth}: PageProps) {
 
               {/* Store Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink mb-2">
                   Store Type <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowStoreTypeDropdown(!showStoreTypeDropdown)}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
+                    className="w-full rounded-xl border border-line px-4 py-3 text-left flex justify-between items-center hover:border-marigold transition-colors bg-white"
                     disabled={processing}
                   >
-                    <span className={data.storetype ? 'text-gray-800' : 'text-gray-400'}>
+                    <span className={data.storetype ? 'text-ink' : 'text-text-soft'}>
                       {data.storetype || 'Select store type'}
                     </span>
-                    <FaCheck className="h-5 w-5 text-gray-400" />
+                    <FaCheck className="h-5 w-5 text-text-soft" />
                   </button>
 
                   {showStoreTypeDropdown && (
-                    <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                    <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
                       {STORE_TYPES.map(type => (
                         <button
                           key={type}
@@ -288,12 +281,12 @@ export default function CreateStoreForm({auth}: PageProps) {
                             setData('storetype', type);
                             setShowStoreTypeDropdown(false);
                           }}
-                          className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                            data.storetype === type ? 'bg-purple-50 text-purple-700' : ''
+                          className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                            data.storetype === type ? 'bg-marigold/10 text-marigold' : 'text-ink'
                           }`}
                         >
                           {type}
-                          {data.storetype === type && <FaCheckCircle className="h-5 w-5 text-purple-600" />}
+                          {data.storetype === type && <FaCheckCircle className="h-5 w-5 text-marigold" />}
                         </button>
                       ))}
                     </div>
@@ -305,7 +298,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.storetype}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-text-soft mt-1">
                   Select the category that best describes your business
                 </p>
               </div>
@@ -313,11 +306,11 @@ export default function CreateStoreForm({auth}: PageProps) {
           </div>
 
           {/* Store Logo Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-              <FaImage className="h-5 w-5 text-orange-600" />
-              <h2 className="text-xl font-bold text-gray-800">Store Logo</h2>
-              <span className="ml-2 text-xs text-gray-500">(Optional)</span>
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+              <FaImage className="h-5 w-5 text-marigold" />
+              <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Store Logo</h2>
+              <span className="ml-2 text-xs text-text-soft">(Optional)</span>
             </div>
 
             <div>
@@ -337,23 +330,23 @@ export default function CreateStoreForm({auth}: PageProps) {
                     onClick={() => logoInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                       !logoPreview
-                        ? 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                        : 'border-gray-200'
+                        ? 'border-line hover:border-marigold hover:bg-marigold/5'
+                        : 'border-line'
                     } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {!logoPreview ? (
                       <div className="space-y-4">
-                        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
-                          <FaUpload className="h-10 w-10 text-purple-500" />
+                        <div className="mx-auto w-20 h-20 rounded-full bg-marigold/10 flex items-center justify-center">
+                          <FaUpload className="h-10 w-10 text-marigold" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">Upload Store Logo</p>
-                          <p className="text-xs text-gray-500 mt-1">Any image format accepted</p>
+                          <p className="text-sm font-medium text-ink">Upload Store Logo</p>
+                          <p className="text-xs text-text-soft mt-1">Any image format accepted</p>
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="relative group">
+                        <div className="relative group inline-block">
                           <img
                             src={logoPreview}
                             alt="Logo preview"
@@ -371,7 +364,7 @@ export default function CreateStoreForm({auth}: PageProps) {
                             <FaTimes className="h-3 w-3" />
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600">Click to change logo</p>
+                        <p className="text-sm text-text-soft">Click to change logo</p>
                       </div>
                     )}
                   </div>
@@ -379,26 +372,26 @@ export default function CreateStoreForm({auth}: PageProps) {
 
                 {/* Logo Requirements */}
                 <div className="flex-1">
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
-                    <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                      <FaInfoCircle className="h-4 w-4 text-blue-600" />
+                  <div className="bg-paper-dim rounded-xl p-4 border border-line">
+                    <h3 className="text-sm font-medium text-ink mb-2 flex items-center gap-2">
+                      <FaInfoCircle className="h-4 w-4 text-marigold" />
                       Logo Tips
                     </h3>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <ul className="text-xs text-text-soft space-y-1">
                       <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                         Square or circle format works best
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                         Transparent background recommended
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                         High contrast for better visibility
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                         All image formats accepted
                       </li>
                     </ul>
@@ -415,28 +408,28 @@ export default function CreateStoreForm({auth}: PageProps) {
             </div>
           </div>
 
-          {/* Business License Card - Changed to text input */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-              <FaCertificate className="h-5 w-5 text-green-600" />
-              <h2 className="text-xl font-bold text-gray-800">Business License</h2>
-              <span className="ml-2 text-xs text-gray-500">(Optional)</span>
+          {/* Business License Card */}
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+              <FaCertificate className="h-5 w-5 text-marigold" />
+              <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Business License</h2>
+              <span className="ml-2 text-xs text-text-soft">(Optional)</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaKey className="h-4 w-4" />
+                <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                  <FaKey className="h-4 w-4 text-marigold" />
                   License Number
                 </label>
                 <div className="relative">
-                  <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                   <input
-                    type="number"
+                    type="text"
                     value={data.license}
                     onChange={(e) => setData('license', e.target.value)}
                     placeholder="e.g., LIC-12345-ABCDE"
-                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                     disabled={processing}
                   />
                 </div>
@@ -446,37 +439,37 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.license}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-text-soft mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Enter your official business license number
                 </p>
-            </div>
+              </div>
 
               {/* License Information */}
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
-                <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                  <FaInfoCircle className="h-4 w-4 text-green-600" />
+              <div className="bg-paper-dim rounded-xl p-4 border border-line">
+                <h3 className="text-sm font-medium text-ink mb-2 flex items-center gap-2">
+                  <FaInfoCircle className="h-4 w-4 text-marigold" />
                   Why Provide License Number?
                 </h3>
-                <ul className="text-xs text-gray-600 space-y-1">
+                <ul className="text-xs text-text-soft space-y-1">
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Builds trust with customers
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Required for certain product categories
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Enables special business features
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Helps with payment processing
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Your information is securely stored
                   </li>
                 </ul>
@@ -484,27 +477,28 @@ export default function CreateStoreForm({auth}: PageProps) {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-              <FaIdCard className="h-5 w-5 text-red-600" />
-              <h2 className="text-xl font-bold text-gray-800">National ID Verification</h2>
+          {/* National ID Verification Card */}
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+              <FaIdCard className="h-5 w-5 text-marigold" />
+              <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">National ID Verification</h2>
               <span className="ml-2 text-xs text-red-500">(Required)</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <FaUser className="h-4 w-4" />
+                <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                  <FaUser className="h-4 w-4 text-marigold" />
                   National ID Number <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <FaIdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <FaIdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                   <input
-                    type="number"
+                    type="text"
                     value={data.national_id}
                     onChange={(e) => setData('national_id', e.target.value)}
                     placeholder="e.g., 1234567890123"
-                    className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                     disabled={processing}
                   />
                 </div>
@@ -514,41 +508,41 @@ export default function CreateStoreForm({auth}: PageProps) {
                     {errors.national_id}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-text-soft mt-1 flex items-center gap-1">
                   <FaInfoCircle className="h-3 w-3" />
                   Enter your government-issued National ID number
                 </p>
               </div>
 
               {/* National ID Information */}
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-100">
-                <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                  <FaInfoCircle className="h-4 w-4 text-red-600" />
+              <div className="bg-paper-dim rounded-xl p-4 border border-line">
+                <h3 className="text-sm font-medium text-ink mb-2 flex items-center gap-2">
+                  <FaInfoCircle className="h-4 w-4 text-marigold" />
                   Why We Need Your National ID?
                 </h3>
-                <ul className="text-xs text-gray-600 space-y-1">
+                <ul className="text-xs text-text-soft space-y-1">
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Identity verification for store ownership
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Required by government regulations for businesses
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Prevents fraudulent store creation
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Secure payment processing compliance
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-marigold" />
                     Your data is encrypted and protected
                   </li>
                 </ul>
-                <div className="mt-3 pt-3 border-t border-red-200">
+                <div className="mt-3 pt-3 border-t border-line">
                   <div className="flex items-start gap-2">
                     <FaExclamationTriangle className="h-3 w-3 text-orange-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-orange-700">
@@ -561,40 +555,40 @@ export default function CreateStoreForm({auth}: PageProps) {
           </div>
 
           {/* Store Preview Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-              <FaCheckCircle className="h-5 w-5 text-purple-600" />
-              <h2 className="text-xl font-bold text-gray-800">Store Preview</h2>
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+              <FaCheckCircle className="h-5 w-5 text-marigold" />
+              <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Store Preview</h2>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="flex items-center gap-4 p-4 border border-line rounded-xl bg-paper-dim">
                 {logoPreview ? (
                   <img
                     src={logoPreview}
                     alt="Store logo"
-                    className="w-16 h-16 rounded-lg object-cover border"
+                    className="w-16 h-16 rounded-xl object-cover border border-line"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
-                    <FaStore className="h-8 w-8 text-purple-400" />
+                  <div className="w-16 h-16 rounded-xl bg-marigold/10 flex items-center justify-center">
+                    <FaStore className="h-8 w-8 text-marigold" />
                   </div>
                 )}
                 <div>
-                  <h3 className="font-bold text-lg text-gray-800">
+                  <h3 className="font-bold text-lg text-ink">
                     {data.name || 'Your Store Name'}
                   </h3>
                   {data.storetype && (
-                    <p className="text-sm text-gray-600">{data.storetype}</p>
+                    <p className="text-sm text-text-soft">{data.storetype}</p>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border border-gray-200 rounded-lg">
+                <div className="p-4 border border-line rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaStore className="h-4 w-4 text-blue-600" />
-                    <h4 className="text-sm font-medium text-gray-700">Store Status</h4>
+                    <FaStore className="h-4 w-4 text-marigold" />
+                    <h4 className="text-sm font-medium text-ink">Store Status</h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -602,10 +596,10 @@ export default function CreateStoreForm({auth}: PageProps) {
                   </div>
                 </div>
 
-                <div className="p-4 border border-gray-200 rounded-lg">
+                <div className="p-4 border border-line rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaCertificate className="h-4 w-4 text-green-600" />
-                    <h4 className="text-sm font-medium text-gray-700">Verification</h4>
+                    <FaCertificate className="h-4 w-4 text-marigold" />
+                    <h4 className="text-sm font-medium text-ink">Verification</h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className={`h-2 w-2 rounded-full ${data.license ? 'bg-green-500' : 'bg-yellow-500'}`} />
@@ -619,11 +613,11 @@ export default function CreateStoreForm({auth}: PageProps) {
           </div>
 
           {/* Action Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
             <button
               type="submit"
               disabled={processing}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+              className="w-full bg-gray-900 hover:bg-marigold text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {processing ? (
                 <>
@@ -638,22 +632,22 @@ export default function CreateStoreForm({auth}: PageProps) {
               )}
             </button>
 
-            <div className="mt-6 pt-6 border-t">
-              <div className="text-xs text-gray-500 space-y-2">
+            <div className="mt-6 pt-6 border-t border-line">
+              <div className="text-xs text-text-soft space-y-2">
                 <p className="flex items-center gap-2">
-                  <FaInfoCircle className="h-3 w-3" />
+                  <FaInfoCircle className="h-3 w-3 text-marigold" />
                   <span>Store name must be unique across the platform</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaExclamationTriangle className="h-3 w-3" />
+                  <FaExclamationTriangle className="h-3 w-3 text-orange-500" />
                   <span>You can only have one active store per account</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaCheckCircle className="h-3 w-3" />
+                  <FaCheckCircle className="h-3 w-3 text-green-500" />
                   <span>After creation, you can add products immediately</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaCertificate className="h-3 w-3" />
+                  <FaCertificate className="h-3 w-3 text-marigold" />
                   <span>License verification may take 1-2 business days</span>
                 </p>
               </div>

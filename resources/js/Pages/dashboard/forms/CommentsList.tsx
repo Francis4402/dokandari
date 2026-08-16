@@ -1,5 +1,4 @@
 // dashboard/forms/CommentsList.tsx
-
 import { FaUser, FaClock, FaEdit, FaTrash, FaTimes, FaCheck, FaStar, FaRegStar, FaExclamation } from "react-icons/fa";
 import { useState, Fragment } from "react";
 import { router } from "@inertiajs/react";
@@ -34,8 +33,6 @@ export default function CommentsList({
     const [editRating, setEditRating] = useState<number>(0);
     const [editHoverRating, setEditHoverRating] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<Record<string, boolean>>({});
-
-    // Delete dialog state
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
@@ -54,7 +51,6 @@ export default function CommentsList({
         setImageErrors(prev => ({ ...prev, [commentId]: true }));
     };
 
-    // Get user initials for avatar fallback
     const getUserInitials = (name: string) => {
         return name
             .split(' ')
@@ -64,7 +60,6 @@ export default function CommentsList({
             .slice(0, 2);
     };
 
-    // Generate a consistent color based on user id
     const getUserColor = (userId: string) => {
         const colors = [
             'from-blue-500 to-blue-600',
@@ -81,7 +76,6 @@ export default function CommentsList({
         return colors[index];
     };
 
-    // Render rating stars
     const renderRatingStars = (rating: number | null, size: 'sm' | 'md' = 'sm') => {
         if (!rating) return null;
 
@@ -102,19 +96,16 @@ export default function CommentsList({
         );
     };
 
-    // Open delete confirmation dialog
     const openDeleteDialog = (commentId: string) => {
         setCommentToDelete(commentId);
         setIsDeleteDialogOpen(true);
     };
 
-    // Close delete dialog
     const closeDeleteDialog = () => {
         setIsDeleteDialogOpen(false);
         setCommentToDelete(null);
     };
 
-    // Handle delete comment
     const handleDelete = () => {
         if (!commentToDelete) return;
 
@@ -138,21 +129,18 @@ export default function CommentsList({
         });
     };
 
-    // Start editing a comment
     const startEditing = (comment: Comments) => {
         setEditingCommentId(comment.id);
         setEditText(comment.comment || "");
         setEditRating(comment.rating || 0);
     };
 
-    // Cancel editing
     const cancelEditing = () => {
         setEditingCommentId(null);
         setEditText("");
         setEditRating(0);
     };
 
-    // Handle update comment
     const handleUpdate = (commentId: string) => {
         if (!editText.trim() && editRating === 0) {
             toast.error('Please provide a comment or rating');
@@ -190,7 +178,9 @@ export default function CommentsList({
 
     return (
         <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Reviews & Comments ({comments.length})</h3>
+            <h3 className="text-2xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink mb-6">
+                Reviews & Comments ({comments.length})
+            </h3>
 
             <CommentForm
                 productId={productId}
@@ -211,7 +201,7 @@ export default function CommentsList({
                         return (
                             <div
                                 key={comment.id}
-                                className="bg-gray-50 rounded-lg p-4 comment-enter hover:bg-gray-100 transition-colors"
+                                className="bg-paper-dim rounded-xl p-4 comment-enter hover:bg-paper-dim/80 transition-colors border border-line"
                             >
                                 <div className="flex space-x-3">
                                     {/* User Image */}
@@ -222,11 +212,11 @@ export default function CommentsList({
                                                     ? comment.user.images
                                                     : `/storage/${comment.user.images}`}
                                                 alt={comment.user.name || 'User image'}
-                                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                                                className="w-10 h-10 rounded-full object-cover border-2 border-line shadow-hard-sm"
                                                 onError={() => handleImageError(comment.id)}
                                             />
                                         ) : (
-                                            <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${userColor} flex items-center justify-center shadow-sm`}>
+                                            <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${userColor} flex items-center justify-center shadow-hard-sm`}>
                                                 {comment.user?.name ? (
                                                     <span className="text-white text-sm font-medium">
                                                         {userInitials}
@@ -242,15 +232,15 @@ export default function CommentsList({
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
                                             <div className="flex items-center space-x-2">
-                                                <h4 className="font-semibold text-gray-900">
+                                                <h4 className="font-semibold text-ink">
                                                     {comment.user?.name || 'Anonymous User'}
                                                 </h4>
                                             </div>
-                                            <span className="text-xs text-gray-500 flex items-center">
+                                            <span className="text-xs text-text-soft flex items-center">
                                                 <FaClock className="w-3 h-3 mr-1" />
                                                 {formatDate(comment.created_at)}
                                                 {comment.created_at !== comment.updated_at && (
-                                                    <span className="ml-2 text-xs text-gray-400">(edited)</span>
+                                                    <span className="ml-2 text-xs text-text-soft">(edited)</span>
                                                 )}
                                             </span>
                                         </div>
@@ -267,7 +257,7 @@ export default function CommentsList({
                                             <div className="mt-2">
                                                 {/* Edit Rating Stars */}
                                                 <div className="mb-3">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-ink mb-1">
                                                         Your Rating
                                                     </label>
                                                     <div className="flex items-center space-x-1">
@@ -289,7 +279,7 @@ export default function CommentsList({
                                                             </button>
                                                         ))}
                                                         {editRating > 0 && (
-                                                            <span className="ml-2 text-sm text-gray-600">
+                                                            <span className="ml-2 text-sm text-text-soft">
                                                                 {editRating} star{editRating !== 1 ? 's' : ''}
                                                             </span>
                                                         )}
@@ -301,19 +291,19 @@ export default function CommentsList({
                                                     value={editText}
                                                     onChange={(e) => setEditText(e.target.value)}
                                                     placeholder="Write your comment... (optional)"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                                                     rows={3}
                                                     maxLength={1000}
                                                     disabled={isSubmittingComment}
                                                 />
                                                 <div className="flex justify-between items-center mt-2">
-                                                    <span className="text-sm text-gray-500">
+                                                    <span className="text-sm text-text-soft">
                                                         {editText.length}/1000
                                                     </span>
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => cancelEditing()}
-                                                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 flex items-center"
+                                                            className="px-3 py-1 text-sm text-text-soft hover:text-ink flex items-center rounded-lg hover:bg-paper-dim transition-colors"
                                                             disabled={isSubmittingComment}
                                                         >
                                                             <FaTimes className="w-3 h-3 mr-1" />
@@ -322,7 +312,7 @@ export default function CommentsList({
                                                         <button
                                                             onClick={() => handleUpdate(comment.id)}
                                                             disabled={isSubmittingComment || (!editText.trim() && editRating === 0)}
-                                                            className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="px-3 py-1 text-sm bg-marigold hover:bg-marigold-dark text-white rounded-xl flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg"
                                                         >
                                                             <FaCheck className="w-3 h-3 mr-1" />
                                                             {isSubmittingComment ? 'Saving...' : 'Save'}
@@ -333,7 +323,7 @@ export default function CommentsList({
                                         ) : (
                                             <>
                                                 {comment.comment && (
-                                                    <p className="text-gray-700">{comment.comment}</p>
+                                                    <p className="text-text-soft">{comment.comment}</p>
                                                 )}
 
                                                 {/* Show edit/delete buttons if the comment belongs to current user */}
@@ -341,7 +331,7 @@ export default function CommentsList({
                                                     <div className="mt-2 flex space-x-3">
                                                         <button
                                                             onClick={() => startEditing(comment)}
-                                                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+                                                            className="text-xs text-marigold hover:text-marigold-dark flex items-center transition-colors"
                                                             disabled={isSubmittingComment}
                                                         >
                                                             <FaEdit className="w-3 h-3 mr-1" />
@@ -349,7 +339,7 @@ export default function CommentsList({
                                                         </button>
                                                         <button
                                                             onClick={() => openDeleteDialog(comment.id)}
-                                                            className="text-xs text-red-600 hover:text-red-800 flex items-center"
+                                                            className="text-xs text-red-600 hover:text-red-700 flex items-center transition-colors"
                                                             disabled={isSubmittingComment}
                                                         >
                                                             <FaTrash className="w-3 h-3 mr-1" />
@@ -365,13 +355,13 @@ export default function CommentsList({
                         );
                     })
                 ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                    <div className="text-center py-8 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-text-soft">No reviews yet. Be the first to review!</p>
                     </div>
                 )}
             </div>
 
-            {/* Headless UI Delete Confirmation Dialog */}
+            {/* Delete Confirmation Dialog */}
             <Transition appear show={isDeleteDialogOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-50" onClose={closeDeleteDialog}>
                     <Transition.Child
@@ -383,7 +373,7 @@ export default function CommentsList({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
-                        <div className="fixed inset-0 bg-black bg-opacity-50" />
+                        <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm" />
                     </Transition.Child>
 
                     <div className="fixed inset-0 overflow-y-auto">
@@ -397,21 +387,21 @@ export default function CommentsList({
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-hard-sm border border-line transition-all">
                                     <div className="flex items-center space-x-3 text-red-600 mb-4">
                                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                                             <FaExclamation className="w-6 h-6 text-red-600" />
                                         </div>
                                         <Dialog.Title
                                             as="h3"
-                                            className="text-lg font-medium leading-6 text-gray-900"
+                                            className="text-lg font-display font-extrabold uppercase tracking-[-0.01em] text-ink"
                                         >
                                             Delete Review
                                         </Dialog.Title>
                                     </div>
 
                                     <div className="mt-2">
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-text-soft">
                                             Are you sure you want to delete this review? This action cannot be undone.
                                         </p>
                                     </div>
@@ -419,7 +409,7 @@ export default function CommentsList({
                                     <div className="mt-6 flex justify-end space-x-3">
                                         <button
                                             type="button"
-                                            className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 transition-colors"
+                                            className="inline-flex justify-center rounded-xl border border-line bg-white px-4 py-2 text-sm font-medium text-text-soft hover:bg-paper-dim hover:text-ink transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marigold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                             onClick={closeDeleteDialog}
                                             disabled={isSubmitting[commentToDelete || '']}
                                         >
@@ -427,7 +417,7 @@ export default function CommentsList({
                                         </button>
                                         <button
                                             type="button"
-                                            className="inline-flex justify-center rounded-lg border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="inline-flex justify-center rounded-xl border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 hover:shadow-hard-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                             onClick={handleDelete}
                                             disabled={isSubmitting[commentToDelete || '']}
                                         >

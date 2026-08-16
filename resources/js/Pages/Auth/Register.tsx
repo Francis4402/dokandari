@@ -386,11 +386,11 @@ export default function Register() {
               />
               <label htmlFor="terms" className="ml-2 block text-sm font-body text-ink/60">
                 I agree to the{' '}
-                <Link href="#" className="text-marigold hover:text-marigold-dark font-semibold">
+                <Link href="/terms-and-conditions" className="text-marigold hover:text-marigold-dark font-semibold">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="#" className="text-marigold hover:text-marigold-dark font-semibold">
+                <Link href="/privacy-policy" className="text-marigold hover:text-marigold-dark font-semibold">
                   Privacy Policy
                 </Link>
               </label>

@@ -1,4 +1,4 @@
-
+// DashboardLayout.tsx
 import React, { useState, Fragment } from 'react';
 import { Dialog, Menu, Transition } from '@headlessui/react';
 import {
@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fi';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { User } from '@/types';
+import { FaStore } from 'react-icons/fa';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -32,12 +33,9 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Dashboard', user }) => {
-
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { url } = usePage();
-
   const { post } = useForm();
 
   const navigation = [
@@ -55,7 +53,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             current: url.startsWith('/dashboard/customers')
         },
     ] : []),
-
 
     ...(user.role === 'agent' ? [
         {
@@ -203,11 +200,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       {/* Enhanced Mobile sidebar drawer */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
-          {/* Backdrop with blur effect */}
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -217,7 +213,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-ink/80 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
@@ -230,29 +226,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 shadow-xl">
-                {/* Close button overlay (click outside to close) */}
-                <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-                  <button
-                    type="button"
-                    className="-m-2.5 p-2.5"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                  </button>
-                </div>
-
-                {/* Sidebar content */}
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 shadow-hard-sm">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-paper border-r border-line px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center justify-between gap-2">
-                    <div className="h-6 w-6 rounded-lg flex items-center justify-center">
-                        <img src="/MyLogo.png" alt="i" />
+                    <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+                      <img src="/MyLogo.png" alt="Haatpoint" className="h-8 w-auto" />
                     </div>
                     <Link href='/'>
-                      <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
+                      <h1 className="text-xl font-display font-extrabold uppercase text-ink">HaatPoint</h1>
                     </Link>
                     <button
                       type="button"
-                      className="ml-auto rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors"
+                      className="ml-auto rounded-md p-2.5 text-text-soft hover:bg-paper-dim hover:text-ink transition-colors"
                       onClick={() => setSidebarOpen(false)}
                     >
                       <FiX className="h-6 w-6" aria-hidden="true" />
@@ -268,25 +253,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                               <Link
                                 href={item.href}
                                 className={`
-                                  group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors
+                                  group flex items-center gap-x-3 rounded-lg p-2.5 text-sm leading-6 font-semibold transition-all duration-200
                                   ${item.current
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                                    ? 'bg-marigold text-white shadow-hard-sm'
+                                    : 'text-ink hover:bg-paper-dim hover:text-marigold'
                                   }
                                 `}
                                 onClick={() => setSidebarOpen(false)}
                               >
                                 <item.icon
-                                  className={`h-6 w-6 shrink-0 transition-colors ${
+                                  className={`h-5 w-5 shrink-0 transition-colors ${
                                     item.current
                                       ? 'text-white'
-                                      : 'text-gray-400 group-hover:text-blue-600'
+                                      : 'text-text-soft group-hover:text-marigold'
                                   }`}
                                   aria-hidden="true"
                                 />
                                 {item.name}
                                 {item.current && (
-                                  <span className="ml-auto w-2 h-2 bg-white rounded-full" />
+                                  <span className="ml-auto w-1.5 h-1.5 bg-white rounded-full" />
                                 )}
                               </Link>
                             </li>
@@ -304,23 +289,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
 
       {/* Static sidebar for desktop */}
       <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}>
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-            <div className="flex h-16 shrink-0 items-center justify-between gap-2">
-                <div className="h-6 w-6 rounded-lg flex items-center justify-center">
-                    <img src="/MyLogo.png" alt="i" />
-                </div>
-                <Link href='/'>
-                    <h1 className="text-xl font-bold text-gray-900">HaatPoint</h1>
-                </Link>
-                <button
-                    type="button"
-                    className="ml-auto rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors"
-                    onClick={() => setSidebarOpen(false)}
-                >
-                    <FiX className="h-6 w-6" aria-hidden="true" />
-                    <span className="sr-only">Close sidebar</span>
-                </button>
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-line bg-paper px-6 shadow-hard-sm">
+          <div className="flex h-16 shrink-0 items-center justify-between gap-2">
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+              <img src="/MyLogo.png" alt="Haatpoint" className="h-8 w-auto" />
             </div>
+            {!isCollapsed && (
+              <Link href='/'>
+                <h1 className="text-xl font-display font-extrabold uppercase text-ink">HaatPoint</h1>
+              </Link>
+            )}
+            <button
+              type="button"
+              className="ml-auto rounded-md p-2 text-text-soft hover:bg-paper-dim hover:text-ink transition-colors"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <FiChevronRight className="h-5 w-5" /> : <FiChevronLeft className="h-5 w-5" />}
+            </button>
+          </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
@@ -330,24 +316,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
                       <Link
                         href={item.href}
                         className={`
-                          group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors
+                          group flex items-center gap-x-3 rounded-lg p-2.5 text-sm leading-6 font-semibold transition-all duration-200
                           ${item.current
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                            ? 'bg-marigold text-white shadow-hard-sm'
+                            : 'text-ink hover:bg-paper-dim hover:text-marigold'
                           }
+                          ${isCollapsed ? 'justify-center' : ''}
                         `}
                       >
                         <item.icon
-                          className={`h-6 w-6 shrink-0 ${item.current ? 'text-white' : 'text-gray-400 group-hover:text-blue-600'}`}
+                          className={`h-5 w-5 shrink-0 transition-colors ${
+                            item.current
+                              ? 'text-white'
+                              : 'text-text-soft group-hover:text-marigold'
+                          }`}
                           aria-hidden="true"
                         />
                         {!isCollapsed && <span>{item.name}</span>}
+                        {item.current && !isCollapsed && (
+                          <span className="ml-auto w-1.5 h-1.5 bg-white rounded-full" />
+                        )}
                       </Link>
                     </li>
                   ))}
                 </ul>
               </li>
-
             </ul>
           </nav>
         </div>
@@ -356,140 +349,153 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title = 'Da
       {/* Main content */}
       <div className={isCollapsed ? 'lg:pl-20' : 'lg:pl-64'}>
         {/* Top navigation bar */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-line bg-paper/90 backdrop-blur-md px-4 shadow-hard-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden hover:bg-gray-100 rounded-md transition-colors"
+            className="-m-2.5 p-2.5 text-ink lg:hidden hover:bg-paper-dim rounded-lg transition-colors"
             onClick={() => setSidebarOpen(true)}
           >
             <FiMenu className="h-6 w-6" aria-hidden="true" />
           </button>
 
-          {/* Separator */}
-          <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
+          <div className="h-6 w-px bg-line lg:hidden" aria-hidden="true" />
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="relative flex flex-1">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <FiSearch className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <FiSearch className="h-5 w-5 text-text-soft" aria-hidden="true" />
               </div>
               <input
                 type="search"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 transition-shadow"
+                className="block w-full rounded-lg border-0 py-2 pl-10 pr-3 text-ink ring-1 ring-inset ring-line placeholder:text-text-soft focus:ring-2 focus:ring-inset focus:ring-marigold sm:text-sm sm:leading-6 transition-shadow bg-white"
                 placeholder="Search..."
               />
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative transition-colors">
+              <button type="button" className="-m-2.5 p-2.5 text-text-soft hover:text-ink relative transition-colors hover:bg-paper-dim rounded-lg">
                 <FiBell className="h-6 w-6" aria-hidden="true" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-marigold rounded-full text-xs text-white flex items-center justify-center font-bold ring-2 ring-paper">
                   3
                 </span>
               </button>
 
-              {/* Separator */}
-              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
+              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-line" aria-hidden="true" />
 
               {/* Profile dropdown */}
               <div className="relative">
                 <Menu as="div" className="relative">
-                    <Menu.Button className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full transition-all duration-200 hover:ring-2 hover:ring-blue-300">
+                  <Menu.Button className="flex items-center focus:outline-none focus:ring-2 focus:ring-marigold focus:ring-offset-2 rounded-full transition-all duration-200 hover:ring-2 hover:ring-marigold/50">
                     <img
-                        src={
-                            user.images
+                      src={
+                        user.images
+                          ? user.images.startsWith('http')
+                              ? user.images
+                              : `/storage/${user.images}`
+                          : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name)
+                      }
+                      alt={user.name}
+                      className="inline-block size-8 rounded-full ring-2 ring-line outline -outline-offset-1 outline-white transition-transform hover:scale-105"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name);
+                      }}
+                    />
+                  </Menu.Button>
+
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-hard-sm border border-line divide-y divide-line focus:outline-none z-50">
+                      {/* User Info */}
+                      <div className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={
+                              user.images
                                 ? user.images.startsWith('http')
                                     ? user.images
                                     : `/storage/${user.images}`
-                                : 'https://github.com/shadcn.png'
-                        }
-                        alt={user.name}
-                        className="inline-block size-8 rounded-full ring-2 ring-gray-200 outline -outline-offset-1 outline-white transition-transform hover:scale-105"
-                        onError={() => 'https://github.com/shadcn.png'}
-                    />
-                    </Menu.Button>
-
-                    <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                    >
-                    <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-lg shadow-xl border border-gray-200 divide-y divide-gray-100 focus:outline-none z-50">
-                        {/* User Info */}
-                        <div className="px-4 py-3">
-                            <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name)
+                            }
+                            alt={user.name}
+                            className="size-10 rounded-full ring-2 ring-line"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name);
+                            }}
+                          />
+                          <div>
+                            <p className="text-sm font-semibold text-ink">{user.name}</p>
+                            <p className="text-xs text-text-soft truncate">{user.email}</p>
+                          </div>
                         </div>
+                      </div>
 
-                        {/* Menu Items */}
-                        <div className="py-1">
+                      {/* Menu Items */}
+                      <div className="py-1">
                         <Menu.Item>
-                            {({ active }) => (
+                          {({ active }) => (
                             <Link
-                                href="/dashboard/profile"
-                                className={`${
-                                active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
-                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
+                              href="/dashboard/profile"
+                              className={`${
+                                active ? 'bg-paper-dim text-ink' : 'text-text-soft'
+                              } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
                             >
-                                <FiUser className="h-4 w-4 mr-3 text-gray-400" />
-                                Your Profile
+                              <FiUser className="h-4 w-4 mr-3 text-text-soft" />
+                              Your Profile
                             </Link>
-                            )}
+                          )}
                         </Menu.Item>
 
                         <Menu.Item>
-                            {({ active }) => (
+                          {({ active }) => (
                             <Link
-                                href="/help"
-                                className={`${
-                                active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
-                                } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
+                              href="/help"
+                              className={`${
+                                active ? 'bg-paper-dim text-ink' : 'text-text-soft'
+                              } flex items-center w-full px-4 py-2.5 text-sm transition-colors`}
                             >
-                                <FiHelpCircle className="h-4 w-4 mr-3 text-gray-400" />
-                                Help & Support
+                              <FiHelpCircle className="h-4 w-4 mr-3 text-text-soft" />
+                              Help & Support
                             </Link>
-                            )}
+                          )}
                         </Menu.Item>
-                        </div>
+                      </div>
 
-                        {/* Logout */}
-                        <div className="py-1">
+                      {/* Logout */}
+                      <div className="py-1">
                         <Menu.Item>
-                            {({ active }) => (
+                          {({ active }) => (
                             <form method="POST" onClick={handleLogout}>
-                                <button
+                              <button
                                 type="submit"
                                 className={`${
-                                    active ? 'bg-red-50 text-red-700' : 'text-red-600'
+                                  active ? 'bg-red-50 text-red-700' : 'text-red-600'
                                 } flex items-center w-full px-4 py-2.5 text-sm transition-colors text-left`}
-                                >
+                              >
                                 <FiLogOut className="h-4 w-4 mr-3" />
                                 Sign out
-                                </button>
+                              </button>
                             </form>
-                            )}
+                          )}
                         </Menu.Item>
-                        </div>
+                      </div>
                     </Menu.Items>
-                    </Transition>
+                  </Transition>
                 </Menu>
-                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main content area */}
         <main className="py-6">
-          {/* Container to center content and match form width */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {/* Page content - Add a white background container for consistency */}
-            <div className="bg-white rounded-lg shadow-sm transition-shadow">
-              {children}
-            </div>
+            {children}
           </div>
         </main>
       </div>

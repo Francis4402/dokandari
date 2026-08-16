@@ -1,3 +1,4 @@
+// Shipping.tsx
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head } from '@inertiajs/react';
@@ -19,6 +20,8 @@ import {
   FaShippingFast,
   FaWeightHanging
 } from 'react-icons/fa';
+import FormatPrice from '@/Pages/utils/FormatePrice';
+import Eyebrow from '@/Pages/Components/Eyebrow';
 
 interface Order {
   id: string;
@@ -122,7 +125,6 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
     return 'bg-gray-100 text-gray-800';
   };
 
-
   const stats = {
     totalShipped: orders.length,
     inTransit: orders.filter(o => o.shipping.status === 'in_transit').length,
@@ -137,70 +139,69 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
     <DashboardLayout user={auth.user}>
       <Head title="Shipping Management" />
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-paper-dim">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Shipping Management</h1>
-                <p className="text-gray-600 mt-1">View and manage all shipped orders</p>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <Eyebrow>Manage shipping</Eyebrow>
+              <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Shipping</h1>
+              <p className="text-text-soft mt-1">View and manage all shipped orders</p>
+            </div>
 
-              <div className="flex space-x-3">
-                <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:-translate-y-0.5">
-                  <FaPrint className="h-4 w-4 mr-2" />
-                  Print Shipping Labels
-                </button>
-              </div>
+            <div className="flex space-x-3">
+              <button className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105">
+                <FaPrint className="h-4 w-4" />
+                Print Shipping Labels
+              </button>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Shipped</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.totalShipped}</p>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Total Shipped</p>
+                  <p className="text-2xl font-bold text-ink mt-1">{stats.totalShipped}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <FaTruck className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-xl bg-marigold/10 flex items-center justify-center">
+                  <FaTruck className="h-6 w-6 text-marigold" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">In Transit</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.inTransit}</p>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">In Transit</p>
+                  <p className="text-2xl font-bold text-ink mt-1">{stats.inTransit}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                   <FaTruck className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Out for Delivery</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.outForDelivery}</p>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Out for Delivery</p>
+                  <p className="text-2xl font-bold text-ink mt-1">{stats.outForDelivery}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
                   <FaShippingFast className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Delivered Today</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{stats.deliveredToday}</p>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Delivered Today</p>
+                  <p className="text-2xl font-bold text-ink mt-1">{stats.deliveredToday}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
                   <FaCheckCircle className="h-6 w-6 text-green-600" />
                 </div>
               </div>
@@ -208,32 +209,28 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
           </div>
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Orders List */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-800">Shipped Orders</h2>
-                  <div className="text-sm text-gray-600">
-                    {orders.length} orders
-                  </div>
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Shipped Orders</h2>
+                  <span className="text-sm text-text-soft font-mono">{orders.length} orders</span>
                 </div>
 
                 {orders.length === 0 ? (
                   <div className="text-center py-12">
-                    <FaTruck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Shipped Orders</h3>
-                    <p className="text-gray-600">
-                      No orders have been shipped yet.
-                    </p>
+                    <FaTruck className="h-16 w-16 text-text-soft mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-ink mb-2">No Shipped Orders</h3>
+                    <p className="text-text-soft">No orders have been shipped yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {orders.map(order => (
                       <div
                         key={order.id}
-                        className={`border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer ${
-                          selectedOrder?.id === order.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                        className={`border border-line rounded-xl p-4 hover:shadow-hard-sm transition-all duration-300 cursor-pointer ${
+                          selectedOrder?.id === order.id ? 'ring-2 ring-marigold bg-marigold/5' : ''
                         }`}
                         onClick={() => setSelectedOrder(order)}
                       >
@@ -243,31 +240,33 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
                             <div className="flex items-start justify-between mb-3">
                               <div>
                                 <div className="flex items-center space-x-2">
-                                  <h3 className="font-bold text-gray-800">Order #{order.orderNumber}</h3>
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(order.shipping.status)}`}>
+                                  <h3 className="font-bold text-ink">Order #{order.orderNumber}</h3>
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.shipping.status)}`}>
                                     {getStatusIcon(order.shipping.status)}
-                                    <span className="ml-1">{getStatusLabel(order.shipping.status)}</span>
+                                    <span>{getStatusLabel(order.shipping.status)}</span>
                                   </span>
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-text-soft mt-1">
                                   <FaCalendarAlt className="h-3 w-3 inline mr-1" />
                                   Shipped: {new Date(order.shippedDate).toLocaleDateString()}
                                 </p>
                               </div>
 
                               <div className="text-right">
-                                <p className="font-bold text-gray-800">${order.totalAmount.toFixed(2)}</p>
-                                <p className="text-xs text-gray-500">Total Amount</p>
+                                <p className="font-bold text-ink">
+                                  <FormatPrice price={order.totalAmount} />
+                                </p>
+                                <p className="text-xs text-text-soft">Total Amount</p>
                               </div>
                             </div>
 
                             {/* Customer Info */}
                             <div className="mb-3">
-                              <div className="flex items-center text-sm text-gray-600 mb-1">
+                              <div className="flex items-center text-sm text-text-soft mb-1">
                                 <FaUser className="h-3 w-3 mr-2" />
-                                <span className="font-medium">{order.customer.name}</span>
+                                <span className="font-medium text-ink">{order.customer.name}</span>
                               </div>
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-text-soft">
                                 <FaMapMarkerAlt className="h-3 w-3 mr-2" />
                                 <span>{order.shippingAddress.city}, {order.shippingAddress.country}</span>
                               </div>
@@ -275,35 +274,37 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
 
                             {/* Shipping Details */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                              <div className="p-2 bg-gray-50 rounded-lg">
+                              <div className="p-2 bg-paper-dim rounded-xl">
                                 <div className="flex items-center">
-                                  <FaTruck className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600">Carrier</span>
+                                  <FaTruck className="h-3 w-3 text-text-soft mr-1" />
+                                  <span className="text-xs text-text-soft">Carrier</span>
                                 </div>
-                                <p className="font-medium text-gray-800 text-sm">{order.shipping.carrier}</p>
+                                <p className="font-medium text-ink text-sm">{order.shipping.carrier}</p>
                               </div>
-                              <div className="p-2 bg-gray-50 rounded-lg">
+                              <div className="p-2 bg-paper-dim rounded-xl">
                                 <div className="flex items-center">
-                                  <FaBox className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600">Tracking</span>
+                                  <FaBox className="h-3 w-3 text-text-soft mr-1" />
+                                  <span className="text-xs text-text-soft">Tracking</span>
                                 </div>
-                                <p className="font-medium text-gray-800 text-sm truncate" title={order.shipping.trackingNumber}>
+                                <p className="font-medium text-ink text-sm truncate" title={order.shipping.trackingNumber}>
                                   {order.shipping.trackingNumber}
                                 </p>
                               </div>
-                              <div className="p-2 bg-gray-50 rounded-lg">
+                              <div className="p-2 bg-paper-dim rounded-xl">
                                 <div className="flex items-center">
-                                  <FaWeightHanging className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600">Weight</span>
+                                  <FaWeightHanging className="h-3 w-3 text-text-soft mr-1" />
+                                  <span className="text-xs text-text-soft">Weight</span>
                                 </div>
-                                <p className="font-medium text-gray-800 text-sm">{order.shipping.weight} kg</p>
+                                <p className="font-medium text-ink text-sm">{order.shipping.weight} kg</p>
                               </div>
-                              <div className="p-2 bg-gray-50 rounded-lg">
+                              <div className="p-2 bg-paper-dim rounded-xl">
                                 <div className="flex items-center">
-                                  <FaDollarSign className="h-3 w-3 text-gray-500 mr-1" />
-                                  <span className="text-xs text-gray-600">Shipping Cost</span>
+                                  <FaDollarSign className="h-3 w-3 text-text-soft mr-1" />
+                                  <span className="text-xs text-text-soft">Cost</span>
                                 </div>
-                                <p className="font-medium text-gray-800 text-sm">${order.shipping.shippingCost.toFixed(2)}</p>
+                                <p className="font-medium text-ink text-sm">
+                                  <FormatPrice price={order.shipping.shippingCost} />
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -318,12 +319,12 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
             {/* Order Details Sidebar */}
             <div className="space-y-6">
               {selectedOrder ? (
-                <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 sticky top-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-800">Order Details</h3>
+                    <h3 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Order Details</h3>
                     <button
                       onClick={() => setSelectedOrder(null)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
+                      className="p-1 text-text-soft hover:text-marigold rounded-lg hover:bg-paper-dim transition-colors"
                     >
                       <FaEye className="h-5 w-5" />
                     </button>
@@ -333,11 +334,11 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-gray-800">Order #{selectedOrder.orderNumber}</h4>
+                        <h4 className="text-lg font-bold text-ink">Order #{selectedOrder.orderNumber}</h4>
                         <div className="flex items-center mt-1 space-x-2">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.shipping.status)}`}>
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.shipping.status)}`}>
                             {getStatusIcon(selectedOrder.shipping.status)}
-                            <span className="ml-2">{getStatusLabel(selectedOrder.shipping.status)}</span>
+                            <span>{getStatusLabel(selectedOrder.shipping.status)}</span>
                           </span>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCarrierColor(selectedOrder.shipping.carrier)}`}>
                             {selectedOrder.shipping.carrier}
@@ -345,35 +346,37 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-gray-800">${selectedOrder.totalAmount.toFixed(2)}</p>
-                        <p className="text-sm text-gray-500">Total Amount</p>
+                        <p className="text-2xl font-bold text-ink">
+                          <FormatPrice price={selectedOrder.totalAmount} />
+                        </p>
+                        <p className="text-sm text-text-soft">Total Amount</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Customer Information */}
                   <div className="mb-6">
-                    <h5 className="text-sm font-medium text-gray-700 mb-3">Customer Information</h5>
+                    <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Customer Information</h5>
                     <div className="space-y-2">
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <FaUser className="h-4 w-4 text-gray-400 mr-3" />
+                      <div className="flex items-center p-3 bg-paper-dim rounded-xl border border-line">
+                        <FaUser className="h-4 w-4 text-text-soft mr-3" />
                         <div>
-                          <p className="font-medium text-gray-800">{selectedOrder.customer.name}</p>
-                          <p className="text-xs text-gray-500">Customer Name</p>
+                          <p className="font-medium text-ink">{selectedOrder.customer.name}</p>
+                          <p className="text-xs text-text-soft">Customer Name</p>
                         </div>
                       </div>
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <FaEnvelope className="h-4 w-4 text-gray-400 mr-3" />
+                      <div className="flex items-center p-3 bg-paper-dim rounded-xl border border-line">
+                        <FaEnvelope className="h-4 w-4 text-text-soft mr-3" />
                         <div>
-                          <p className="font-medium text-gray-800">{selectedOrder.customer.email}</p>
-                          <p className="text-xs text-gray-500">Email Address</p>
+                          <p className="font-medium text-ink">{selectedOrder.customer.email}</p>
+                          <p className="text-xs text-text-soft">Email Address</p>
                         </div>
                       </div>
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <FaPhone className="h-4 w-4 text-gray-400 mr-3" />
+                      <div className="flex items-center p-3 bg-paper-dim rounded-xl border border-line">
+                        <FaPhone className="h-4 w-4 text-text-soft mr-3" />
                         <div>
-                          <p className="font-medium text-gray-800">{selectedOrder.customer.phone}</p>
-                          <p className="text-xs text-gray-500">Phone Number</p>
+                          <p className="font-medium text-ink">{selectedOrder.customer.phone}</p>
+                          <p className="text-xs text-text-soft">Phone Number</p>
                         </div>
                       </div>
                     </div>
@@ -381,46 +384,46 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
 
                   {/* Shipping Information */}
                   <div className="mb-6">
-                    <h5 className="text-sm font-medium text-gray-700 mb-3">Shipping Information</h5>
+                    <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Shipping Information</h5>
                     <div className="space-y-3">
-                      <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="p-3 bg-marigold/5 rounded-xl border border-marigold/20">
                         <div className="flex items-center mb-2">
-                          <FaMapMarkerAlt className="h-4 w-4 text-blue-400 mr-2" />
-                          <span className="font-medium text-gray-800">Delivery Address</span>
+                          <FaMapMarkerAlt className="h-4 w-4 text-marigold mr-2" />
+                          <span className="font-medium text-ink">Delivery Address</span>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-text-soft">
                           {selectedOrder.shippingAddress.street}<br />
                           {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}<br />
                           {selectedOrder.shippingAddress.country} {selectedOrder.shippingAddress.zipCode}
                         </p>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-text-soft mt-2">
                           Contact: {selectedOrder.shippingAddress.contactName} ({selectedOrder.shippingAddress.contactPhone})
                         </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-xs text-gray-500">Tracking Number</p>
-                          <p className="font-medium text-gray-800 truncate" title={selectedOrder.shipping.trackingNumber}>
+                        <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                          <p className="text-xs text-text-soft">Tracking Number</p>
+                          <p className="font-medium text-ink truncate" title={selectedOrder.shipping.trackingNumber}>
                             {selectedOrder.shipping.trackingNumber}
                           </p>
                         </div>
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-xs text-gray-500">Shipping Method</p>
-                          <p className="font-medium text-gray-800">{selectedOrder.shipping.method}</p>
+                        <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                          <p className="text-xs text-text-soft">Shipping Method</p>
+                          <p className="font-medium text-ink">{selectedOrder.shipping.method}</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-xs text-gray-500">Estimated Delivery</p>
-                          <p className="font-medium text-gray-800">
+                        <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                          <p className="text-xs text-text-soft">Estimated Delivery</p>
+                          <p className="font-medium text-ink">
                             {new Date(selectedOrder.shipping.estimatedDelivery).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-xs text-gray-500">Actual Delivery</p>
-                          <p className="font-medium text-gray-800">
+                        <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                          <p className="text-xs text-text-soft">Actual Delivery</p>
+                          <p className="font-medium text-ink">
                             {selectedOrder.shipping.actualDelivery
                               ? new Date(selectedOrder.shipping.actualDelivery).toLocaleDateString()
                               : 'Not delivered yet'}
@@ -432,11 +435,11 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
 
                   {/* Order Items */}
                   <div className="mb-6">
-                    <h5 className="text-sm font-medium text-gray-700 mb-3">Order Items ({selectedOrder.items.length})</h5>
+                    <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Order Items ({selectedOrder.items.length})</h5>
                     <div className="space-y-2">
                       {selectedOrder.items.map(item => (
-                        <div key={item.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                          <div className="w-10 h-10 rounded overflow-hidden mr-3">
+                        <div key={item.id} className="flex items-center p-3 bg-paper-dim rounded-xl border border-line">
+                          <div className="w-10 h-10 rounded overflow-hidden mr-3 border border-line">
                             <img
                               src={item.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random`}
                               alt={item.name}
@@ -444,12 +447,14 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
                             />
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-800 text-sm">{item.name}</p>
-                            <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+                            <p className="font-medium text-ink text-sm">{item.name}</p>
+                            <p className="text-xs text-text-soft">SKU: {item.sku}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-gray-800">${item.price.toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                            <p className="font-medium text-ink">
+                              <FormatPrice price={item.price} />
+                            </p>
+                            <p className="text-xs text-text-soft">Qty: {item.quantity}</p>
                           </div>
                         </div>
                       ))}
@@ -458,31 +463,33 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
 
                   {/* Shipping Details */}
                   <div className="mb-6">
-                    <h5 className="text-sm font-medium text-gray-700 mb-3">Shipping Details</h5>
+                    <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Shipping Details</h5>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500">Package Weight</p>
-                        <p className="font-medium text-gray-800">{selectedOrder.shipping.weight} kg</p>
+                      <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-xs text-text-soft">Package Weight</p>
+                        <p className="font-medium text-ink">{selectedOrder.shipping.weight} kg</p>
                       </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500">Dimensions</p>
-                        <p className="font-medium text-gray-800">{selectedOrder.shipping.dimensions}</p>
+                      <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-xs text-text-soft">Dimensions</p>
+                        <p className="font-medium text-ink">{selectedOrder.shipping.dimensions}</p>
                       </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500">Shipping Cost</p>
-                        <p className="font-medium text-gray-800">${selectedOrder.shipping.shippingCost.toFixed(2)}</p>
+                      <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-xs text-text-soft">Shipping Cost</p>
+                        <p className="font-medium text-ink">
+                          <FormatPrice price={selectedOrder.shipping.shippingCost} />
+                        </p>
                       </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500">Insurance</p>
-                        <p className="font-medium text-gray-800">
+                      <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-xs text-text-soft">Insurance</p>
+                        <p className="font-medium text-ink">
                           {selectedOrder.shipping.insurance ? 'Yes' : 'No'}
                         </p>
                       </div>
                     </div>
                     <div className="mt-3">
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500">Signature Required</p>
-                        <p className="font-medium text-gray-800">
+                      <div className="p-3 bg-paper-dim rounded-xl border border-line">
+                        <p className="text-xs text-text-soft">Signature Required</p>
+                        <p className="font-medium text-ink">
                           {selectedOrder.shipping.signatureRequired ? 'Yes' : 'No'}
                         </p>
                       </div>
@@ -490,54 +497,54 @@ const Shipping = ({ shippedOrders: initialOrders, auth }: PageProps) => {
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-line">
                     <div className="grid grid-cols-2 gap-3">
-                      <button className="text-center px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors font-medium">
+                      <button className="text-center px-4 py-2 bg-paper-dim text-ink rounded-xl hover:bg-marigold/10 hover:text-marigold transition-all duration-300 font-medium border border-line">
                         Track Shipment
                       </button>
-                      <button className="text-center px-4 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors font-medium">
+                      <button className="text-center px-4 py-2 bg-paper-dim text-ink rounded-xl hover:bg-marigold/10 hover:text-marigold transition-all duration-300 font-medium border border-line">
                         Print Label
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 text-white">
-                  <h3 className="text-lg font-bold mb-4">Order Details</h3>
-                  <p className="text-sm opacity-90 mb-6">
+                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-hard-sm border border-line p-6 text-white sticky top-6">
+                  <h3 className="text-lg font-display font-extrabold uppercase tracking-[-0.01em] mb-4">Order Details</h3>
+                  <p className="text-sm text-gray-300 mb-6">
                     Select an order from the list to view detailed shipping information, tracking details, and customer information.
                   </p>
                   <div className="text-center">
                     <FaTruck className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm opacity-75">No order selected</p>
+                    <p className="text-sm text-gray-400">No order selected</p>
                   </div>
                 </div>
               )}
 
               {/* Shipping Stats */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Shipping Summary</h3>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <h3 className="text-lg font-display font-extrabold uppercase tracking-[-0.01em] text-ink mb-4">Shipping Summary</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-paper-dim rounded-xl border border-line">
                     <div className="flex items-center">
-                      <FaTruck className="h-4 w-4 text-blue-500 mr-2" />
-                      <span className="text-sm text-gray-600">Average Transit Time</span>
+                      <FaTruck className="h-4 w-4 text-marigold mr-2" />
+                      <span className="text-sm text-text-soft">Average Transit Time</span>
                     </div>
-                    <span className="font-bold text-gray-800">3.2 days</span>
+                    <span className="font-bold text-ink">3.2 days</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-paper-dim rounded-xl border border-line">
                     <div className="flex items-center">
                       <FaCheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm text-gray-600">On-Time Delivery</span>
+                      <span className="text-sm text-text-soft">On-Time Delivery</span>
                     </div>
-                    <span className="font-bold text-gray-800">94.5%</span>
+                    <span className="font-bold text-ink">94.5%</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-paper-dim rounded-xl border border-line">
                     <div className="flex items-center">
                       <FaGlobe className="h-4 w-4 text-purple-500 mr-2" />
-                      <span className="text-sm text-gray-600">International Shipments</span>
+                      <span className="text-sm text-text-soft">International Shipments</span>
                     </div>
-                    <span className="font-bold text-gray-800">{orders.filter(o => o.shippingAddress.country !== 'USA').length}</span>
+                    <span className="font-bold text-ink">{orders.filter(o => o.shippingAddress.country !== 'USA').length}</span>
                   </div>
                 </div>
               </div>

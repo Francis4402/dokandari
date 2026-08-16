@@ -1,3 +1,4 @@
+// CreateProductForm.tsx
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { categoryType, storeType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -35,6 +36,8 @@ import {
 import { toast } from 'sonner';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import Eyebrow from '@/Pages/Components/Eyebrow';
+
 
 interface productFormType {
     auth: {
@@ -44,8 +47,6 @@ interface productFormType {
     categories: categoryType[];
 }
 
-
-// Custom Quill modules configuration
 const quillModules = {
   toolbar: [
     [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -116,7 +117,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
     }
   };
 
-
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -126,12 +126,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
       .trim();
   };
 
-
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setData('name', newName);
-
-
     if (!data.slug || data.slug === generateSlug(data.name)) {
       setData('slug', generateSlug(newName));
     }
@@ -148,7 +145,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
       if (selectedCat && selectedCat.subcategory) {
         const subcategory = parsesubcategory(selectedCat.subcategory);
         setAvailablesubcategory(subcategory);
-
         if (data.subcategory && !subcategory.includes(data.subcategory)) {
           setData('subcategory', '');
         }
@@ -181,7 +177,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const removeColorInput = (index: number) => {
     const newInputs = colorInputs.filter((_, i) => i !== index);
     setColorInputs(newInputs);
-
     if (newInputs.length === 0) {
       setColorInputs(['']);
     }
@@ -195,16 +190,12 @@ export default function CreateProductForm({auth, store, categories}: productForm
     const files = Array.from(e.target.files || []);
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
     const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
 
     if (oversizedFiles.length > 0) {
       toast.error(
         `File${oversizedFiles.length > 1 ? 's' : ''} too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 5MB per image.`,
-        {
-          duration: 5000,
-          position: 'top-center',
-        }
+        { duration: 5000, position: 'top-center' }
       );
       return;
     }
@@ -233,7 +224,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Create FormData for file upload
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('slug', data.slug);
@@ -249,7 +239,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('store_id', data.store_id);
     formData.append('item_weight', data.item_weight);
 
-    // Append images
     data.images.forEach((image, index) => {
       formData.append(`images[${index}]`, image);
     });
@@ -259,7 +248,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
       onSuccess: () => {
         toast.success('Product created successfully!');
         router.visit(route('dashboard.products'));
-        // Reset form
         reset();
         setShowSalePrice(false);
         imagePreviews.forEach(p => URL.revokeObjectURL(p));
@@ -280,7 +268,6 @@ export default function CreateProductForm({auth, store, categories}: productForm
     field: keyof typeof data
   ) => {
     const value = e.target.value;
-
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setData(field, value as any);
     }
@@ -294,39 +281,35 @@ export default function CreateProductForm({auth, store, categories}: productForm
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="max-w-7xl mx-auto p-5">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <FaBox className="h-8 w-8 text-purple-600" />
-                Create New Product
-              </h1>
-              <p className="text-gray-600 mt-1 flex items-center gap-2">
-                <FaStore className="h-4 w-4" />
-                Add a new product to {store.name}
-              </p>
-            </div>
-            <Link
-              href={route('dashboard.products')}
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaArrowLeft className="h-4 w-4 mr-2" />
-              Back to Products
-            </Link>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <Eyebrow>Add new product</Eyebrow>
+            <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Create Product</h1>
+            <p className="text-text-soft mt-1 flex items-center gap-2">
+              <FaStore className="h-4 w-4 text-marigold" />
+              Add a new product to <span className="font-medium text-ink">{store.name}</span>
+            </p>
           </div>
+          <Link
+            href={route('dashboard.products')}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-line text-text-soft hover:text-ink hover:bg-paper-dim font-medium rounded-xl transition-all duration-300"
+          >
+            <FaArrowLeft className="h-4 w-4" />
+            Back to Products
+          </Link>
         </div>
 
         {/* Store Status */}
-        <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="mb-6 bg-gradient-to-r from-marigold to-marigold-dark rounded-2xl shadow-hard-sm p-6 text-white border border-line/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-white/20">
                 <FaStore className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">Store Ready!</h3>
+                <h3 className="font-display font-extrabold uppercase text-lg">Store Ready!</h3>
                 <p className="opacity-90">
                   Products will be added to: <span className="font-semibold">{store.name}</span>
                 </p>
@@ -344,10 +327,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
             {/* Left Column */}
             <div className="space-y-6">
               {/* Product Information Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaBox className="h-5 w-5 text-purple-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Information</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaBox className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Information</h2>
                 </div>
 
                 <div className="space-y-6">
@@ -355,18 +338,18 @@ export default function CreateProductForm({auth, store, categories}: productForm
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Product Name */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaTag className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaTag className="h-4 w-4 text-marigold" />
                         Product Name <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
-                        <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="text"
                           value={data.name}
                           onChange={handleNameChange}
                           placeholder="Your Product Name"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                         />
                       </div>
                       {errors.name && (
@@ -379,19 +362,19 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                     {/* Slug Field */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaLink className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaLink className="h-4 w-4 text-marigold" />
                         Product Slug
                       </label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
-                          <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <FaFileAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                           <input
                             type="text"
                             value={data.slug}
                             onChange={(e) => setData('slug', e.target.value)}
                             placeholder="premium-wireless-headphones"
-                            className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500"
+                            className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                           />
                         </div>
                         <button
@@ -402,13 +385,13 @@ export default function CreateProductForm({auth, store, categories}: productForm
                             toast.success('Slug generated!');
                           }}
                           disabled={!data.name}
-                          className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-3 border border-line rounded-xl hover:bg-paper-dim transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-text-soft hover:text-ink"
                         >
                           <FaArrowRight className="h-4 w-4" />
                           Generate
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-text-soft mt-1">
                         Slug is automatically generated from the product name
                       </p>
                       {errors.slug && (
@@ -424,24 +407,24 @@ export default function CreateProductForm({auth, store, categories}: productForm
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Main Category */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Main Category <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-left flex justify-between items-center hover:border-gray-400 transition-colors"
+                          className="w-full rounded-xl border border-line px-4 py-3 text-left flex justify-between items-center hover:border-marigold transition-colors bg-white"
                         >
-                          <span className={data.category ? 'text-gray-800' : 'text-gray-400'}>
+                          <span className={data.category ? 'text-ink' : 'text-text-soft'}>
                             {data.category || 'Select main category'}
                           </span>
                           <FaChevronDown
-                            className={`h-5 w-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
+                            className={`h-5 w-5 text-text-soft transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}
                           />
                         </button>
                         {showCategoryDropdown && (
-                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
                             {categories.map(cat => (
                               <button
                                 key={cat.id}
@@ -450,11 +433,12 @@ export default function CreateProductForm({auth, store, categories}: productForm
                                   setData('category', cat.categories);
                                   setShowCategoryDropdown(false);
                                 }}
-                                className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                  data.category === cat.categories ? 'bg-purple-50 text-purple-700' : ''
+                                className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                  data.category === cat.categories ? 'bg-marigold/10 text-marigold' : 'text-ink'
                                 }`}
                               >
                                 {cat.categories}
+                                {data.category === cat.categories && <HiCheck className="h-5 w-5 text-marigold" />}
                               </button>
                             ))}
                           </div>
@@ -470,7 +454,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                     {/* Sub Category */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Sub Category
                       </label>
                       <div className="relative">
@@ -478,24 +462,24 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           type="button"
                           onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
                           disabled={!data.category}
-                          className={`w-full rounded-lg border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                          className={`w-full rounded-xl border px-4 py-3 text-left flex justify-between items-center transition-colors ${
                             !data.category
-                              ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                              : 'border-gray-300 hover:border-gray-400'
+                              ? 'border-line bg-paper-dim text-text-soft cursor-not-allowed'
+                              : 'border-line hover:border-marigold bg-white'
                           }`}
                         >
-                          <span className={data.subcategory ? 'text-gray-800' : 'text-gray-400'}>
+                          <span className={data.subcategory ? 'text-ink' : 'text-text-soft'}>
                             {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
                           </span>
                           {data.category && (
                             <FaChevronDown
-                              className={`h-5 w-5 text-gray-400 transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
+                              className={`h-5 w-5 text-text-soft transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
                             />
                           )}
                         </button>
 
                         {data.category && showSubcategoryDropdown && (
-                          <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
                             {availablesubcategory.length > 0 ? (
                               availablesubcategory.map((subcat, index) => (
                                 <button
@@ -505,16 +489,16 @@ export default function CreateProductForm({auth, store, categories}: productForm
                                     setData('subcategory', subcat);
                                     setShowSubcategoryDropdown(false);
                                   }}
-                                  className={`w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-center justify-between ${
-                                    data.subcategory === subcat ? 'bg-purple-50 text-purple-700' : ''
+                                  className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                    data.subcategory === subcat ? 'bg-marigold/10 text-marigold' : 'text-ink'
                                   }`}
                                 >
                                   {subcat}
-                                  {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-purple-600" />}
+                                  {data.subcategory === subcat && <HiCheck className="h-5 w-5 text-marigold" />}
                                 </button>
                               ))
                             ) : (
-                              <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                              <div className="px-4 py-3 text-sm text-text-soft text-center">
                                 No subcategory available for this category
                               </div>
                             )}
@@ -534,18 +518,18 @@ export default function CreateProductForm({auth, store, categories}: productForm
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Quantity */}
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FaHashtag className="h-4 w-4" />
+                      <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                        <FaHashtag className="h-4 w-4 text-marigold" />
                         Quantity
                       </label>
                       <div className="relative">
-                        <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="number"
                           min="0"
                           value={data.quantity}
                           onChange={(e) => handleNumberInput(e, 'quantity')}
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink"
                         />
                       </div>
                       {errors.quantity && (
@@ -558,21 +542,21 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                     {/* Colors */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Colors <span className="text-xs font-normal text-gray-500">(Add multiple)</span>
+                      <label className="block text-sm font-medium text-ink mb-2">
+                        Colors <span className="text-xs font-normal text-text-soft">(Add multiple)</span>
                       </label>
 
                       <div className="space-y-2">
                         {colorInputs.map((color, index) => (
                           <div key={index} className="flex gap-2">
                             <div className="relative flex-1">
-                              <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                              <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                               <input
                                 type="text"
                                 value={color}
                                 onChange={(e) => updateColorInput(index, e.target.value)}
                                 placeholder="Enter color name..."
-                                className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                               />
                             </div>
 
@@ -580,7 +564,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               <button
                                 type="button"
                                 onClick={addColorInput}
-                                className="px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                className="px-4 py-3 bg-marigold text-white font-medium rounded-xl hover:bg-marigold-dark transition-colors flex items-center gap-2 hover:shadow-lg"
                               >
                                 <FaPlus className="h-4 w-4" />
                                 Add
@@ -589,7 +573,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               <button
                                 type="button"
                                 onClick={() => removeColorInput(index)}
-                                className="px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                                className="px-4 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
                               >
                                 <FaTimes className="h-4 w-4" />
                                 Remove
@@ -603,7 +587,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       {getValidColors().length > 0 && (
                         <div className="mt-3">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-ink">
                               Added Colors ({getValidColors().length})
                             </span>
                             <button
@@ -619,11 +603,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
                             {getValidColors().map((color, index) => (
                               <div
                                 key={index}
-                                className="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-lg"
+                                className="inline-flex items-center px-3 py-1.5 bg-paper-dim border border-line rounded-xl"
                               >
-                                <span className="text-sm font-medium text-gray-800">
-                                  {color}
-                                </span>
+                                <span className="text-sm font-medium text-ink">{color}</span>
                               </div>
                             ))}
                           </div>
@@ -641,12 +623,12 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                   {/* Row 4: Item Weight */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <FaWeightHanging className="h-4 w-4" />
+                    <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
+                      <FaWeightHanging className="h-4 w-4 text-marigold" />
                       Item Weight (kg) <span className="text-red-500 ml-1">*</span>
                     </label>
                     <div className="relative">
-                      <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <FaWeightHanging className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                       <input
                         type="number"
                         step="0.1"
@@ -654,7 +636,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         value={data.item_weight}
                         onChange={(e) => handleNumberInput(e, 'item_weight')}
                         placeholder="0.5"
-                        className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                       />
                     </div>
                     {errors.item_weight && (
@@ -663,7 +645,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         {errors.item_weight}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-text-soft mt-1">
                       Used for shipping cost calculation (minimum 0.1 kg)
                     </p>
                   </div>
@@ -671,21 +653,21 @@ export default function CreateProductForm({auth, store, categories}: productForm
               </div>
 
               {/* Pricing Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaDollarSign className="h-5 w-5 text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Pricing</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaDollarSign className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Pricing</h2>
                 </div>
 
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Regular Price */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Regular Price <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
-                        <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                         <input
                           type="number"
                           step="0.01"
@@ -693,7 +675,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           value={data.regular_price}
                           onChange={(e) => handleNumberInput(e, 'regular_price')}
                           placeholder="99.99"
-                          className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                         />
                       </div>
                       {errors.regular_price && (
@@ -707,8 +689,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     {/* Sale Price */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                          <FaPercent className="h-4 w-4" />
+                        <label className="text-sm font-medium text-ink flex items-center gap-2">
+                          <FaPercent className="h-4 w-4 text-marigold" />
                           Sale Price
                         </label>
                         <div className="flex items-center gap-2">
@@ -720,9 +702,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               setShowSalePrice(e.target.checked);
                               if (!e.target.checked) setData('sale_price', '');
                             }}
-                            className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            className="h-4 w-4 rounded border-line text-marigold focus:ring-marigold"
                           />
-                          <label htmlFor="enable_sale" className="text-sm text-gray-600">
+                          <label htmlFor="enable_sale" className="text-sm text-text-soft">
                             Enable
                           </label>
                         </div>
@@ -731,7 +713,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       {showSalePrice && (
                         <div>
                           <div className="relative">
-                            <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                             <input
                               type="number"
                               step="0.01"
@@ -740,7 +722,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               value={data.sale_price}
                               onChange={(e) => handleNumberInput(e, 'sale_price')}
                               placeholder="79.99"
-                              className="w-full rounded-lg border border-gray-300 px-10 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              className="w-full rounded-xl border border-line px-10 py-3 focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                             />
                           </div>
                           {data.regular_price && data.sale_price && discountPercentage > 0 && (
@@ -749,7 +731,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                                 <FaPercent className="h-3 w-3 mr-1" />
                                 Save {discountPercentage}%
                               </span>
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-text-soft">
                                 Save ${(parseFloat(data.regular_price) - parseFloat(data.sale_price)).toFixed(2)}
                               </span>
                             </div>
@@ -768,10 +750,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
               </div>
 
               {/* Rich Description Card with Quill.js */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaBookOpen className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Description</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaBookOpen className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Description</h2>
                 </div>
 
                 <div>
@@ -785,10 +767,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     className="h-64 mb-12"
                   />
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-gray-500">
-                      <span className="font-medium">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
+                    <p className="text-xs text-text-soft">
+                      <span className="font-medium text-ink">{data.description.replace(/<[^>]*>/g, '').length}</span> characters (plain text)
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-text-soft">
                       Use the toolbar to format your text with rich styling
                     </p>
                   </div>
@@ -806,10 +788,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
             {/* Right Column */}
             <div className="space-y-6">
               {/* Images Upload Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaImage className="h-5 w-5 text-orange-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Images</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaImage className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Images</h2>
                 </div>
 
                 <div>
@@ -826,18 +808,18 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     onClick={() => imagesInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                       data.images.length === 0
-                        ? 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                        : 'border-gray-200'
+                        ? 'border-line hover:border-marigold hover:bg-marigold/5'
+                        : 'border-line'
                     }`}
                   >
                     {data.images.length === 0 ? (
                       <div className="space-y-4">
-                        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
-                          <FaUpload className="h-10 w-10 text-purple-500" />
+                        <div className="mx-auto w-20 h-20 rounded-full bg-marigold/10 flex items-center justify-center">
+                          <FaUpload className="h-10 w-10 text-marigold" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">Click to upload images</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB each</p>
+                          <p className="text-sm font-medium text-ink">Click to upload images</p>
+                          <p className="text-xs text-text-soft mt-1">PNG, JPG up to 5MB each</p>
                         </div>
                       </div>
                     ) : (
@@ -848,7 +830,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               <img
                                 src={preview}
                                 alt={`Preview ${i + 1}`}
-                                className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                                className="w-full h-32 object-cover rounded-xl group-hover:opacity-75 transition-opacity"
                               />
                               <button
                                 type="button"
@@ -863,14 +845,14 @@ export default function CreateProductForm({auth, store, categories}: productForm
                             </div>
                           ))}
                         </div>
-                        <p className="text-sm text-gray-600">Click to add more images</p>
+                        <p className="text-sm text-text-soft">Click to add more images</p>
                       </div>
                     )}
                   </div>
 
                   {data.images.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
-                      <FaImage className="h-3 w-3" />
+                    <p className="text-xs text-text-soft mt-3 flex items-center gap-1">
+                      <FaImage className="h-3 w-3 text-marigold" />
                       {data.images.length} image(s) selected
                     </p>
                   )}
@@ -883,12 +865,11 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
               </div>
 
-
               {/* Stock Status Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaShoppingCart className="h-5 w-5 text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Stock Status</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaShoppingCart className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Stock Status</h2>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -897,10 +878,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     id="inStock"
                     checked={data.inStock}
                     onChange={(e) => setData('inStock', e.target.checked)}
-                    className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="h-5 w-5 rounded border-line text-marigold focus:ring-marigold"
                   />
-                  <label htmlFor="inStock" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <FaBox className="h-4 w-4" />
+                  <label htmlFor="inStock" className="text-sm font-medium text-ink flex items-center gap-2">
+                    <FaBox className="h-4 w-4 text-marigold" />
                     In Stock
                   </label>
                 </div>
@@ -913,14 +894,14 @@ export default function CreateProductForm({auth, store, categories}: productForm
               </div>
 
               {/* Preview Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                  <FaEye className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">Product Preview</h2>
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
+                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-line">
+                  <FaEye className="h-5 w-5 text-marigold" />
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Product Preview</h2>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="border border-gray-200 rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="border border-line rounded-xl overflow-hidden group hover:shadow-hard-sm transition-shadow">
                     {imagePreviews[0] ? (
                       <div className="relative">
                         <img
@@ -935,21 +916,20 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         )}
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors">
-                        <FaBox className="h-16 w-16 text-gray-400 group-hover:text-gray-500 transition-colors" />
+                      <div className="w-full h-48 bg-paper-dim flex items-center justify-center group-hover:bg-paper-dim/80 transition-colors">
+                        <FaBox className="h-16 w-16 text-text-soft" />
                       </div>
                     )}
                     <div className="p-4">
-                      <h3 className="font-bold text-gray-800 truncate">
+                      <h3 className="font-bold text-ink truncate">
                         {data.name || 'Product Name'}
                       </h3>
 
-                      {/* Category and Color display */}
                       <div className="space-y-2 mt-2">
                         {/* Categories */}
                         <div className="flex flex-wrap gap-1">
                           {data.category && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-marigold/10 text-marigold">
                               {data.category}
                             </span>
                           )}
@@ -966,13 +946,13 @@ export default function CreateProductForm({auth, store, categories}: productForm
                             {getValidColors().slice(0, 3).map((color, index) => (
                               <span
                                 key={index}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-paper-dim text-ink border border-line"
                               >
                                 {color}
                               </span>
                             ))}
                             {getValidColors().length > 3 && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-text-soft">
                                 +{getValidColors().length - 3} more
                               </span>
                             )}
@@ -981,7 +961,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                         {/* Weight */}
                         {data.item_weight && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1 text-xs text-text-soft">
                             <FaWeightHanging className="h-3 w-3" />
                             Weight: {data.item_weight} kg
                           </div>
@@ -992,19 +972,19 @@ export default function CreateProductForm({auth, store, categories}: productForm
                       <div className="mt-2">
                         {data.sale_price ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-green-600">
+                            <span className="text-xl font-bold text-marigold">
                               ${parseFloat(data.sale_price).toFixed(2)}
                             </span>
-                            <span className="text-sm text-gray-500 line-through">
+                            <span className="text-sm text-text-soft line-through">
                               ${parseFloat(data.regular_price).toFixed(2)}
                             </span>
                           </div>
                         ) : data.regular_price ? (
-                          <span className="text-xl font-bold text-gray-800">
+                          <span className="text-xl font-bold text-ink">
                             ${parseFloat(data.regular_price).toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-xl font-bold text-gray-400">
+                          <span className="text-xl font-bold text-text-soft">
                             $0.00
                           </span>
                         )}
@@ -1016,39 +996,38 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         }`}>
                           {data.inStock ? 'In Stock' : 'Out of Stock'}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-text-soft">
                           Qty: {data.quantity || 0}
                         </span>
                       </div>
 
                       {data.slug && (
-                        <div className="mt-2 text-xs text-gray-500 truncate flex items-center gap-1">
+                        <div className="mt-2 text-xs text-text-soft truncate flex items-center gap-1">
                           <FaLink className="h-3 w-3" />
                           {data.slug}
                         </div>
                       )}
-
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t border-line">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaStore className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaStore className="h-3 w-3 text-marigold" />
                           Store
                         </span>
-                        <span className="font-medium text-gray-800">{store.name}</span>
+                        <span className="font-medium text-ink">{store.name}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center gap-2">
-                          <FaBox className="h-3 w-3" />
+                        <span className="text-text-soft flex items-center gap-2">
+                          <FaBox className="h-3 w-3 text-marigold" />
                           Categories
                         </span>
                         <div className="text-right">
-                          <div className="font-medium text-gray-800">{data.category || 'None'}</div>
+                          <div className="font-medium text-ink">{data.category || 'None'}</div>
                           {data.subcategory && (
-                            <div className="text-xs text-gray-500">{data.subcategory}</div>
+                            <div className="text-xs text-text-soft">{data.subcategory}</div>
                           )}
                         </div>
                       </div>
@@ -1058,11 +1037,11 @@ export default function CreateProductForm({auth, store, categories}: productForm
               </div>
 
               {/* Action Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
                 <button
                   type="submit"
                   disabled={processing || !data.name || !data.category || !data.regular_price || !data.description || !data.item_weight}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+                  className="w-full bg-gray-900 hover:bg-marigold text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {processing ? (
                     <>
@@ -1077,30 +1056,30 @@ export default function CreateProductForm({auth, store, categories}: productForm
                   )}
                 </button>
 
-                <div className="mt-6 pt-6 border-t">
-                  <div className="text-xs text-gray-500 space-y-2">
+                <div className="mt-6 pt-6 border-t border-line">
+                  <div className="text-xs text-text-soft space-y-2">
                     <p className="flex items-center gap-2">
-                      <FaInfoCircle className="h-3 w-3" />
-                      <span>Product will be added to: <span className="font-medium text-gray-700">{store.name}</span></span>
+                      <FaInfoCircle className="h-3 w-3 text-marigold" />
+                      <span>Product will be added to: <span className="font-medium text-ink">{store.name}</span></span>
                     </p>
                     <p className="flex items-center gap-2">
                       <HiOutlineExclamationCircle className="h-3 w-3" />
                       <span>All required fields marked with * must be filled</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaWeightHanging className="h-3 w-3" />
+                      <FaWeightHanging className="h-3 w-3 text-marigold" />
                       <span>Item weight is required for shipping calculation</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaPercent className="h-3 w-3" />
+                      <FaPercent className="h-3 w-3 text-marigold" />
                       <span>Sale price is optional but recommended for promotions</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaImage className="h-3 w-3" />
+                      <FaImage className="h-3 w-3 text-marigold" />
                       <span>High-quality images increase conversion by up to 30%</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaBookOpen className="h-3 w-3" />
+                      <FaBookOpen className="h-3 w-3 text-marigold" />
                       <span>Rich text editor allows formatted product descriptions</span>
                     </p>
                   </div>

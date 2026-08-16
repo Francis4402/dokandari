@@ -1,5 +1,4 @@
-// resources/js/Pages/dashboard/messages/index.tsx
-
+// Messages.tsx
 import { useState, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router } from '@inertiajs/react';
@@ -19,6 +18,8 @@ import {
 import { PageProps } from '@/types';
 import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
 import axios from 'axios';
+import Eyebrow from '@/Pages/Components/Eyebrow';
+
 
 interface Contact {
   id: string;
@@ -108,7 +109,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0);
 
-
   const isAdmin = auth.user?.role === 'admin' || auth.user?.role === 'superadmin';
 
   useEffect(() => {
@@ -121,7 +121,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     setUnreadCount(initialUnreadCount);
   }, [initialUnreadCount]);
 
-  // Load replies when a contact is selected
   useEffect(() => {
     if (selectedContact) {
       loadReplies(selectedContact.id);
@@ -130,7 +129,6 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     }
   }, [selectedContact]);
 
-  // Scroll to bottom when new replies are loaded
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -284,16 +282,11 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
       });
 
       if (response.data.success) {
-        // Add the new reply to the replies list
         const newReply = response.data.reply;
         setReplies(prev => [...prev, newReply]);
-
-        // Close modal and reset
         setShowReplyModal(false);
         setReplyingTo(null);
         setReplyMessage('');
-
-        // Show success message
         alert('Reply sent successfully!');
       }
     } catch (error: any) {
@@ -374,7 +367,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
   };
 
   const getAvatarUrl = (name: string) => {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&bold=true&size=128`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF5A1F&color=fff&bold=true&size=128`;
   };
 
   const getTabIcon = (tab: MessageTab) => {
@@ -390,22 +383,21 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
     <DashboardLayout user={auth.user}>
       <Head title="Messages" />
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-paper-dim">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Messages</h1>
-                <p className="text-gray-600 mt-1">
-                  {unreadCount > 0 ? (
-                    <>You have <span className="font-semibold text-blue-600">{unreadCount} unread</span> messages</>
-                  ) : (
-                    'View and manage contact form submissions'
-                  )}
-                </p>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <Eyebrow>Manage customer messages</Eyebrow>
+              <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Messages</h1>
+              <p className="text-text-soft mt-1">
+                {unreadCount > 0 ? (
+                  <>You have <span className="font-semibold text-marigold">{unreadCount} unread</span> messages</>
+                ) : (
+                  'View and manage contact form submissions'
+                )}
+              </p>
             </div>
           </div>
 
@@ -414,34 +406,34 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
             {/* Contacts Sidebar */}
             <div className={`${showMobileList ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
-              <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+              <div className="bg-white rounded-2xl shadow-hard-sm border border-line h-full flex flex-col">
 
                 {/* Search */}
-                <div className="p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-line">
                   <form onSubmit={handleSearch}>
                     <div className="relative">
-                      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                       <input
                         type="text"
                         placeholder="Search messages..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                       />
                     </div>
                   </form>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-gray-200">
+                <div className="flex border-b border-line">
                   {(['inbox', 'unread', 'starred'] as MessageTab[]).map(tab => (
                     <button
                       key={tab}
                       onClick={() => handleTabChange(tab)}
                       className={`flex-1 py-3 text-sm font-medium capitalize flex items-center justify-center ${
                         activeTab === tab
-                          ? 'text-blue-600 border-b-2 border-blue-600'
-                          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                          ? 'text-marigold border-b-2 border-marigold'
+                          : 'text-text-soft hover:text-ink hover:bg-paper-dim'
                       }`}
                     >
                       <span className="flex items-center">
@@ -449,7 +441,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                         {tab}
                       </span>
                       {tab === 'unread' && unreadCount > 0 && (
-                        <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">
+                        <span className="ml-2 px-2 py-0.5 bg-marigold/10 text-marigold text-xs rounded-full">
                           {unreadCount}
                         </span>
                       )}
@@ -461,48 +453,48 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                 <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] relative">
                   {isUpdating && (
                     <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-marigold"></div>
                     </div>
                   )}
 
                   {filteredContacts.length === 0 ? (
                     <div className="text-center py-12">
-                      <FaEnvelope className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-600 font-medium">No messages found</p>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <FaEnvelope className="h-16 w-16 text-text-soft mx-auto mb-4" />
+                      <p className="text-ink font-medium">No messages found</p>
+                      <p className="text-sm text-text-soft mt-1">
                         {searchTerm ? 'Try a different search term' : 'Your inbox is empty'}
                       </p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-line">
                       {filteredContacts.map(contact => (
                         <div
                           key={contact.id}
-                          className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${
-                            selectedContact?.id === contact.id ? 'bg-blue-50' : ''
-                          } ${!contact.is_read ? 'bg-blue-50/30' : ''}`}
+                          className={`p-4 hover:bg-paper-dim cursor-pointer transition-all ${
+                            selectedContact?.id === contact.id ? 'bg-marigold/5' : ''
+                          } ${!contact.is_read ? 'bg-marigold/5' : ''}`}
                           onClick={() => handleContactSelect(contact)}
                         >
                           <div className="flex items-start space-x-3">
                             <div className="relative flex-shrink-0">
-                              <div className="w-12 h-12 rounded-full overflow-hidden bg-blue-100">
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-marigold/10">
                                 <img
                                   src={getAvatarUrl(contact.name)}
                                   alt={contact.name}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=3b82f6&color=fff&bold=true`;
+                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=FF5A1F&color=fff&bold=true`;
                                   }}
                                 />
                               </div>
                               {!contact.is_read && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full ring-2 ring-white"></div>
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-marigold rounded-full ring-2 ring-white"></div>
                               )}
                             </div>
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-semibold text-gray-800 truncate">{contact.name}</h4>
+                                <h4 className="font-semibold text-ink truncate">{contact.name}</h4>
                                 <div className="flex items-center space-x-2 flex-shrink-0">
                                   <button
                                     onClick={(e) => toggleStar(contact.id, e)}
@@ -511,32 +503,32 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                                   >
                                     <FaStar
                                       className={`h-3 w-3 ${
-                                        contact.is_starred ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-500'
+                                        contact.is_starred ? 'text-yellow-500' : 'text-text-soft hover:text-yellow-500'
                                       }`}
                                     />
                                   </button>
-                                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                                  <span className="text-xs text-text-soft whitespace-nowrap">
                                     {formatDate(contact.created_at).split(',')[0]}
                                   </span>
                                 </div>
                               </div>
 
                               <div className="mb-1">
-                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full truncate inline-block max-w-full">
+                                <span className="text-xs font-medium text-text-soft bg-paper-dim px-2 py-0.5 rounded-full truncate inline-block max-w-full">
                                   {contact.subject}
                                 </span>
                               </div>
 
-                              <p className="text-sm text-gray-600 truncate mb-1">
+                              <p className="text-sm text-text-soft truncate mb-1">
                                 {contact.message.length > 60
                                   ? contact.message.substring(0, 60) + '...'
                                   : contact.message}
                               </p>
 
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-400 truncate max-w-[150px]">{contact.email}</span>
+                                <span className="text-xs text-text-soft truncate max-w-[150px]">{contact.email}</span>
                                 {!contact.is_read && (
-                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                  <span className="px-2 py-0.5 bg-marigold/10 text-marigold text-xs font-medium rounded-full">
                                     New
                                   </span>
                                 )}
@@ -551,7 +543,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
                 {/* Pagination Info */}
                 {initialContacts?.total > 0 && (
-                  <div className="p-4 border-t border-gray-200 text-xs text-gray-500">
+                  <div className="p-4 border-t border-line text-xs text-text-soft">
                     Showing {initialContacts.from || 0} - {initialContacts.to || 0} of {initialContacts.total} messages
                   </div>
                 )}
@@ -561,21 +553,21 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
             {/* Message Detail Area with Replies */}
             <div className={`${!showMobileList ? 'block' : 'hidden'} lg:block lg:col-span-3`}>
               {selectedContact ? (
-                <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line h-full flex flex-col">
 
                   {/* Message Header */}
-                  <div className="p-6 border-b border-gray-200">
+                  <div className="p-6 border-b border-line">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={() => setShowMobileList(true)}
-                          className="lg:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="lg:hidden p-2 text-text-soft hover:text-marigold hover:bg-paper-dim rounded-xl transition-colors"
                           title="Back to list"
                         >
                           <FaArrowLeft className="h-5 w-5" />
                         </button>
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-full overflow-hidden bg-blue-100">
+                          <div className="w-16 h-16 rounded-full overflow-hidden bg-marigold/10">
                             <img
                               src={getAvatarUrl(selectedContact.name)}
                               alt={selectedContact.name}
@@ -584,9 +576,9 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                           </div>
                         </div>
                         <div>
-                          <h2 className="text-2xl font-bold text-gray-800">{selectedContact.name}</h2>
-                          <p className="text-gray-600">{selectedContact.email}</p>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <h2 className="text-2xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">{selectedContact.name}</h2>
+                          <p className="text-text-soft">{selectedContact.email}</p>
+                          <p className="text-sm text-text-soft mt-1">
                             Received: {formatDate(selectedContact.created_at)}
                           </p>
                         </div>
@@ -596,9 +588,9 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                         {isAdmin && (
                           <button
                             onClick={() => handleReply(selectedContact)}
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-marigold hover:bg-marigold-dark text-white rounded-xl transition-all duration-300 hover:shadow-lg"
                           >
-                            <FaReply className="h-4 w-4 mr-2" />
+                            <FaReply className="h-4 w-4" />
                             Reply
                           </button>
                         )}
@@ -606,7 +598,7 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                         {isAdmin && (
                           <button
                             onClick={(e) => openDeleteDialog(selectedContact, e)}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-text-soft hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                             title="Delete"
                           >
                             <FaTrash className="h-5 w-5" />
@@ -620,9 +612,9 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                   <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-3xl mx-auto space-y-6">
                       {/* Original Message */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="bg-white border border-line rounded-xl p-6 shadow-hard-sm">
                         <div className="flex items-center mb-4">
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 mr-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-marigold/10 mr-3">
                             <img
                               src={getAvatarUrl(selectedContact.name)}
                               alt={selectedContact.name}
@@ -630,19 +622,19 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                             />
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">{selectedContact.name}</h4>
-                            <p className="text-xs text-gray-500">
+                            <h4 className="font-semibold text-ink">{selectedContact.name}</h4>
+                            <p className="text-xs text-text-soft">
                               {formatDate(selectedContact.created_at)}
                             </p>
                           </div>
                         </div>
 
-                        <div className="mb-4 pb-4 border-b border-gray-200">
-                          <span className="text-sm font-semibold text-gray-700">Subject: </span>
-                          <span className="text-gray-900">{selectedContact.subject}</span>
+                        <div className="mb-4 pb-4 border-b border-line">
+                          <span className="text-sm font-semibold text-ink">Subject: </span>
+                          <span className="text-text-soft">{selectedContact.subject}</span>
                         </div>
 
-                        <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                        <p className="text-text-soft whitespace-pre-wrap leading-relaxed">
                           {selectedContact.message}
                         </p>
                       </div>
@@ -650,31 +642,31 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                       {/* Replies Thread */}
                       {loadingReplies ? (
                         <div className="flex justify-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-marigold"></div>
                         </div>
                       ) : (
                         replies.map((reply) => (
-                          <div key={reply.id} className="bg-blue-50 border border-blue-200 rounded-lg p-6 ml-8">
+                          <div key={reply.id} className="bg-marigold/5 border border-marigold/20 rounded-xl p-6 ml-8 shadow-hard-sm">
                             <div className="flex items-center mb-4">
-                              <div className="w-10 h-10 rounded-full overflow-hidden bg-green-100 mr-3">
-                                <div className="w-full h-full flex items-center justify-center bg-green-500 text-white">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-marigold/10 mr-3">
+                                <div className="w-full h-full flex items-center justify-center bg-marigold text-white">
                                   <FaUserCircle className="w-6 h-6" />
                                 </div>
                               </div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-semibold text-gray-800">{reply.user?.name}</h4>
-                                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                  <h4 className="font-semibold text-ink">{reply.user?.name}</h4>
+                                  <span className="ml-2 px-2 py-0.5 bg-marigold/10 text-marigold text-xs font-medium rounded-full">
                                     Admin
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-text-soft">
                                   {formatDate(reply.created_at)}
                                 </p>
                               </div>
                             </div>
 
-                            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-text-soft whitespace-pre-wrap leading-relaxed">
                               {reply.message}
                             </p>
                           </div>
@@ -683,10 +675,10 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
                       {/* Quick Reply Form for Admins */}
                       {isAdmin && (
-                        <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                        <div className="bg-paper-dim rounded-xl p-4 mt-4 border border-line">
                           <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0">
-                              <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-marigold/10">
                                 <img
                                   src={getAvatarUrl(auth.user?.name || 'Admin')}
                                   alt="Admin"
@@ -700,15 +692,15 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                                 placeholder="Type your reply here..."
                                 value={replyMessage}
                                 onChange={(e) => setReplyMessage(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                               />
                               <div className="flex justify-end mt-2">
                                 <button
                                   onClick={() => handleReply(selectedContact)}
                                   disabled={!replyMessage.trim()}
-                                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-marigold hover:bg-marigold-dark text-white rounded-xl transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                  <FaPaperPlane className="h-4 w-4 mr-2" />
+                                  <FaPaperPlane className="h-4 w-4" />
                                   Send Reply
                                 </button>
                               </div>
@@ -722,15 +714,15 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl shadow-lg h-full flex flex-col items-center justify-center p-8">
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line h-full flex flex-col items-center justify-center p-8">
                   <div className="text-center max-w-md">
-                    <FaEnvelopeOpen className="h-24 w-24 text-gray-300 mx-auto mb-6" />
-                    <h3 className="text-2xl font-bold text-gray-800 mb-3">Select a Message</h3>
-                    <p className="text-gray-600">
+                    <FaEnvelopeOpen className="h-24 w-24 text-text-soft mx-auto mb-6" />
+                    <h3 className="text-2xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink mb-3">Select a Message</h3>
+                    <p className="text-text-soft">
                       Choose a message from the sidebar to view its details and reply to the customer.
                     </p>
                     {filteredContacts.length > 0 && (
-                      <p className="text-sm text-gray-500 mt-4">
+                      <p className="text-sm text-text-soft mt-4">
                         You have {filteredContacts.length} message{filteredContacts.length !== 1 ? 's' : ''} in this view
                       </p>
                     )}
@@ -744,44 +736,44 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
 
       {/* Reply Modal */}
       {showReplyModal && replyingTo && isAdmin && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+        <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-hard-sm border border-line w-full max-w-2xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Reply to {replyingTo.name}</h3>
+                <h3 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Reply to {replyingTo.name}</h3>
                 <button
                   onClick={() => setShowReplyModal(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                  className="p-1 text-text-soft hover:text-ink rounded-lg hover:bg-paper-dim transition-colors"
                 >
                   <FaTimes className="h-5 w-5" />
                 </button>
               </div>
 
               {replyError && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-xl">
                   {replyError}
                 </div>
               )}
 
               <div className="mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-semibold">Original Message:</span> {replyingTo.subject}
+                <div className="bg-paper-dim p-4 rounded-xl mb-4 border border-line">
+                  <p className="text-sm text-text-soft mb-2">
+                    <span className="font-semibold text-ink">Original Message:</span> {replyingTo.subject}
                   </p>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                  <p className="text-sm text-text-soft whitespace-pre-wrap max-h-40 overflow-y-auto">
                     {replyingTo.message}
                   </p>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-text-soft mt-2">
                     From: {replyingTo.email} • Received: {formatDate(replyingTo.created_at)}
                   </p>
                 </div>
 
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Reply *</label>
+                <label className="block text-sm font-medium text-ink mb-2">Your Reply *</label>
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
                   placeholder="Type your reply here..."
                   autoFocus
                 />
@@ -790,23 +782,23 @@ const Messages = ({ auth, contacts: initialContacts, unreadCount: initialUnreadC
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setShowReplyModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 text-text-soft hover:text-ink font-medium rounded-xl hover:bg-paper-dim transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={sendReply}
                   disabled={!replyMessage.trim() || isSendingReply}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  className="px-6 py-2 bg-marigold hover:bg-marigold-dark text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSendingReply ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Sending...
                     </>
                   ) : (
                     <>
-                      <FaPaperPlane className="h-4 w-4 mr-2" />
+                      <FaPaperPlane className="h-4 w-4" />
                       Send Reply
                     </>
                   )}

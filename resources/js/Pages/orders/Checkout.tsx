@@ -1,3 +1,4 @@
+// Checkout.tsx
 import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import {
@@ -16,12 +17,16 @@ import {
   FaEnvelope,
   FaCreditCard,
   FaMoneyBillWave,
-  FaStore
+  FaStore,
+  FaTruck,
+  FaTimes
 } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import { useStore, OrderData } from '../state/cartStore';
 import { toast } from 'sonner';
 import FormatPrice from '../utils/FormatePrice';
+import Eyebrow from '../Components/Eyebrow';
+
 
 interface CheckoutProps {
   auth: {
@@ -36,7 +41,6 @@ interface CheckoutProps {
     logo?: string;
     pathao_store_id?: number;
   };
-
   wishlist: any
 }
 
@@ -59,10 +63,6 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-
-
-
-  // Form state
   const { data, setData, processing } = useForm({
     recipient_name: auth.user?.name || '',
     recipient_phone: '',
@@ -73,7 +73,6 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
   });
 
   const summary = getOrderSummary();
-
 
   const getFirstImage = (images: string) => {
     try {
@@ -95,7 +94,6 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
     }
     return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   };
-
 
   const getSelectedCityName = () => {
     const city = cities.find(c => c.city_id === parseInt(selectedCity));
@@ -142,8 +140,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
     e.preventDefault();
 
     if (!validateForm()) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
     setIsProcessing(true);
@@ -151,82 +149,77 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
     setValidationErrors({});
 
     if (!selectedCity || !selectedZone || !pathaoCharges) {
-        toast.error('Please select city and zone');
-        setIsProcessing(false);
-        return;
+      toast.error('Please select city and zone');
+      setIsProcessing(false);
+      return;
     }
 
     if (!auth.user) {
-        toast.error('Please login to continue');
-        setIsProcessing(false);
-        return;
+      toast.error('Please login to continue');
+      setIsProcessing(false);
+      return;
     }
-
 
     const userId = auth.user.uuid || auth.user.id || auth.user.user_id;
 
-
     if (!userId) {
-        toast.error('User ID not found');
-        setIsProcessing(false);
-        return;
+      toast.error('User ID not found');
+      setIsProcessing(false);
+      return;
     }
 
     const orderData: OrderData = {
-        user_id: userId,
-        sender_name: '',
-        sender_email: '',
-        sender_phone: '',
-
-        recipient_name: data.recipient_name,
-        recipient_phone: data.recipient_phone,
-        recipient_email: data.recipient_email,
-        recipient_address: data.recipient_address,
-
-        notes: data.notes,
-        payment_method: data.payment_method,
-        pathao_city: selectedCity,
-        pathao_city_name: getSelectedCityName(),
-        pathao_zone: selectedZone,
-        pathao_zone_name: getSelectedZoneName(),
-        ...(selectedArea && {
-            pathao_area: selectedArea,
-            pathao_area_name: getSelectedAreaName(),
-        }),
+      user_id: userId,
+      sender_name: '',
+      sender_email: '',
+      sender_phone: '',
+      recipient_name: data.recipient_name,
+      recipient_phone: data.recipient_phone,
+      recipient_email: data.recipient_email,
+      recipient_address: data.recipient_address,
+      notes: data.notes,
+      payment_method: data.payment_method,
+      pathao_city: selectedCity,
+      pathao_city_name: getSelectedCityName(),
+      pathao_zone: selectedZone,
+      pathao_zone_name: getSelectedZoneName(),
+      ...(selectedArea && {
+        pathao_area: selectedArea,
+        pathao_area_name: getSelectedAreaName(),
+      }),
     };
 
     try {
-        await processCheckout(orderData);
+      await processCheckout(orderData);
     } catch (err: any) {
-        console.error('Checkout error:', err);
-        if (err && typeof err === 'object') {
-            setValidationErrors(err);
-            setError('Please fix the validation errors below');
-        } else {
-            setError('Failed to process checkout. Please try again.');
-        }
-        setIsProcessing(false);
+      console.error('Checkout error:', err);
+      if (err && typeof err === 'object') {
+        setValidationErrors(err);
+        setError('Please fix the validation errors below');
+      } else {
+        setError('Failed to process checkout. Please try again.');
+      }
+      setIsProcessing(false);
     }
   };
 
-  // If cart is empty
   if (cartItems.length === 0) {
     return (
       <AppLayout user={auth.user} wishlist={wishlist}>
         <Head title="Checkout" />
-        <div className="min-h-screen bg-gray-50 py-12">
+        <div className="min-h-screen bg-paper-dim py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="bg-white rounded-2xl shadow-lg p-12">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
-                <FaShoppingCart className="h-12 w-12 text-blue-600" />
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-12">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-marigold/10 flex items-center justify-center">
+                <FaShoppingCart className="h-12 w-12 text-marigold" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-              <p className="text-gray-600 mb-8">Add items to your cart before checkout</p>
+              <h2 className="text-2xl font-display font-extrabold uppercase text-ink mb-4">Your cart is empty</h2>
+              <p className="text-text-soft mb-8">Add items to your cart before checkout</p>
               <Link
                 href="/products"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
               >
-                <FaArrowLeft className="h-4 w-4 mr-2" />
+                <FaArrowLeft className="h-4 w-4" />
                 Continue Shopping
               </Link>
             </div>
@@ -240,46 +233,18 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Checkout - Secure Checkout" />
 
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8">
+      <div className="min-h-screen bg-paper-dim py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Progress Steps */}
-          <div className="mb-10">
-            <div className="flex items-center justify-center">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold shadow-lg">
-                  1
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Cart</p>
-                  <p className="text-xs text-gray-500">Review items</p>
-                </div>
-              </div>
-              <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-green-500 mx-4"></div>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-green-500 text-white flex items-center justify-center font-semibold shadow-lg">
-                  2
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Checkout</p>
-                  <p className="text-xs text-gray-500">Shipping & Payment</p>
-                </div>
-              </div>
-              <div className="w-24 h-1 bg-gray-300 mx-4"></div>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gray-300 text-gray-500 flex items-center justify-center font-semibold">
-                  3
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Confirmation</p>
-                  <p className="text-xs text-gray-500">Order complete</p>
-                </div>
-              </div>
-            </div>
+          {/* Header */}
+          <div className="mb-8">
+            <Eyebrow>Complete your purchase</Eyebrow>
+            <h1 className="text-[30px] sm:text-[36px] lg:text-[44px]">Checkout</h1>
+            <p className="text-text-soft mt-1">Review and confirm your order details</p>
           </div>
 
           {/* Error Messages */}
           {error && (
-            <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg flex items-start shadow-md">
+            <div className="mb-6 bg-red-50 border-l-4 text-red-700 px-4 py-3 rounded-xl flex items-start shadow-hard-sm border-red-200">
               <FaExclamationCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-medium">{error}</p>
@@ -299,67 +264,67 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Forms */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Store Information (Sender) - Read Only */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
-                    <h2 className="text-xl font-bold text-white flex items-center">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Store Information */}
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line overflow-hidden">
+                  <div className="bg-gradient-to-r from-marigold to-marigold-dark px-6 py-4">
+                    <h2 className="text-xl font-display font-extrabold uppercase text-white flex items-center">
                       <FaStore className="h-5 w-5 mr-2" />
                       Store Information
                     </h2>
-                    <p className="text-purple-100 text-sm mt-1">Items will be shipped from this store</p>
+                    <p className="text-white/80 text-sm mt-1">Items will be shipped from this store</p>
                   </div>
                   <div className="p-6">
-                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <div className="bg-paper-dim p-4 rounded-xl border border-line">
                       <div className="flex items-center gap-3 mb-3">
                         <img
                           src={`/storage/${store.logo}`}
                           alt={store.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
+                          className="w-16 h-16 rounded-full object-cover border-2 border-marigold/30"
                           onError={(e) => {
                             e.currentTarget.src = '/default-store-logo.png';
                           }}
                         />
                         <div>
-                          <h3 className="font-semibold text-purple-900 text-lg">{store.name}</h3>
-                          <p className="text-sm text-purple-700 flex items-center gap-1">
-                            <FaCheckCircle className="h-3 w-3" />
+                          <h3 className="font-semibold text-ink text-lg">{store.name}</h3>
+                          <p className="text-sm text-text-soft flex items-center gap-1">
+                            <FaCheckCircle className="h-3 w-3 text-marigold" />
                             Verified Store
                           </p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-purple-800 mt-3 pt-3 border-t border-purple-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-text-soft mt-3 pt-3 border-t border-line">
                         <p className="flex items-center gap-2">
-                          <FaPhone className="h-3 w-3" />
-                          <span className="font-medium">Phone:</span> {store.mobile || store.phone || 'Not available'}
+                          <FaPhone className="h-3 w-3 text-marigold" />
+                          <span className="font-medium text-ink">Phone:</span> {store.mobile || store.phone || 'Not available'}
                         </p>
                         <p className="flex items-center gap-2">
-                          <FaEnvelope className="h-3 w-3" />
-                          <span className="font-medium">Email:</span> {store.email || 'Not available'}
+                          <FaEnvelope className="h-3 w-3 text-marigold" />
+                          <span className="font-medium text-ink">Email:</span> {store.email || 'Not available'}
                         </p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-text-soft mt-2">
                       This store will fulfill and ship your order
                     </p>
                   </div>
                 </div>
 
-                {/* Recipient Information (Customer) */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                    <h2 className="text-xl font-bold text-white flex items-center">
+                {/* Recipient Information */}
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line overflow-hidden">
+                  <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+                    <h2 className="text-xl font-display font-extrabold uppercase text-white flex items-center">
                       <FaUser className="h-5 w-5 mr-2" />
                       Recipient Information
                     </h2>
-                    <p className="text-blue-100 text-sm mt-1">Who will receive this order?</p>
+                    <p className="text-gray-300 text-sm mt-1">Who will receive this order?</p>
                   </div>
 
                   <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          <FaUser className="h-4 w-4 inline mr-1 text-blue-600" />
+                        <label className="block text-sm font-medium text-ink mb-2">
+                          <FaUser className="h-4 w-4 inline mr-1 text-marigold" />
                           Recipient Name *
                         </label>
                         <input
@@ -368,8 +333,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                           value={data.recipient_name}
                           onChange={e => setData('recipient_name', e.target.value)}
                           className={`w-full px-4 py-3 border ${
-                            validationErrors.recipient_name ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                            validationErrors.recipient_name ? 'border-red-500 bg-red-50' : 'border-line'
+                          } rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft transition-all`}
                           placeholder="Enter recipient's full name"
                         />
                         {validationErrors.recipient_name && (
@@ -381,8 +346,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          <FaPhone className="h-4 w-4 inline mr-1 text-blue-600" />
+                        <label className="block text-sm font-medium text-ink mb-2">
+                          <FaPhone className="h-4 w-4 inline mr-1 text-marigold" />
                           Recipient Phone *
                         </label>
                         <input
@@ -391,8 +356,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                           value={data.recipient_phone}
                           onChange={e => setData('recipient_phone', e.target.value)}
                           className={`w-full px-4 py-3 border ${
-                            validationErrors.recipient_phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                            validationErrors.recipient_phone ? 'border-red-500 bg-red-50' : 'border-line'
+                          } rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft transition-all`}
                           placeholder="01XXXXXXXXX"
                         />
                         {validationErrors.recipient_phone && (
@@ -404,10 +369,9 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                       </div>
                     </div>
 
-                    {/* Recipient Email Field */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        <FaEnvelope className="h-4 w-4 inline mr-1 text-blue-600" />
+                      <label className="block text-sm font-medium text-ink mb-2">
+                        <FaEnvelope className="h-4 w-4 inline mr-1 text-marigold" />
                         Recipient Email *
                       </label>
                       <input
@@ -416,8 +380,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                         value={data.recipient_email}
                         onChange={e => setData('recipient_email', e.target.value)}
                         className={`w-full px-4 py-3 border ${
-                            validationErrors.recipient_email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                          validationErrors.recipient_email ? 'border-red-500 bg-red-50' : 'border-line'
+                        } rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft transition-all`}
                         placeholder="recipient@email.com"
                       />
                       {validationErrors.recipient_email && (
@@ -429,8 +393,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        <FaMapMarkerAlt className="h-4 w-4 inline mr-1 text-blue-600" />
+                      <label className="block text-sm font-medium text-ink mb-2">
+                        <FaMapMarkerAlt className="h-4 w-4 inline mr-1 text-marigold" />
                         Delivery Address *
                       </label>
                       <textarea
@@ -439,8 +403,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                         value={data.recipient_address}
                         onChange={e => setData('recipient_address', e.target.value)}
                         className={`w-full px-4 py-3 border ${
-                          validationErrors.recipient_address ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                          validationErrors.recipient_address ? 'border-red-500 bg-red-50' : 'border-line'
+                        } rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft transition-all`}
                         placeholder="House #, Road #, Area"
                       />
                       {validationErrors.recipient_address && (
@@ -453,7 +417,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
 
                     {/* Pathao Location Summary */}
                     {selectedCity && selectedZone && pathaoCharges && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                      <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                         <div className="flex items-start">
                           <FaCheckCircle className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                           <div>
@@ -477,14 +441,14 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                     )}
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink mb-2">
                         Order Notes (Optional)
                       </label>
                       <textarea
                         rows={2}
                         value={data.notes}
                         onChange={e => setData('notes', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft transition-all"
                         placeholder="Special instructions for delivery, gate code, etc."
                       />
                     </div>
@@ -492,9 +456,9 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                 </div>
 
                 {/* Payment Method */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
-                    <h2 className="text-xl font-bold text-white flex items-center">
+                <div className="bg-white rounded-2xl shadow-hard-sm border border-line overflow-hidden">
+                  <div className="bg-gradient-to-r from-marigold to-marigold-dark px-6 py-4">
+                    <h2 className="text-xl font-display font-extrabold uppercase text-white flex items-center">
                       <FaMoneyBill className="h-5 w-5 mr-2" />
                       Payment Method
                     </h2>
@@ -504,8 +468,8 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                     <div className="space-y-4">
                       <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${
                         data.payment_method === 'cash_on_delivery'
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-marigold bg-marigold/5'
+                          : 'border-line hover:border-marigold/50'
                       }`}>
                         <input
                           type="radio"
@@ -513,21 +477,21 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                           value="cash_on_delivery"
                           checked={data.payment_method === 'cash_on_delivery'}
                           onChange={() => setData('payment_method', 'cash_on_delivery')}
-                          className="h-5 w-5 text-green-600"
+                          className="h-5 w-5 text-marigold"
                         />
                         <div className="ml-4 flex-1">
                           <div className="flex items-center">
-                            <FaMoneyBillWave className="h-6 w-6 text-green-600 mr-2" />
-                            <span className="font-medium text-gray-900">Cash on Delivery</span>
+                            <FaMoneyBillWave className="h-6 w-6 text-marigold mr-2" />
+                            <span className="font-medium text-ink">Cash on Delivery</span>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">Pay with cash when you receive your order</p>
+                          <p className="text-sm text-text-soft mt-1">Pay with cash when you receive your order</p>
                         </div>
                       </label>
 
                       <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${
                         data.payment_method === 'bikash'
                           ? 'border-pink-500 bg-pink-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-line hover:border-marigold/50'
                       }`}>
                         <input
                           type="radio"
@@ -540,9 +504,9 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                         <div className="ml-4 flex-1">
                           <div className="flex items-center">
                             <FaCreditCard className="h-6 w-6 text-pink-600 mr-2" />
-                            <span className="font-medium text-gray-900">bKash</span>
+                            <span className="font-medium text-ink">bKash</span>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">Pay via bKash mobile banking</p>
+                          <p className="text-sm text-text-soft mt-1">Pay via bKash mobile banking</p>
                         </div>
                       </label>
                     </div>
@@ -558,12 +522,13 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
               <div className="lg:col-span-1">
                 <div className="sticky top-6 space-y-6">
                   {/* Order Summary Card */}
-                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-                    <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
-                      <h2 className="text-xl font-bold text-white flex items-center">
+                  <div className="bg-white rounded-2xl shadow-hard-sm border border-line overflow-hidden">
+                    <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+                      <h2 className="text-xl font-display font-extrabold uppercase text-white flex items-center">
                         <FaBox className="h-5 w-5 mr-2" />
                         Order Summary
                       </h2>
+                      <p className="text-gray-300 text-sm mt-1">{cartItems.length} items in your cart</p>
                     </div>
 
                     <div className="p-6">
@@ -571,7 +536,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                       <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                         {cartItems.map((item) => (
                           <div key={item.id} className="flex gap-3">
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <div className="w-16 h-16 bg-paper-dim rounded-xl overflow-hidden flex-shrink-0 border border-line">
                               <img
                                 src={getFirstImage(item.images)}
                                 alt={item.name}
@@ -582,13 +547,13 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                              <h4 className="text-sm font-medium text-ink line-clamp-1">
                                 {item.name}
                               </h4>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-text-soft mt-1">
                                 Qty: {item.cartQty || 1}
                               </p>
-                              <p className="text-sm font-semibold text-gray-900 mt-1">
+                              <p className="text-sm font-semibold text-ink mt-1">
                                 <FormatPrice price={(item.sale_price || item.regular_price) * (item.cartQty || 1)} />
                               </p>
                             </div>
@@ -597,28 +562,28 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                       </div>
 
                       {/* Price Breakdown */}
-                      <div className="space-y-3 pt-4 border-t border-gray-200">
+                      <div className="space-y-3 pt-4 border-t border-line">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Subtotal</span>
-                          <span className="font-medium text-gray-900"><FormatPrice price={summary.subtotal} /></span>
+                          <span className="text-text-soft">Subtotal</span>
+                          <span className="font-medium text-ink"><FormatPrice price={summary.subtotal} /></span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Shipping</span>
-                          <span className="font-medium text-gray-900"><FormatPrice price={summary.shipping} /></span>
+                          <span className="text-text-soft">Shipping</span>
+                          <span className="font-medium text-ink"><FormatPrice price={summary.shipping} /></span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Tax (10%)</span>
-                          <span className="font-medium text-gray-900"><FormatPrice price={summary.tax} /></span>
+                          <span className="text-text-soft">Tax (10%)</span>
+                          <span className="font-medium text-ink"><FormatPrice price={summary.tax} /></span>
                         </div>
-                        {summary.discount && summary.discount > 0 ? (
+                        {summary.discount && summary.discount > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Discount</span>
-                            <span className="font-medium text-green-600">-<FormatPrice price={summary.discount}/></span>
+                            <span className="text-text-soft">Discount</span>
+                            <span className="font-medium text-green-600">-<FormatPrice price={summary.discount} /></span>
                           </div>
-                        ) : null}
-                        <div className="flex justify-between text-base font-bold pt-3 border-t border-gray-200">
-                          <span className="text-gray-900">Total</span>
-                          <span className="text-blue-600"><FormatPrice price={summary.total} /></span>
+                        )}
+                        <div className="flex justify-between text-base font-bold pt-3 border-t border-line">
+                          <span className="text-ink">Total</span>
+                          <span className="text-marigold"><FormatPrice price={summary.total} /></span>
                         </div>
                       </div>
 
@@ -630,11 +595,11 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                             id="terms"
                             checked={termsAccepted}
                             onChange={(e) => setTermsAccepted(e.target.checked)}
-                            className="h-4 w-4 text-blue-600 mt-1 rounded border-gray-300 focus:ring-blue-500"
+                            className="h-4 w-4 text-marigold mt-1 rounded border-line focus:ring-marigold"
                           />
-                          <label htmlFor="terms" className="ml-2 text-xs text-gray-600">
+                          <label htmlFor="terms" className="ml-2 text-xs text-text-soft">
                             I agree to the{' '}
-                            <a href="/terms" className="text-blue-600 hover:underline" target="_blank">
+                            <a href="/terms" className="text-marigold hover:underline" target="_blank">
                               Terms & Conditions
                             </a>{' '}
                             and confirm that the order information is correct
@@ -647,7 +612,7 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                         <button
                           type="submit"
                           disabled={processing || isProcessing || cartItems.length === 0 || !selectedCity || !selectedZone || !pathaoCharges || !termsAccepted}
-                          className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg"
+                          className="w-full py-4 bg-gray-900 hover:bg-marigold text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
                         >
                           <FaLock className="h-5 w-5 mr-2" />
                           {(processing || isProcessing) ? (
@@ -659,14 +624,14 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                               Processing...
                             </span>
                           ) : (
-                            `Place Order`
+                            'Place Order'
                           )}
                         </button>
 
                         <button
                           type="button"
                           onClick={() => window.history.back()}
-                          className="w-full mt-3 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+                          className="w-full mt-3 py-3 bg-paper-dim text-text-soft hover:text-ink font-medium rounded-xl hover:bg-paper-dim/80 transition-colors flex items-center justify-center border border-line"
                         >
                           <FaArrowLeft className="h-4 w-4 mr-2" />
                           Return to Cart
@@ -676,25 +641,23 @@ const Checkout = ({ auth, store, wishlist }: CheckoutProps) => {
                   </div>
 
                   {/* Secure Checkout Badge */}
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="bg-marigold/5 rounded-xl p-4 border border-marigold/20">
                     <div className="flex items-center gap-3">
-                      <FaShieldAlt className="h-8 w-8 text-blue-600" />
+                      <FaShieldAlt className="h-8 w-8 text-marigold" />
                       <div>
-                        <h4 className="font-semibold text-blue-900">Secure Checkout</h4>
-                        <p className="text-xs text-blue-700">Your information is encrypted and secure</p>
+                        <h4 className="font-semibold text-ink">Secure Checkout</h4>
+                        <p className="text-xs text-text-soft">Your information is encrypted and secure</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Need Help */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-2">Need Help?</h4>
-                    <p className="text-sm text-gray-600 mb-3">
+                  <div className="bg-paper-dim rounded-xl p-4 border border-line">
+                    <h4 className="font-semibold text-ink mb-2">Need Help?</h4>
+                    <p className="text-sm text-text-soft mb-3">
                       Contact our customer support for assistance
                     </p>
-                    <div
-                      className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-2"
-                    >
+                    <div className="text-marigold text-sm font-medium flex items-center gap-2">
                       <FaPhone className="h-3 w-3" />
                       +8801319052507
                     </div>
