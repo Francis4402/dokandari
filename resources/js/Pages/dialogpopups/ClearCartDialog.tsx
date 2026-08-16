@@ -6,13 +6,19 @@ import { FaTrash, FaTimes } from 'react-icons/fa';
 interface clearCartProps {
     isOpen: boolean;
     confirmClearCart: () => void;
-    onClose: () => void;
+    onClose?: () => void;  // Made optional
 }
 
 const ClearCartDialog = ({ isOpen, confirmClearCart, onClose }: clearCartProps) => {
+    const handleClose = () => {
+        if (onClose) {
+            onClose();
+        }
+    };
+
     return (
         <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
+            <Dialog as="div" className="relative z-50" onClose={handleClose}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -51,7 +57,7 @@ const ClearCartDialog = ({ isOpen, confirmClearCart, onClose }: clearCartProps) 
                                         </Dialog.Title>
                                     </div>
                                     <button
-                                        onClick={onClose}
+                                        onClick={handleClose}
                                         className="text-text-soft hover:text-ink transition-colors p-1 rounded-lg hover:bg-paper-dim"
                                     >
                                         <FaTimes className="h-5 w-5" />
@@ -71,7 +77,7 @@ const ClearCartDialog = ({ isOpen, confirmClearCart, onClose }: clearCartProps) 
                                     <button
                                         type="button"
                                         className="inline-flex justify-center rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-text-soft hover:bg-paper-dim hover:text-ink transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marigold focus:ring-offset-2 flex-1"
-                                        onClick={onClose}
+                                        onClick={handleClose}
                                     >
                                         Keep Items
                                     </button>
