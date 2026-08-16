@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -16,8 +17,8 @@ class SocialiteController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function googleAuthentication() {
-
+    public function googleAuthentication(Request $request)
+    {
         try {
             $googleUser = Socialite::driver('google')->user();
 
@@ -33,18 +34,21 @@ class SocialiteController extends Controller
                     'google_id' => $googleUser->id,
                     'password' => Hash::make(uniqid()),
                 ]);
+            } else if (!$user->google_id) {
+                $user->update(['google_id' => $googleUser->id]);
             }
 
             Auth::login($user);
 
-            return redirect('/');
-        } catch (\Exception $e) {
+            $request->session()->regenerate();
 
+            return redirect()->intended('/');
+
+        } catch (\Exception $e) {
             Log::error('Google Login Error: ' . $e->getMessage());
 
             return redirect('/')
                 ->with('error', 'Google authentication failed. Please try again.');
         }
-
     }
 }

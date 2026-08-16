@@ -10,4 +10,10 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: {
+        cors: {
+            origin: ['https://haatpoint.com', 'https://www.haatpoint.com'],
+            credentials: true,
+        },
+    },
 });
