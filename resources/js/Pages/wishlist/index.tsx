@@ -104,7 +104,6 @@ export default function WishlistIndex({ wishlistProducts, auth }: WishlistPagePr
                                         user={auth.user}
                                         variant="default"
                                         showQuickView={true}
-                                        initialReviewCount={wishlistProducts.productRatings?.[product.id]?.count || 0}
                                         initialAverageRating={wishlistProducts.productRatings?.[product.id]?.average || 0}
                                     />
                                 ))}
