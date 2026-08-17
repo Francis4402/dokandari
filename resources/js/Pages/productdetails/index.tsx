@@ -48,8 +48,7 @@ interface ProductDetailsPageProps {
   } | null;
 }
 
-// Helper function to safely get numeric rating - FIXES the .toFixed error
-// Handles: number, numeric string (e.g. from Laravel decimal casts), null, undefined
+// Helper function to safely get numeric rating
 const getNumericRating = (rating: any): number => {
   if (rating === null || rating === undefined) return 0;
   if (typeof rating === 'number') return isNaN(rating) ? 0 : rating;
@@ -78,34 +77,40 @@ const ProductDetailsPage = ({
   const [averageRating, setAverageRating] = useState<number>(getNumericRating(initialAverageRating));
   const [reviewCount, setReviewCount] = useState<number>(initialReviewCount);
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   const { addToCart, getItemById } = useStore();
   const cartItem = getItemById(product.id.toString());
   const currentCartQuantity = cartItem?.cartQty || 0;
 
   // Fetch comments and ratings from API
-  useEffect(() => {
-    const fetchComments = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(`/products/${product.id}/comments`);
-        if (response.data.success) {
-          setComments(response.data.data || []);
-          setAverageRating(getNumericRating(response.data.stats?.average ?? 0));
-          setReviewCount(response.data.stats?.count || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch comments:', error);
-        setComments(initialComments);
-        setAverageRating(getNumericRating(initialAverageRating));
-        setReviewCount(initialReviewCount);
-      } finally {
-        setLoading(false);
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`/products/${product.id}/comments`);
+      if (response.data.success) {
+        setComments(response.data.data || []);
+        setAverageRating(getNumericRating(response.data.stats?.average ?? 0));
+        setReviewCount(response.data.stats?.count || 0);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+      setComments(initialComments);
+      setAverageRating(getNumericRating(initialAverageRating));
+      setReviewCount(initialReviewCount);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchComments();
-  }, [product.id]);
+  }, [product.id, refreshKey]);
+
+  // Function to refresh comments after a new post
+  const refreshComments = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   const productImages = (() => {
     if (!product.images) return ['/otherplaceholder.jpg'];
@@ -257,10 +262,6 @@ const ProductDetailsPage = ({
     return comments.filter(c => c.rating !== null && c.rating !== undefined).length;
   })();
 
-  // FIX: store.rating can come back from the API as a string (Laravel decimal
-  // columns serialize as strings), so `storeRating || store.rating || 0` was
-  // falling through to a raw string whenever storeRating was 0 (no comments
-  // yet), and strings don't have .toFixed(). Always coerce before display.
   const displayStoreRating = getNumericRating(storeRating || store.rating || 0);
   const displayStoreReviewCount = storeReviewCount || store.review_count || 0;
 
@@ -813,7 +814,7 @@ const ProductDetailsPage = ({
                       </div>
                     </div>
 
-                    {/* Comments Section with Ratings */}
+                    {/* Comments Section with Ratings - Pass refreshComments callback */}
                     <div className="border-t border-line pt-8">
                       <CommentsList
                         comments={comments}
@@ -821,6 +822,7 @@ const ProductDetailsPage = ({
                         authUser={auth.user}
                         isAuthenticated={!!auth.user}
                         userReview={userReview}
+                        onCommentAdded={refreshComments}
                       />
                     </div>
                   </div>

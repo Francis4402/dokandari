@@ -1,4 +1,3 @@
-// Products.tsx
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, Link, router } from '@inertiajs/react';
@@ -15,13 +14,12 @@ import {
   FaChartLine,
   FaTag,
   FaImage,
-  FaExclamationCircle,
-  FaTimes
 } from 'react-icons/fa';
 import { Product, storeType } from '@/types';
 import { toast } from 'sonner';
 import FormatPrice from '@/Pages/utils/FormatePrice';
 import Eyebrow from '@/Pages/Components/Eyebrow';
+import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
 
 
 interface dashboarProductProps {
@@ -40,8 +38,8 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
     const [stockFilter, setStockFilter] = useState('all');
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    // Calculate statistics
     const stats = {
         totalProducts: products.length,
         totalValue: products.reduce((sum, product) => sum + (product.sale_price || product.regular_price) * product.quantity, 0),
@@ -52,7 +50,6 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
         averageRating: products.reduce((sum, product) => sum + (product.rating || 0), 0) / (products.length || 1)
     };
 
-    // Filter and sort products
     const filteredProducts = products
         .filter(product => {
             const matchesSearch =
@@ -106,16 +103,19 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
 
     const confirmDelete = () => {
         if (productToDelete) {
+            setIsDeleting(true);
             router.delete(route('dashboard.deleteproduct', productToDelete), {
                 onSuccess: () => {
                     toast.success('Product deleted successfully!');
                     setShowDeleteModal(false);
                     setProductToDelete(null);
+                    setIsDeleting(false);
                 },
                 onError: () => {
                     toast.error('Failed to delete product.');
                     setShowDeleteModal(false);
                     setProductToDelete(null);
+                    setIsDeleting(false);
                 },
                 preserveScroll: true,
             });
@@ -125,6 +125,7 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
     const cancelDelete = () => {
         setShowDeleteModal(false);
         setProductToDelete(null);
+        setIsDeleting(false);
     };
 
     const handleToast = () => {
@@ -143,6 +144,13 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
         if (quantity < 10) return { label: 'Low Stock', color: 'bg-orange-100 text-orange-800' };
         if (quantity < 20) return { label: 'Medium Stock', color: 'bg-yellow-100 text-yellow-800' };
         return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+    };
+
+    // Get product name for deletion confirmation
+    const getProductName = () => {
+        if (!productToDelete) return '';
+        const product = products.find(p => p.id === productToDelete);
+        return product ? product.name : '';
     };
 
     return (
@@ -455,57 +463,16 @@ const Products = ({auth, products, store}: dashboarProductProps) => {
                         </div>
                     )}
 
-                    {/* Delete Modal */}
-                    {showDeleteModal && productToDelete && (
-                        <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-2xl shadow-hard-sm border border-line w-full max-w-md">
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                                                <FaExclamationCircle className="h-5 w-5 text-red-600" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-lg font-display font-extrabold uppercase text-ink">Delete Product</h3>
-                                                <p className="text-sm text-text-soft">Confirm deletion</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={cancelDelete}
-                                            className="p-1 text-text-soft hover:text-ink rounded-lg hover:bg-paper-dim transition-colors"
-                                        >
-                                            <FaTimes className="h-5 w-5" />
-                                        </button>
-                                    </div>
-
-                                    <div className="my-6 p-4 bg-red-50 rounded-xl border border-red-200">
-                                        <p className="text-red-700 text-center font-medium">
-                                            Are you sure you want to delete?
-                                        </p>
-                                        <p className="text-sm text-red-600 text-center mt-2">
-                                            This product will be permanently removed from your store.
-                                        </p>
-                                    </div>
-
-                                    <div className="flex justify-end space-x-3">
-                                        <button
-                                            onClick={cancelDelete}
-                                            className="px-4 py-2.5 border border-line text-text-soft rounded-xl hover:bg-paper-dim hover:text-ink font-medium transition-all duration-300 text-sm"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={confirmDelete}
-                                            className="px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all duration-300 text-sm flex items-center hover:shadow-lg"
-                                        >
-                                            <FaTrash className="h-4 w-4 mr-2" />
-                                            Delete Product
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* Delete Confirmation Dialog */}
+                    <DeleteConfirmationDialog
+                        isOpen={showDeleteModal}
+                        onClose={cancelDelete}
+                        onConfirm={confirmDelete}
+                        isDeleting={isDeleting}
+                        title="Delete Product"
+                        message={`Are you sure you want to delete "${getProductName()}"? This action cannot be undone and all product data will be permanently removed.`}
+                        variant="danger"
+                    />
 
                     {/* Quick Stats */}
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">

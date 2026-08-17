@@ -36,7 +36,7 @@ export default function CommentForm({
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get user initials for avatar fallback
+
   const getUserInitials = () => {
     if (!authUser?.name) return 'U';
     return authUser.name
@@ -146,7 +146,7 @@ export default function CommentForm({
               }}
             />
           ) : (
-            <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${getUserColor(authUser?.id || 1)} flex items-center justify-center text-white font-semibold text-sm shadow-hard-sm`}>
+            <div className={`w-10 h-10 text-black rounded-full bg-gradient-to-r ${getUserColor(authUser?.id || 1)} flex items-center justify-center text-white font-semibold text-sm shadow-hard-sm`}>
               {getUserInitials()}
             </div>
           )}

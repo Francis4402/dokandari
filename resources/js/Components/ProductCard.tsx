@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import { FaEye, FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FiZap } from "react-icons/fi";
-import { BsStarFill } from "react-icons/bs";
 import axios from "axios";
 import { Product, User } from "@/types";
 import WishlistButton from "@/Pages/buttons/WishlistButton";
@@ -16,7 +15,6 @@ interface ProductCardProps {
   user: User | null;
   variant?: "default" | "trending" | "featured";
   showQuickView?: boolean;
-  initialReviewCount?: number;
   initialAverageRating?: number;
 }
 
@@ -92,11 +90,9 @@ const ProductCard = ({
   variant = "default",
   showQuickView = true,
   user,
-  initialReviewCount = 0,
   initialAverageRating = 0,
 }: ProductCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
-  const [reviewCount, setReviewCount] = useState(initialReviewCount);
   const [averageRating, setAverageRating] = useState(initialAverageRating);
   const [loading, setLoading] = useState(true);
 
@@ -120,7 +116,6 @@ const ProductCard = ({
       .then((res) => {
         if (!cancelled) {
           const stats = res.data.stats || {};
-          setReviewCount(stats.count || 0);
           setAverageRating(stats.average || 0);
           setLoading(false);
         }
@@ -128,43 +123,15 @@ const ProductCard = ({
       .catch((err) => {
         console.error("Failed to fetch review data:", err);
         setLoading(false);
-        setReviewCount(initialReviewCount);
         setAverageRating(initialAverageRating);
       });
     return () => {
       cancelled = true;
     };
-  }, [product.id, initialReviewCount, initialAverageRating]);
-
-  // Handle quick view click - Only if user is logged in
-  const handleQuickView = () => {
-    // Only send request if user is logged in
-    if (user) {
-      // Optimistically update the review count
-      setReviewCount((prev) => prev + 1);
-
-      axios
-        .post("/comments", {
-          product_id: product.id,
-          comment: null,
-          rating: null
-        })
-        .then((res) => {
-          if (res.data.stats) {
-            setReviewCount(res.data.stats.count || reviewCount + 1);
-            setAverageRating(res.data.stats.average || averageRating);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to record product view:", err);
-          // Revert optimistic update
-          setReviewCount((prev) => prev - 1);
-        });
-    }
-  };
+  }, [product.id, initialAverageRating]);
 
   // Determine if we should show the rating section
-  const hasRealReviews = reviewCount > 0 || averageRating > 0;
+  const hasRating = averageRating > 0;
 
   return (
     <div className="group bg-white border border-[#DAD5C7] rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[4px_4px_0_#111013]">
@@ -208,21 +175,12 @@ const ProductCard = ({
           </span>
         )}
 
-        {/* Review count badge - bottom left (only show if there are reviews) */}
-        {reviewCount > 0 && (
-          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full px-2 py-1 bg-black/60 backdrop-blur-sm text-white font-mono text-[10px] z-10">
-            <BsStarFill className="text-amber-400 text-[9px]" />
-            {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
-          </span>
-        )}
-
         {/* Action Buttons */}
         <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 z-20">
           {user && <WishlistButton productId={product.id} />}
           {showQuickView && (
             <Link
               href={`/products/${product.slug}`}
-              onClick={handleQuickView}
               className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
             >
               <FaEye className="w-4 h-4 text-gray-600 hover:text-[#FF5A1F]" />
@@ -254,15 +212,12 @@ const ProductCard = ({
           {product.name}
         </h3>
 
-        {/* Rating - Only show if there are real reviews */}
-        {hasRealReviews && !loading ? (
+        {/* Rating - Only show if there's a rating */}
+        {hasRating && !loading ? (
           <div className="flex items-center gap-2 mb-2">
             {renderStars(averageRating)}
             <span className="text-xs font-mono text-[#6B6A66]">
               {averageRating.toFixed(1)}
-            </span>
-            <span className="text-xs font-mono text-[#6B6A66]">
-              ({reviewCount})
             </span>
           </div>
         ) : loading ? (

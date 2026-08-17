@@ -3,21 +3,16 @@ import { useState, useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Product } from '@/types';
 import {
-  BsStar,
-  BsStarFill,
-  BsStarHalf,
   BsFilter,
   BsSearch,
   BsChevronRight,
   BsGrid3X3Gap,
-  BsEye,
   BsX
 } from 'react-icons/bs';
 import {
   FiShoppingBag,
   FiTruck,
   FiClock,
-  FiTag
 } from 'react-icons/fi';
 import {
   RiFireFill,
@@ -25,9 +20,9 @@ import {
   RiDiscountPercentFill
 } from 'react-icons/ri';
 import AppLayout from '@/Layouts/AppLayout';
-import AddtoCartButton from '../buttons/AddtoCartButton';
-import WishlistButton from '../buttons/WishlistButton';
 import FormatPrice from '../utils/FormatePrice';
+import ProductCard from '@/Components/ProductCard';
+import AddtoCartButton from '../buttons/AddtoCartButton';
 
 
 interface HotDealsPageProps {
@@ -43,10 +38,9 @@ interface HotDealsPageProps {
         user?: any;
     };
     wishlist: any;
-    productRatings?: Record<string, { average: number; count: number }>;
 }
 
-const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPageProps) => {
+const HotDeals = ({ products, auth, wishlist }: HotDealsPageProps) => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -84,51 +78,6 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
     const calculateDiscount = (regularPrice: number, salePrice?: number): number => {
         if (!salePrice || salePrice >= regularPrice) return 0;
         return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
-    };
-
-    const getProductRating = (product: Product): { average: number; count: number } => {
-        if (productRatings[product.id]) {
-            return productRatings[product.id];
-        }
-        const rating = typeof product.rating === 'string'
-            ? parseFloat(product.rating)
-            : (product.rating || 0);
-        return { average: rating, count: 0 };
-    };
-
-    const renderStars = (averageRating: number): JSX.Element => {
-        const fullStars = Math.floor(averageRating);
-        const hasHalfStar = averageRating % 1 >= 0.5;
-
-        return (
-            <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => {
-                    if (i < fullStars) {
-                        return <BsStarFill key={i} className="text-amber-400 text-xs" />;
-                    } else if (i === fullStars && hasHalfStar) {
-                        return <BsStarHalf key={i} className="text-amber-400 text-xs" />;
-                    } else {
-                        return <BsStar key={i} className="text-gray-300 text-xs" />;
-                    }
-                })}
-            </div>
-        );
-    };
-
-    const getImageSrc = (images: string): string => {
-        if (!images) return '/placeholder-image.jpg';
-
-        try {
-            const parsedImages = JSON.parse(images);
-            if (Array.isArray(parsedImages) && parsedImages.length > 0 && parsedImages[0]) {
-                return parsedImages[0];
-            }
-        } catch (error) {
-            if (images.trim().startsWith('http') || images.trim().startsWith('/')) {
-                return images.trim();
-            }
-        }
-        return '/placeholder-image.jpg';
     };
 
     const sortOptions = [
@@ -198,8 +147,8 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                 break;
             case 'rating':
                 filtered.sort((a, b) => {
-                    const ratingA = getProductRating(a).average;
-                    const ratingB = getProductRating(b).average;
+                    const ratingA = a.rating || 0;
+                    const ratingB = b.rating || 0;
                     return ratingB - ratingA;
                 });
                 break;
@@ -614,117 +563,40 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                             {filteredProducts.length > 0 ? (
                                 <div className={`
                                     ${viewMode === 'grid'
-                                        ? 'grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5'
+                                        ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5'
                                         : 'space-y-4'
                                     }
                                 `}>
                                     {filteredProducts.map((product: Product) => {
-                                        const imageSrc = getImageSrc(product.images);
-                                        const discountPercentage = calculateDiscount(product.regular_price, product.sale_price);
-                                        const displayPrice = product.sale_price || product.regular_price;
-                                        const { average: avgRating, count: reviewCount } = getProductRating(product);
-
                                         if (viewMode === 'grid') {
                                             return (
-                                                <div key={product.id} className="group bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative">
-                                                    {/* Hot Deal Badge */}
-                                                    <div className="absolute top-0 left-0 bg-gradient-to-r from-marigold to-marigold-dark text-white px-3 sm:px-4 py-1.5 rounded-br-lg z-10 flex items-center gap-1">
-                                                        <RiFireFill className="animate-pulse text-xs sm:text-sm" />
-                                                        <span className="font-bold text-xs sm:text-sm">{discountPercentage}% OFF</span>
-                                                    </div>
-
-                                                    {/* Image Container */}
-                                                    <div className="relative aspect-square overflow-hidden bg-paper-dim">
-                                                        <img
-                                                            src={`/storage/${imageSrc}`}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                            onError={(e) => {
-                                                                e.currentTarget.src = '/otherplaceholder.jpg';
-                                                            }}
-                                                        />
-
-                                                        {/* Wishlist Button */}
-                                                        <div className="absolute top-3 right-3">
-                                                            <WishlistButton
-                                                                productId={product.id.toString()}
-                                                                className="bg-white/90 hover:bg-white shadow-lg"
-                                                            />
-                                                        </div>
-
-                                                        {/* Quick View Overlay */}
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                                            <Link href={`/products/${product.slug}`}>
-                                                                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-ink text-xs sm:text-sm font-medium rounded-lg hover:bg-marigold hover:text-white transition-all duration-300 shadow-lg hover:scale-105">
-                                                                    <BsEye className="inline mr-1" /> Quick View
-                                                                </button>
-                                                            </Link>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Product Info */}
-                                                    <div className="p-3 sm:p-4">
-                                                        {/* Category */}
-                                                        <div className="mb-1 sm:mb-2">
-                                                            <span className="text-[9px] sm:text-[10px] font-mono text-text-soft uppercase tracking-wider">
-                                                                {product.category || 'Uncategorized'}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Product Name */}
-                                                        <h3 className="font-semibold text-sm sm:text-base text-ink mb-1 sm:mb-2 line-clamp-1 group-hover:text-marigold transition-colors">
-                                                            {product.name}
-                                                        </h3>
-
-                                                        {/* Rating */}
-                                                        <div className="mb-2 sm:mb-3 flex items-center">
-                                                            {renderStars(avgRating)}
-                                                            {reviewCount > 0 && (
-                                                                <span className="text-[10px] sm:text-xs text-text-soft ml-1">
-                                                                    ({reviewCount})
-                                                                </span>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Price */}
-                                                        <div className="mb-2 sm:mb-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                                                                    <span className="font-bold text-sm sm:text-base text-marigold">
-                                                                        <FormatPrice price={displayPrice} />
-                                                                    </span>
-                                                                    <span className="text-[10px] sm:text-sm text-text-soft line-through">
-                                                                        <FormatPrice price={product.regular_price} />
-                                                                    </span>
-                                                                </div>
-                                                                <span className="text-[9px] sm:text-xs bg-green-100 text-green-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold">
-                                                                    Save <FormatPrice price={product.regular_price - displayPrice} />
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Stock Status */}
-                                                        {product.quantity > 0 && (
-                                                            <div className="mb-2 sm:mb-3">
-                                                                {product.quantity < 10 && (
-                                                                    <span className="text-[9px] sm:text-xs text-orange-600 font-medium">
-                                                                        🔥 Only {product.quantity} left!
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        <AddtoCartButton product={product} />
-                                                    </div>
-                                                </div>
+                                                <ProductCard
+                                                    key={product.id}
+                                                    product={product}
+                                                    user={auth?.user || null}
+                                                    badge={`${calculateDiscount(product.regular_price, product.sale_price)}% OFF`}
+                                                    variant="default"
+                                                    showQuickView={true}
+                                                />
                                             );
                                         } else {
                                             // List View
+                                            const discountPercentage = calculateDiscount(product.regular_price, product.sale_price);
+                                            const displayPrice = product.sale_price || product.regular_price;
+                                            const imageSrc = product.images ? (() => {
+                                                try {
+                                                    const parsed = JSON.parse(product.images);
+                                                    return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : '/otherplaceholder.jpg';
+                                                } catch {
+                                                    return '/otherplaceholder.jpg';
+                                                }
+                                            })() : '/otherplaceholder.jpg';
+
                                             return (
                                                 <div key={product.id} className="group bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden hover:shadow-xl transition-all duration-300">
                                                     <div className="flex flex-col sm:flex-row">
                                                         {/* Image */}
-                                                        <div className="sm:w-1/4 relative">
+                                                        <div className="sm:w-1/3 lg:w-1/4 relative">
                                                             <div className="aspect-square sm:h-full overflow-hidden bg-paper-dim">
                                                                 <img
                                                                     src={`/storage/${imageSrc}`}
@@ -738,18 +610,10 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                             <div className="absolute top-3 left-3 bg-gradient-to-r from-marigold to-marigold-dark text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm font-bold shadow-lg">
                                                                 -{discountPercentage}%
                                                             </div>
-
-                                                            {/* Wishlist Button */}
-                                                            <div className="absolute top-3 right-3">
-                                                                <WishlistButton
-                                                                    productId={product.id}
-                                                                    className="bg-white/90 hover:bg-white shadow-lg"
-                                                                />
-                                                            </div>
                                                         </div>
 
                                                         {/* Product Details */}
-                                                        <div className="sm:w-3/4 p-4 sm:p-6">
+                                                        <div className="sm:w-2/3 lg:w-3/4 p-4 sm:p-6">
                                                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                                                 <div className="flex-1">
                                                                     {/* Category */}
@@ -769,16 +633,8 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                         {product.description}
                                                                     </p>
 
-                                                                    {/* Rating & Stock */}
+                                                                    {/* Stock */}
                                                                     <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                                                                        <div className="flex items-center">
-                                                                            {renderStars(avgRating)}
-                                                                            {reviewCount > 0 && (
-                                                                                <span className="text-[10px] sm:text-xs text-text-soft ml-1">
-                                                                                    ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
                                                                         <div className={`inline-flex items-center gap-1 text-[10px] sm:text-sm ${
                                                                             product.inStock ? 'text-green-600' : 'text-red-600'
                                                                         }`}>
@@ -787,6 +643,11 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                             }`}></div>
                                                                             {product.inStock ? 'In Stock' : 'Out of Stock'}
                                                                         </div>
+                                                                        {product.quantity > 0 && product.quantity < 10 && (
+                                                                            <span className="text-[10px] sm:text-xs text-orange-600 font-medium">
+                                                                                🔥 Only {product.quantity} left!
+                                                                            </span>
+                                                                        )}
                                                                     </div>
 
                                                                     {/* Savings Info */}
@@ -808,8 +669,10 @@ const HotDeals = ({ products, auth, wishlist, productRatings = {} }: HotDealsPag
                                                                         </div>
                                                                     </div>
 
-                                                                    {/* Actions */}
-                                                                    <AddtoCartButton product={product} />
+                                                                    {/* Add to Cart */}
+                                                                    <div className="mt-2">
+                                                                        <AddtoCartButton product={product} />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>

@@ -1,4 +1,4 @@
-// dashboard/forms/CommentsList.tsx
+
 import { FaUser, FaClock, FaEdit, FaTrash, FaTimes, FaCheck, FaStar, FaRegStar, FaExclamation } from "react-icons/fa";
 import { useState, Fragment } from "react";
 import { router } from "@inertiajs/react";
@@ -17,6 +17,7 @@ interface CommentsListProps {
         comment: string | null;
         rating: number | null;
     } | null;
+    onCommentAdded?: () => void;
 }
 
 export default function CommentsList({
@@ -24,7 +25,8 @@ export default function CommentsList({
     productId,
     authUser,
     isAuthenticated,
-    userReview
+    userReview,
+    onCommentAdded
 }: CommentsListProps) {
 
     const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -116,7 +118,10 @@ export default function CommentsList({
             onSuccess: () => {
                 toast.success('Review deleted successfully!');
                 closeDeleteDialog();
-                router.reload({ only: ['comments'] });
+
+                if (onCommentAdded) {
+                    onCommentAdded();
+                }
             },
             onError: (errors) => {
                 console.error('Delete error:', errors);
@@ -164,7 +169,9 @@ export default function CommentsList({
                 setEditingCommentId(null);
                 setEditText("");
                 setEditRating(0);
-                router.reload({ only: ['comments'] });
+                if (onCommentAdded) {
+                    onCommentAdded();
+                }
             },
             onError: (errors) => {
                 console.error('Update error:', errors);
@@ -187,6 +194,7 @@ export default function CommentsList({
                 authUser={authUser}
                 isAuthenticated={isAuthenticated}
                 existingReview={userReview}
+                onSuccess={onCommentAdded}
             />
 
             <div className="space-y-4">
@@ -218,11 +226,11 @@ export default function CommentsList({
                                         ) : (
                                             <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${userColor} flex items-center justify-center shadow-hard-sm`}>
                                                 {comment.user?.name ? (
-                                                    <span className="text-white text-sm font-medium">
+                                                    <span className="text-black text-sm font-medium">
                                                         {userInitials}
                                                     </span>
                                                 ) : (
-                                                    <FaUser className="w-5 h-5 text-white" />
+                                                    <FaUser className="w-5 h-5 text-black" />
                                                 )}
                                             </div>
                                         )}
