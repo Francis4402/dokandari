@@ -183,6 +183,8 @@ Route::get('/track-order', [TrackOrderController::class, 'index'])->name('tracko
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
 Route::get('/products', [ProductsController::class, 'products'])->name('products.index');
 
+Route::get('/aboutus', [Controller::class, 'aboutus'])->name('aboutus.index');
+
 Route::get('/products/{id}', [ProductsController::class, 'show'])->name('products.details');
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');

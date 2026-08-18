@@ -27,4 +27,12 @@ class Controller extends BaseController
             'wishlist' => $wishlist
         ]);
     }
+
+    public function aboutus()
+    {
+        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+        return Inertia::render('Components/AboutUs', [
+            'wishlist' => $wishlist
+        ]);
+    }
 }

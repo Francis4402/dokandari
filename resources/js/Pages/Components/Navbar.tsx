@@ -18,6 +18,7 @@ import {
   FiShoppingCart,
   FiHeart,
   FiMail,
+  FiInfo, // Added for About Us
 } from "react-icons/fi"
 import { Dialog, Transition } from "@headlessui/react"
 import { useStore } from "../state/cartStore"
@@ -28,6 +29,7 @@ const navigation = [
   { name: "Home", href: "/", icon: FiHome },
   { name: "Deals", href: "/hotdeals", badge: "HOT", icon: FiTag },
   { name: "New Arrivals", href: "/", icon: FiZap },
+  { name: "About Us", href: "/aboutus", icon: FiInfo },
   { name: "Contact Us", href: "/contactus", icon: FiMail },
 ]
 
