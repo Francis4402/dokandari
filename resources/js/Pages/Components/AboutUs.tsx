@@ -137,13 +137,6 @@ const AboutUs = ({ auth, wishlist, stats = {
     // Statistics
     const displayStats = [
         {
-            label: 'Products',
-            value: stats.totalProducts.toLocaleString(),
-            icon: <FaStore className="text-2xl" />,
-            color: 'from-red-50 to-red-100',
-            iconColor: 'text-red-600',
-        },
-        {
             label: 'Happy Customers',
             value: stats.totalCustomers.toLocaleString(),
             icon: <FaUsers className="text-2xl" />,
@@ -219,23 +212,6 @@ const AboutUs = ({ auth, wishlist, stats = {
                 <div className="absolute top-0 left-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
             </div>
 
-            {/* Stats Section */}
-            <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {displayStats.map((stat, index) => (
-                        <div
-                            key={index}
-                            className={`bg-gradient-to-br ${stat.color} rounded-xl p-6 text-center border border-white/30 shadow-hard-sm transition-all duration-300 hover:scale-105 hover:shadow-xl`}
-                        >
-                            <div className={`flex items-center justify-center ${stat.iconColor} mb-2`}>
-                                {stat.icon}
-                            </div>
-                            <div className="text-2xl font-bold text-ink">{stat.value}</div>
-                            <div className="text-sm text-text-soft font-medium">{stat.label}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
 
             {/* Main Content */}
             <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-16">

@@ -1,13 +1,16 @@
 import { Head } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import DeleteUserForm from './Partials/DeleteUserForm';
 import { Tab } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
 import {
-  FaUserCircle, FaKey, FaCog, FaCheckCircle,
-  FaCalendarAlt, FaEnvelope, FaShieldAlt,
-  FaTrash,
+  FaUserCircle,
+  FaKey,
+  FaCog,
+  FaCheckCircle,
+  FaCalendarAlt,
+  FaEnvelope,
+  FaShieldAlt,
 } from 'react-icons/fa';
 import UpdateProfileInformation from './Partials/UpdateProfileInformationForm';
 
@@ -20,49 +23,41 @@ interface PageProps {
 }
 
 export default function Edit({ auth, mustVerifyEmail, status }: PageProps) {
-    const [memberSince, setMemberSince] = useState('');
-    const [activeTab, setActiveTab] = useState(0);
+  const [memberSince, setMemberSince] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
 
+  const [useStorage, setUseStorage] = useState(true);
 
-    const [useStorage, setUseStorage] = useState(true);
+  useEffect(() => {
+    if (auth.user.created_at) {
+      const date = new Date(auth.user.created_at);
+      setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+    }
+  }, [auth.user.created_at]);
 
-    useEffect(() => {
-        if (auth.user.created_at) {
-        const date = new Date(auth.user.created_at);
-        setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-        }
-    }, [auth.user.created_at]);
+  const getProfileImageUrl = () => {
+    if (useStorage && auth.user.images) return `/storage/${auth.user.images}`;
+    return `https://github.com/shadcn.png`;
+  };
 
-    const getProfileImageUrl = () => {
-        if (useStorage && auth.user.images) return `/storage/${auth.user.images}`;
-        return `https://github.com/shadcn.png`;
-    };
-
-    const tabs = [
-        {
-            name: 'Profile',
-            icon: <FaUserCircle className="h-5 w-5" />,
-            content: (
-                <UpdateProfileInformation
-                    mustVerifyEmail={mustVerifyEmail}
-                    status={status}
-                    user={auth.user}
-                />
-            )
-        },
-        {
-            name: 'Password',
-            icon: <FaKey className="h-5 w-5" />,
-            content: <UpdatePasswordForm />
-        },
-        ...(auth.user.role === 'superadmin', [
-            {
-                name: 'Account',
-                icon: <FaTrash className="h-5 w-5" />,
-                content: <DeleteUserForm />
-            }
-        ])
-    ];
+  const tabs = [
+    {
+      name: 'Profile',
+      icon: <FaUserCircle className="h-5 w-5" />,
+      content: (
+        <UpdateProfileInformation
+          mustVerifyEmail={mustVerifyEmail}
+          status={status}
+          user={auth.user}
+        />
+      )
+    },
+    {
+      name: 'Password',
+      icon: <FaKey className="h-5 w-5" />,
+      content: <UpdatePasswordForm />
+    },
+  ];
 
   return (
     <DashboardLayout user={auth.user}>
