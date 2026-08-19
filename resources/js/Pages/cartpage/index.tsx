@@ -495,9 +495,9 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
       <ClearCartDialog isOpen={isOpen} confirmClearCart={confirmClearCart} />
 
       <div className="min-h-screen bg-paper-dim py-20">
-        <div className="max-w-[1240px] mx-auto px-8">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-8">
           {/* Header */}
-          <div className="flex justify-between items-end flex-wrap gap-4 mb-9">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-9">
             <div>
               <Eyebrow>Review your items</Eyebrow>
               <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Shopping Cart</h2>
@@ -505,10 +505,10 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                 Review your items and select delivery location for Pathao shipping
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/products"
-                className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors flex items-center gap-2"
+                className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors flex items-center gap-2 whitespace-nowrap"
               >
                 <FaArrowLeft className="h-3 w-3" />
                 Continue Shopping
@@ -516,7 +516,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
               {cartItems.length > 0 && (
                 <button
                   onClick={open}
-                  className="font-mono text-xs uppercase tracking-wide border-b-2 border-red-500 pb-0.5 text-red-500 hover:text-red-600 hover:border-red-600 transition-colors flex items-center gap-2"
+                  className="font-mono text-xs uppercase tracking-wide border-b-2 border-red-500 pb-0.5 text-red-500 hover:text-red-600 hover:border-red-600 transition-colors flex items-center gap-2 whitespace-nowrap"
                 >
                   <FaTrash className="h-3 w-3" />
                   Clear Cart
@@ -526,50 +526,50 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
           </div>
 
           {/* Cart Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-4 border border-line">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-soft">Items</p>
-                  <p className="text-2xl font-bold text-ink">{cartTotals.item_count}</p>
+                  <p className="text-xs sm:text-sm text-text-soft">Items</p>
+                  <p className="text-lg sm:text-2xl font-bold text-ink">{cartTotals.item_count}</p>
                 </div>
-                <FaBox className="h-8 w-8 text-marigold/70" />
+                <FaBox className="h-6 w-6 sm:h-8 sm:w-8 text-marigold/70" />
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-4 border border-line">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-soft">Subtotal</p>
-                  <p className="text-2xl font-bold text-ink">
+                  <p className="text-xs sm:text-sm text-text-soft">Subtotal</p>
+                  <p className="text-lg sm:text-2xl font-bold text-ink truncate">
                     <FormatPrice price={cartTotals.subtotal} />
                   </p>
                 </div>
-                <FaCreditCard className="h-8 w-8 text-marigold/70" />
+                <FaCreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-marigold/70" />
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-4 border border-line">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-soft">Savings</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-xs sm:text-sm text-text-soft">Savings</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-600 truncate">
                     <FormatPrice price={cartTotals.discount + calculateSaleSavings()} />
                   </p>
                 </div>
-                <FaTag className="h-8 w-8 text-green-500" />
+                <FaTag className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-4 border border-line">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-soft">Total</p>
-                  <p className="text-2xl font-bold text-marigold">
+                  <p className="text-xs sm:text-sm text-text-soft">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-marigold truncate">
                     <FormatPrice price={cartTotals.total} />
                   </p>
                 </div>
-                <FaCheckCircle className="h-8 w-8 text-marigold" />
+                <FaCheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-marigold" />
               </div>
             </div>
           </div>
@@ -578,8 +578,8 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
             {/* Cart Items */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-hard-sm overflow-hidden border border-line">
-                <div className="p-6 border-b border-line bg-paper-dim">
-                  <h2 className="text-xl font-semibold text-ink">
+                <div className="p-4 sm:p-6 border-b border-line bg-paper-dim">
+                  <h2 className="text-lg sm:text-xl font-semibold text-ink">
                     Your Items ({cartTotals.item_count})
                   </h2>
                 </div>
@@ -597,12 +597,12 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     const rating = item.rating || 0;
 
                     return (
-                      <div key={item.id} className="p-6 hover:bg-paper-dim/50 transition-colors">
-                        <div className="flex flex-col sm:flex-row gap-6">
+                      <div key={item.id} className="p-4 sm:p-6 hover:bg-paper-dim/50 transition-colors">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                           {/* Product Image */}
                           <div className="flex-shrink-0">
                             <div className="relative group">
-                              <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 border border-line">
+                              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-100 border border-line">
                                 <img
                                   src={imageUrl}
                                   alt={item.name}
@@ -613,7 +613,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                 />
                               </div>
                               {discountPercent > 0 && (
-                                <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                                   -{discountPercent}%
                                 </div>
                               )}
@@ -621,26 +621,26 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                           </div>
 
                           {/* Product Info */}
-                          <div className="flex-grow">
-                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                              <div className="flex-grow">
-                                <div className="flex items-start justify-between">
-                                  <div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                              <div className="flex-grow min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
                                     <Link href={`/products/${item.slug}`}>
-                                      <h3 className="font-semibold text-ink text-lg mb-1 hover:text-marigold transition-colors cursor-pointer">
+                                      <h3 className="font-semibold text-ink text-base sm:text-lg mb-1 hover:text-marigold transition-colors cursor-pointer truncate">
                                         {item.name}
                                       </h3>
                                     </Link>
-                                    <p className="text-sm text-text-soft mb-2 line-clamp-2">
+                                    <p className="text-xs sm:text-sm text-text-soft mb-2 line-clamp-2">
                                       {stripHtml(item.description)}
                                     </p>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="text-lg font-bold text-ink">
+                                  <div className="text-right flex-shrink-0">
+                                    <div className="text-base sm:text-lg font-bold text-ink">
                                       <FormatPrice price={currentPrice} />
                                     </div>
                                     {salePrice && (
-                                      <div className="text-sm text-text-soft line-through">
+                                      <div className="text-xs sm:text-sm text-text-soft line-through">
                                         <FormatPrice price={regularPrice} />
                                       </div>
                                     )}
@@ -648,15 +648,15 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                 </div>
 
                                 {/* Product Meta */}
-                                <div className="flex flex-wrap items-center gap-3 mb-4">
-                                  <span className="text-xs font-mono text-text-soft bg-paper-dim px-2 py-1 rounded">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                                  <span className="text-[10px] sm:text-xs font-mono text-text-soft bg-paper-dim px-2 py-1 rounded truncate max-w-[100px] sm:max-w-none">
                                     {item.category}
                                   </span>
-                                  <span className={`text-xs font-mono px-2 py-1 rounded-full ${stockStatus.color}`}>
+                                  <span className={`text-[10px] sm:text-xs font-mono px-2 py-1 rounded-full ${stockStatus.color}`}>
                                     {stockStatus.label}
                                   </span>
                                   {rating > 0 && (
-                                    <span className="flex items-center text-xs text-text-soft">
+                                    <span className="flex items-center text-[10px] sm:text-xs text-text-soft">
                                       <FaStar className="h-3 w-3 text-yellow-400 mr-1" />
                                       {rating}
                                     </span>
@@ -664,50 +664,50 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                 </div>
 
                                 {/* Quantity Controls & Actions */}
-                                <div className="flex flex-wrap items-center justify-between">
-                                  <div className="flex items-center space-x-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                                     {/* Quantity Controls */}
                                     <div className="flex items-center border border-line rounded-lg bg-white">
                                       <button
                                         onClick={() => handleDecreaseQuantity(item.id)}
                                         disabled={quantity <= 1}
-                                        className="px-3 py-2 text-text-soft hover:bg-paper-dim disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                                        className="px-2 sm:px-3 py-1.5 sm:py-2 text-text-soft hover:bg-paper-dim disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
                                       >
                                         <FaMinus className="h-3 w-3" />
                                       </button>
-                                      <span className="w-12 text-center py-2 text-ink font-medium border-x border-line">
+                                      <span className="w-8 sm:w-12 text-center py-1.5 sm:py-2 text-ink font-medium border-x border-line text-sm">
                                         {quantity}
                                       </span>
                                       <button
                                         onClick={() => handleIncreaseQuantity(item.id)}
                                         disabled={quantity >= item.quantity}
-                                        className="px-3 py-2 text-text-soft hover:bg-paper-dim disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
+                                        className="px-2 sm:px-3 py-1.5 sm:py-2 text-text-soft hover:bg-paper-dim disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
                                       >
                                         <FaPlus className="h-3 w-3" />
                                       </button>
                                     </div>
 
                                     {/* Item Total */}
-                                    <div className="text-sm font-semibold text-ink">
+                                    <div className="text-xs sm:text-sm font-semibold text-ink whitespace-nowrap">
                                       Total: <FormatPrice price={totalPrice} />
                                     </div>
                                   </div>
 
                                   {/* Action Buttons */}
-                                  <div className="flex items-center space-x-4 mt-3 sm:mt-0">
+                                  <div className="flex items-center gap-2 sm:gap-4">
                                     <button
                                       onClick={() => moveToWishlist(item.id)}
-                                      className="inline-flex items-center text-sm text-text-soft hover:text-marigold hover:bg-paper-dim px-3 py-2 rounded-lg transition-colors"
+                                      className="inline-flex items-center text-xs sm:text-sm text-text-soft hover:text-marigold hover:bg-paper-dim px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors"
                                     >
-                                      <FaHeart className="h-4 w-4 mr-2" />
-                                      Save
+                                      <FaHeart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                      <span className="hidden sm:inline">Save</span>
                                     </button>
                                     <button
                                       onClick={() => removeFromCart(item.id)}
-                                      className="inline-flex items-center text-sm text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+                                      className="inline-flex items-center text-xs sm:text-sm text-red-500 hover:text-red-600 hover:bg-red-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors"
                                     >
-                                      <FaTrash className="h-4 w-4 mr-2" />
-                                      Remove
+                                      <FaTrash className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                      <span className="hidden sm:inline">Remove</span>
                                     </button>
                                   </div>
                                 </div>
@@ -722,34 +722,34 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
               </div>
 
               {/* Trust Badges */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg shadow-sm p-4 border border-line flex items-center hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                    <FaShieldAlt className="h-6 w-6 text-green-600" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                    <FaShieldAlt className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-ink">Secure Checkout</p>
-                    <p className="text-sm text-text-soft">Your data is protected</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink text-sm sm:text-base">Secure Checkout</p>
+                    <p className="text-xs sm:text-sm text-text-soft truncate">Your data is protected</p>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm p-4 border border-line flex items-center hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                    <FaTruck className="h-6 w-6 text-blue-600" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                    <FaTruck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-ink">Pathao Delivery</p>
-                    <p className="text-sm text-text-soft">Fast & reliable shipping</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink text-sm sm:text-base">Pathao Delivery</p>
+                    <p className="text-xs sm:text-sm text-text-soft truncate">Fast & reliable</p>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm p-4 border border-line flex items-center hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
-                    <FaUndo className="h-6 w-6 text-orange-600" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-100 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                    <FaUndo className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-ink">Easy Returns</p>
-                    <p className="text-sm text-text-soft">30-day return policy</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink text-sm sm:text-base">Easy Returns</p>
+                    <p className="text-xs sm:text-sm text-text-soft truncate">30-day return policy</p>
                   </div>
                 </div>
               </div>
@@ -760,19 +760,19 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
               <div className="sticky top-6 space-y-6">
                 {/* Order Summary Card */}
                 <div className="bg-white rounded-xl shadow-hard-sm overflow-hidden border border-line">
-                  <div className="p-6 border-b border-line bg-paper-dim">
-                    <h2 className="text-xl font-semibold text-ink flex items-center">
-                      <FaCreditCard className="h-5 w-5 mr-2 text-text-soft" />
+                  <div className="p-4 sm:p-6 border-b border-line bg-paper-dim">
+                    <h2 className="text-lg sm:text-xl font-semibold text-ink flex items-center">
+                      <FaCreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-text-soft" />
                       Order Summary
                     </h2>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     {/* Pricing Breakdown */}
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                          <span className="text-text-soft">Subtotal</span>
+                          <span className="text-sm sm:text-base text-text-soft">Subtotal</span>
                           <div className="group relative ml-2">
                             <FaInfoCircle className="h-3 w-3 text-text-soft cursor-help" />
                             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-ink text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
@@ -780,14 +780,14 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                             </div>
                           </div>
                         </div>
-                        <span className="font-medium text-ink">
+                        <span className="font-medium text-ink text-sm sm:text-base">
                           <FormatPrice price={cartTotals.subtotal} />
                         </span>
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <span className="text-text-soft">Shipping (Pathao)</span>
-                        <span className="font-medium text-ink">
+                        <span className="text-sm sm:text-base text-text-soft">Shipping (Pathao)</span>
+                        <span className="font-medium text-ink text-sm sm:text-base">
                           {pathaoCharges ? (
                             <div className="text-right">
                               <div><FormatPrice price={pathaoCharges.delivery_charge} /></div>
@@ -801,15 +801,15 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                       </div>
 
                       {appliedCoupon && (
-                        <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <FaTag className="h-4 w-4 text-green-600 mr-2" />
-                            <span className="text-text-soft">
+                        <div className="flex justify-between items-center bg-green-50 p-2 sm:p-3 rounded-lg border border-green-200">
+                          <div className="flex items-center min-w-0">
+                            <FaTag className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-1 sm:mr-2 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm text-text-soft truncate">
                               Discount ({appliedCoupon.code})
                             </span>
                           </div>
-                          <div className="flex items-center">
-                            <span className="font-medium text-green-600 mr-2">
+                          <div className="flex items-center flex-shrink-0">
+                            <span className="font-medium text-green-600 mr-1 sm:mr-2 text-sm">
                               -<FormatPrice price={cartTotals.discount} />
                             </span>
                             <button
@@ -817,7 +817,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                               className="text-text-soft hover:text-ink transition-colors"
                               aria-label="Remove coupon"
                             >
-                              <FaTimes className="h-4 w-4" />
+                              <FaTimes className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                           </div>
                         </div>
@@ -825,22 +825,22 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     </div>
 
                     {/* Pathao Delivery Configuration */}
-                    <div className="bg-gradient-to-br from-gray-50 to-green-50 rounded-xl shadow-sm p-6 border-2 border-green-200 mb-6">
-                      <h2 className="text-lg font-bold text-ink mb-4 flex items-center">
-                        <FaTruck className="h-5 w-5 mr-2 text-green-600" />
+                    <div className="bg-gradient-to-br from-gray-50 to-green-50 rounded-xl shadow-sm p-4 sm:p-6 border-2 border-green-200 mb-6">
+                      <h2 className="text-base sm:text-lg font-bold text-ink mb-4 flex items-center">
+                        <FaTruck className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
                         Pathao Delivery
                       </h2>
 
                       <div className="space-y-4">
                         <div className="mt-2">
-                          <h3 className="font-bold text-ink mb-3 flex items-center text-sm">
-                            <FaMapMarkerAlt className="h-4 w-4 text-green-600 mr-2" />
+                          <h3 className="font-bold text-ink mb-3 flex items-center text-xs sm:text-sm">
+                            <FaMapMarkerAlt className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-2" />
                             Select Delivery Location
                           </h3>
 
                           {loadingPathao && (
-                            <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                              <p className="text-xs text-blue-700 font-medium flex items-center">
+                            <div className="mb-3 p-2 sm:p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                              <p className="text-[10px] sm:text-xs text-blue-700 font-medium flex items-center">
                                 <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
                                 Loading locations...
                               </p>
@@ -849,13 +849,13 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
+                              <label className="block text-[10px] sm:text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
                                 City *
                               </label>
                               <select
                                 value={selectedCity}
                                 onChange={handleCityChange}
-                                className="w-full px-3 py-2 text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
+                                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
                                 disabled={loadingPathao}
                               >
                                 <option value="">Select City</option>
@@ -868,13 +868,13 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                             </div>
 
                             <div>
-                              <label className="block text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
+                              <label className="block text-[10px] sm:text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
                                 Zone *
                               </label>
                               <select
                                 value={selectedZone}
                                 onChange={handleZoneChange}
-                                className="w-full px-3 py-2 text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
+                                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
                                 disabled={!selectedCity || loadingPathao}
                               >
                                 <option value="">Select Zone</option>
@@ -887,13 +887,13 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                             </div>
 
                             <div>
-                              <label className="block text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
+                              <label className="block text-[10px] sm:text-xs font-mono text-text-soft mb-1 uppercase tracking-wide">
                                 Area
                               </label>
                               <select
                                 value={selectedArea}
                                 onChange={handleAreaChange}
-                                className="w-full px-3 py-2 text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
+                                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border-2 border-line rounded-lg focus:ring-2 focus:ring-green-500 focus:border-marigold transition-all bg-white"
                                 disabled={!selectedZone || loadingPathao}
                               >
                                 <option value="">Select Area (Optional)</option>
@@ -908,61 +908,63 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                           {/* Shipping Rate Display */}
                           {selectedCity && (
-                            <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm">
-                              <div className="flex items-center mb-3">
-                                <FaCheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                                <h4 className="font-bold text-green-800 text-sm">Delivery Charges</h4>
+                            <div className="mt-4 p-3 sm:p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-sm overflow-hidden">
+                              <div className="flex items-center mb-2 sm:mb-3">
+                                <FaCheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2" />
+                                <h4 className="font-bold text-green-800 text-xs sm:text-sm">Delivery Charges</h4>
                               </div>
 
                               {loadingPathao && (
-                                <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                  <p className="text-xs text-blue-700 flex items-center">
+                                <div className="mb-3 p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                  <p className="text-[10px] sm:text-xs text-blue-700 flex items-center">
                                     <FaTruckLoading className="h-3 w-3 mr-2 animate-spin" />
                                     Calculating delivery charges via Pathao...
                                   </p>
                                 </div>
                               )}
 
-                              <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                                <p className="text-xs text-blue-700 flex items-center">
-                                  <FaMapMarkerAlt className="h-3 w-3 mr-1" />
-                                  Delivering to: {getSelectedCityName()}
-                                  {selectedZone && `, ${getSelectedZoneName()}`}
-                                  {selectedArea && `, ${getSelectedAreaName()}`}
+                              <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200 overflow-hidden">
+                                <p className="text-[10px] sm:text-xs text-blue-700 flex items-center truncate">
+                                  <FaMapMarkerAlt className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <span className="truncate">
+                                    Delivering to: {getSelectedCityName()}
+                                    {selectedZone && `, ${getSelectedZoneName()}`}
+                                    {selectedArea && `, ${getSelectedAreaName()}`}
+                                  </span>
                                 </p>
                               </div>
 
                               {!loadingPathao && (
-                                <div className="mb-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <div className="mb-3 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                                   <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs font-semibold text-yellow-800 flex items-center">
+                                    <p className="text-[10px] sm:text-xs font-semibold text-yellow-800 flex items-center">
                                       <FaWeightHanging className="h-3 w-3 mr-1" />
                                       Total Weight:
                                     </p>
-                                    <p className="text-sm font-bold text-yellow-900">
+                                    <p className="text-xs sm:text-sm font-bold text-yellow-900">
                                       {getTotalWeight().toFixed(2)} kg
                                     </p>
                                   </div>
 
                                   <div className="mt-2 p-2 bg-white rounded border border-yellow-200">
-                                    <p className="text-xs text-gray-700 flex items-center mb-1">
+                                    <p className="text-[10px] sm:text-xs text-gray-700 flex items-center mb-1">
                                       <FaPercent className="h-3 w-3 mr-1 text-orange-500" />
                                       Weight Surcharge:
                                     </p>
-                                    <p className={`text-xs font-medium ${getTotalWeight() <= 0.5 ? 'text-green-600' : getTotalWeight() <= 1 ? 'text-orange-500' : 'text-red-500'}`}>
+                                    <p className={`text-[10px] sm:text-xs font-medium ${getTotalWeight() <= 0.5 ? 'text-green-600' : getTotalWeight() <= 1 ? 'text-orange-500' : 'text-red-500'}`}>
                                       {getWeightSurchargeMessage(getTotalWeight())}
                                     </p>
                                   </div>
                                 </div>
                               )}
 
-                              <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300 mb-3">
-                                <p className="text-xs text-green-700 font-semibold mb-1">
+                              <div className="text-center p-3 sm:p-4 bg-green-100 rounded-lg border-2 border-green-300 mb-3">
+                                <p className="text-[10px] sm:text-xs text-green-700 font-semibold mb-1">
                                   {loadingPathao ? 'Calculating...' : pathaoCharges ? 'Total Delivery Charge' : 'Select area to calculate'}
                                 </p>
-                                <p className="text-2xl font-bold text-green-700">
+                                <p className="text-xl sm:text-2xl font-bold text-green-700">
                                   {loadingPathao ? (
-                                    <FaTruckLoading className="h-6 w-6 mx-auto animate-spin" />
+                                    <FaTruckLoading className="h-5 w-5 sm:h-6 sm:w-6 mx-auto animate-spin" />
                                   ) : (
                                     pathaoCharges ? <FormatPrice price={pathaoCharges.delivery_charge} /> : '---'
                                   )}
@@ -970,12 +972,12 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                               </div>
 
                               {pathaoCharges && !loadingPathao && (
-                                <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200">
-                                  <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+                                <div className="mt-2 p-2 sm:p-3 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                  <p className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-2 flex items-center">
                                     <FaInfoCircle className="h-3 w-3 mr-1" />
                                     Price Breakdown:
                                   </p>
-                                  <div className="space-y-1 text-xs">
+                                  <div className="space-y-1 text-[10px] sm:text-xs">
                                     <div className="flex justify-between">
                                       <span className="text-gray-600">Pathao Base Charge:</span>
                                       <span className="font-medium">
@@ -985,11 +987,11 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                                     {pathaoCharges.weight_surcharge && pathaoCharges.weight_surcharge > 0 && (
                                       <div className="flex justify-between text-orange-600">
-                                        <span className="flex items-center">
-                                          <FaWeightHanging className="h-3 w-3 mr-1" />
-                                          Weight Surcharge ({pathaoCharges.weight_surcharge_percentage}%):
+                                        <span className="flex items-center truncate">
+                                          <FaWeightHanging className="h-3 w-3 mr-1 flex-shrink-0" />
+                                          <span className="truncate">Surcharge ({pathaoCharges.weight_surcharge_percentage}%):</span>
                                         </span>
-                                        <span>+ <FormatPrice price={pathaoCharges.weight_surcharge} /></span>
+                                        <span className="flex-shrink-0">+ <FormatPrice price={pathaoCharges.weight_surcharge} /></span>
                                       </div>
                                     )}
 
@@ -1004,7 +1006,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                                     </div>
                                   </div>
 
-                                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                                  <div className="mt-3 p-2 bg-gray-50 rounded text-[10px] sm:text-xs">
                                     <p className="text-gray-600 font-medium mb-1 flex items-center">
                                       <FaInfoCircle className="h-3 w-3 mr-1" />
                                       Weight Surcharge Rules:
@@ -1021,7 +1023,7 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                               {selectedArea && pathaoCharges && (
                                 <div className="mt-3 p-2 bg-purple-50 rounded-lg border border-purple-200">
-                                  <p className="text-xs text-purple-700 flex items-center">
+                                  <p className="text-[10px] sm:text-xs text-purple-700 flex items-center">
                                     <FaTruck className="h-3 w-3 mr-1" />
                                     Estimated delivery: {
                                       getSelectedCityName().toLowerCase().includes('dhaka') ? '2-3' :
@@ -1039,17 +1041,17 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     {/* Coupon Code */}
                     {!appliedCoupon && (
                       <div className="mb-6">
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="text"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
                             placeholder="Enter coupon code"
-                            className="flex-grow px-4 py-2 border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-marigold transition-colors bg-white"
+                            className="flex-grow px-3 sm:px-4 py-2 border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-marigold transition-colors bg-white text-sm"
                           />
                           <button
                             onClick={applyCoupon}
-                            className="px-4 py-2 bg-gray-900 hover:bg-marigold text-white rounded-lg transition-all duration-300 hover:shadow-md whitespace-nowrap"
+                            className="px-4 py-2 bg-gray-900 hover:bg-marigold text-white rounded-lg transition-all duration-300 hover:shadow-md whitespace-nowrap text-sm"
                           >
                             Apply
                           </button>
@@ -1060,12 +1062,12 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                     {/* Total */}
                     <div className="border-t border-line pt-4 mb-6">
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-ink">Total</span>
+                        <span className="text-base sm:text-lg font-semibold text-ink">Total</span>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-marigold">
+                          <div className="text-xl sm:text-2xl font-bold text-marigold">
                             <FormatPrice price={cartTotals.total} />
                           </div>
-                          <div className="text-sm text-text-soft">
+                          <div className="text-xs sm:text-sm text-text-soft">
                             {cartTotals.item_count} item{cartTotals.item_count !== 1 ? 's' : ''}
                           </div>
                         </div>
@@ -1080,13 +1082,13 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
                         }
                       }}
                       disabled={isCheckoutDisabled()}
-                      className={`w-full py-3 px-4 font-semibold rounded-lg transition-all duration-300 text-center mb-4 flex items-center justify-center ${
+                      className={`w-full py-2.5 sm:py-3 px-4 font-semibold rounded-lg transition-all duration-300 text-center mb-4 flex items-center justify-center text-sm sm:text-base ${
                         isCheckoutDisabled()
                           ? 'bg-gray-200 text-text-soft cursor-not-allowed'
                           : 'bg-gray-900 hover:bg-marigold text-white hover:shadow-lg hover:scale-105'
                       }`}
                     >
-                      <FaLock className="h-5 w-5 mr-2" />
+                      <FaLock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {isCheckoutDisabled()
                         ? 'Complete delivery details to continue'
                         : 'Proceed to Checkout'}
@@ -1094,29 +1096,29 @@ const CartPage = ({ auth, wishlist }: CartPageProps) => {
 
                     {/* Payment Methods */}
                     <div className="text-center pt-4 border-t border-line">
-                      <p className="text-sm text-text-soft mb-3">We accept</p>
+                      <p className="text-xs sm:text-sm text-text-soft mb-3">We accept</p>
                       <div className="flex justify-center space-x-3">
-                        <div className="w-10 h-6 bg-gray-100 rounded border border-line"></div>
-                        <div className="w-10 h-6 bg-gray-100 rounded border border-line"></div>
-                        <div className="w-10 h-6 bg-gray-100 rounded border border-line"></div>
-                        <div className="w-10 h-6 bg-gray-100 rounded border border-line"></div>
+                        <div className="w-8 h-5 sm:w-10 sm:h-6 bg-gray-100 rounded border border-line"></div>
+                        <div className="w-8 h-5 sm:w-10 sm:h-6 bg-gray-100 rounded border border-line"></div>
+                        <div className="w-8 h-5 sm:w-10 sm:h-6 bg-gray-100 rounded border border-line"></div>
+                        <div className="w-8 h-5 sm:w-10 sm:h-6 bg-gray-100 rounded border border-line"></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Need Help */}
-                <div className="bg-gradient-to-r from-marigold to-marigold-dark rounded-xl shadow-lg p-6 text-white">
-                  <h3 className="text-lg font-semibold mb-2">Need help?</h3>
-                  <p className="text-white/80 text-sm mb-4">
+                <div className="bg-gradient-to-r from-marigold to-marigold-dark rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Need help?</h3>
+                  <p className="text-white/80 text-xs sm:text-sm mb-4">
                     Our customer support team is available 24/7 to assist you with your order.
                   </p>
                   <Link
                     href="/contactus"
-                    className="inline-flex items-center justify-center w-full py-2 bg-white text-marigold font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                    className="inline-flex items-center justify-center w-full py-2 bg-white text-marigold font-medium rounded-lg hover:bg-gray-100 transition-colors text-sm"
                   >
                     Contact Support
-                    <FaArrowRight className="h-4 w-4 ml-2" />
+                    <FaArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2" />
                   </Link>
                 </div>
               </div>
