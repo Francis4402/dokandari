@@ -242,7 +242,7 @@ class ProductsController extends Controller
             'images' => 'max:5',
             'images_to_remove' => 'nullable|string',
             'item_weight' => 'required|numeric',
-            'product_type' => 'required|in:regular,featured,trending,top-selling,new-arrival', // Added validation
+            'product_type' => 'required|in:regular,featured,trending,top-selling,new-arrival',
         ]);
 
         // Update product with validated data except images and images_to_remove
@@ -251,7 +251,7 @@ class ProductsController extends Controller
             'images_to_remove',
         ])->toArray());
 
-
+        // Explicitly set product_type
         $product->product_type = $validated['product_type'];
 
         $existingImages = json_decode($product->images, true) ?? [];
@@ -297,8 +297,7 @@ class ProductsController extends Controller
         $product->images = json_encode(array_values($existingImages));
         $product->save();
 
-        // Clear cache for this user
-        Cache::forget("user_products_" . auth()->id());
+        // Cache clearing removed - no longer needed since we removed caching
 
         return redirect()->route('dashboard.products')
             ->with('success', 'Product updated successfully!');
@@ -328,43 +327,35 @@ class ProductsController extends Controller
     {
         $userId = auth()->id();
 
-        $cacheKey = "products_page_data_{$userId}";
 
-        $data = Cache::remember($cacheKey, 10, function () use ($userId) {
+        $products = Products::with(['store' => function($query) {
+                $query->select('id', 'name', 'storetype');
+            }])
+            ->withCount(['comments as rating_count' => function($query) {
+                $query->whereNotNull('rating');
+            }])
+            ->withAvg(['comments as average_rating' => function($query) {
+                $query->whereNotNull('rating');
+            }], 'rating')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-            $products = Products::with(['store', 'comments' => function($query) {
-                    $query->whereNotNull('rating')->select('product_id', 'rating');
-                }])
-                ->orderBy('created_at', 'desc')
-                ->get();
+        // Get wishlist
+        $wishlist = Wishlist::where('user_id', $userId)->paginate(12);
 
 
-            $wishlist = Wishlist::where('user_id', $userId)->paginate(12);
-
-
-            $productRatings = [];
-            foreach ($products as $product) {
-                $ratings = $product->comments->pluck('rating')->filter();
-                $averageRating = $ratings->avg() ?? 0;
-                $ratingCount = $ratings->count();
-
-                $productRatings[$product->id] = [
-                    'average' => round($averageRating, 1),
-                    'count' => $ratingCount
-                ];
-            }
-
-            return [
-                'products' => $products,
-                'wishlist' => $wishlist,
-                'productRatings' => $productRatings
+        $productRatings = [];
+        foreach ($products as $product) {
+            $productRatings[$product->id] = [
+                'average' => round($product->average_rating ?? 0, 1),
+                'count' => $product->rating_count ?? 0
             ];
-        });
+        }
 
         return Inertia::render('products/index', [
-            'products' => $data['products'],
-            'wishlist' => $data['wishlist'],
-            'productRatings' => $data['productRatings']
+            'products' => $products,
+            'wishlist' => $wishlist,
+            'productRatings' => $productRatings
         ]);
     }
 
