@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\Store;
 use App\Models\wishlist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -21,8 +22,11 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $products = Products::where('user_id', auth()->id())->get();
-        $store = Store::where('user_id', auth()->id())->first();
+        $userId = auth()->id();
+
+        $products = Products::where('user_id', $userId)->get();
+
+        $store = Store::where('user_id', $userId)->first();
 
         return Inertia::render('dashboard/products/index', [
             'products' => $products,
@@ -69,6 +73,7 @@ class ProductsController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images' => 'max:5',
             'item_weight' => 'required|numeric',
+            'product_type' => 'required|in:regular,featured,trending,top-selling,new-arrival', // Added validation
         ]);
 
         $product = new Products();
@@ -85,6 +90,7 @@ class ProductsController extends Controller
         $product->color = json_encode($validated['color'] ?? []);
         $product->inStock = $request->boolean('inStock', true);
         $product->item_weight = $validated['item_weight'];
+        $product->product_type = $validated['product_type'] ?? 'regular'; // Added product_type assignment
 
         if ($request->hasFile('images')) {
             $images = [];
@@ -118,6 +124,12 @@ class ProductsController extends Controller
         }
 
         $product->save();
+
+        // Clear cache for this user
+        Cache::forget("user_products_" . auth()->id());
+
+        return redirect()->route('dashboard.products')
+            ->with('success', 'Product created successfully!');
     }
 
     /**
@@ -230,12 +242,17 @@ class ProductsController extends Controller
             'images' => 'max:5',
             'images_to_remove' => 'nullable|string',
             'item_weight' => 'required|numeric',
+            'product_type' => 'required|in:regular,featured,trending,top-selling,new-arrival', // Added validation
         ]);
 
+        // Update product with validated data except images and images_to_remove
         $product->update(collect($validated)->except([
             'images',
             'images_to_remove',
         ])->toArray());
+
+
+        $product->product_type = $validated['product_type'];
 
         $existingImages = json_decode($product->images, true) ?? [];
 
@@ -279,6 +296,12 @@ class ProductsController extends Controller
 
         $product->images = json_encode(array_values($existingImages));
         $product->save();
+
+        // Clear cache for this user
+        Cache::forget("user_products_" . auth()->id());
+
+        return redirect()->route('dashboard.products')
+            ->with('success', 'Product updated successfully!');
     }
 
     /**
@@ -301,38 +324,47 @@ class ProductsController extends Controller
         $product->delete();
     }
 
-    public function products() {
-        $products = Products::with('store')
-            ->orderBy('created_at', 'desc')
-            ->get();
+    public function products()
+    {
+        $userId = auth()->id();
 
-        $wishlist = wishlist::where('user_id', auth()->id())->paginate(12);
+        $cacheKey = "products_page_data_{$userId}";
 
-        $productIds = $products->pluck('id')->toArray();
+        $data = Cache::remember($cacheKey, 10, function () use ($userId) {
 
-        $ratings = Comment::whereIn('product_id', $productIds)
-            ->whereNotNull('rating')
-            ->select('product_id', 'rating')
-            ->get();
+            $products = Products::with(['store', 'comments' => function($query) {
+                    $query->whereNotNull('rating')->select('product_id', 'rating');
+                }])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        $productRatings = [];
 
-        foreach ($products as $product) {
-            $productRatingData = $ratings->where('product_id', $product->id);
+            $wishlist = Wishlist::where('user_id', $userId)->paginate(12);
 
-            $averageRating = $productRatingData->avg('rating') ?? 0;
-            $ratingCount = $productRatingData->count();
 
-            $productRatings[$product->id] = [
-                'average' => round($averageRating, 1),
-                'count' => $ratingCount
+            $productRatings = [];
+            foreach ($products as $product) {
+                $ratings = $product->comments->pluck('rating')->filter();
+                $averageRating = $ratings->avg() ?? 0;
+                $ratingCount = $ratings->count();
+
+                $productRatings[$product->id] = [
+                    'average' => round($averageRating, 1),
+                    'count' => $ratingCount
+                ];
+            }
+
+            return [
+                'products' => $products,
+                'wishlist' => $wishlist,
+                'productRatings' => $productRatings
             ];
-        }
+        });
 
         return Inertia::render('products/index', [
-            'products' => $products,
-            'wishlist' => $wishlist,
-            'productRatings' => $productRatings
+            'products' => $data['products'],
+            'wishlist' => $data['wishlist'],
+            'productRatings' => $data['productRatings']
         ]);
     }
 

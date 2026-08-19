@@ -103,7 +103,8 @@ const ProductCard = ({
 
   const discount = calculateDiscount(product.regular_price, product.sale_price);
   const hasDiscount = discount > 0;
-  const displayPrice = product.sale_price || product.regular_price;
+  const hasSalePrice = product.sale_price !== undefined && product.sale_price !== null && product.sale_price > 0;
+  const displayPrice = hasSalePrice ? product.sale_price : product.regular_price;
   const showImage = imageSrc && !imageFailed;
 
   // Fetch real review data using the route: /products/{product}/comments
@@ -236,7 +237,7 @@ const ProductCard = ({
             <span className="font-display font-extrabold text-xl">
               <FormatPrice price={displayPrice} />
             </span>
-            {hasDiscount && (
+            {hasSalePrice && (
               <span className="text-sm text-[#6B6A66] line-through">
                 <FormatPrice price={product.regular_price} />
               </span>

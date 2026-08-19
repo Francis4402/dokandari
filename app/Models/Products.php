@@ -12,6 +12,11 @@ class Products extends Model
 
     protected $guarded = [];
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'product_id');
+    }
+
     public function store()
     {
         return $this->belongsTo(Store::class, 'store_id', 'id');

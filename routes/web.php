@@ -151,9 +151,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/orders/{order}/confirmation', [OrdersController::class, 'confirmation'])->name('orders.confirmation');
 
-
     Route::get('/orders/{order}', [OrdersController::class, 'show'])->name('orders.show');
-
 
     Route::patch('/orders/{order}/cancel', [OrdersController::class, 'cancel'])
         ->name('orders.cancel');

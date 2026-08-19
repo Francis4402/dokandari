@@ -26,8 +26,9 @@ import {
   FaChevronDown,
   FaWeightHanging,
   FaPalette,
-  FaLink as FaLinkIcon,
-  FaEye as FaEyeIcon,
+  FaStar,
+  FaFire,
+  FaRocket,
 } from 'react-icons/fa';
 import {
   HiCheck,
@@ -77,15 +78,16 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
+  const [showProductTypeDropdown, setShowProductTypeDropdown] = useState(false);
   const [availablesubcategory, setAvailablesubcategory] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
 
   const productTypes = [
-    { value: 'regular', label: 'Regular' },
-    { value: 'featured', label: 'Featured' },
-    { value: 'trending', label: 'Trending' },
-    { value: 'top-selling', label: 'Top Selling' },
-    { value: 'new-arrival', label: 'New Arrival' }
+    { value: 'regular', label: 'Regular', icon: FaTag, color: 'text-gray-500' },
+    { value: 'featured', label: 'Featured', icon: FaStar, color: 'text-yellow-500' },
+    { value: 'trending', label: 'Trending', icon: FaFire, color: 'text-orange-500' },
+    { value: 'top-selling', label: 'Top Selling', icon: FaRocket, color: 'text-green-500' },
+    { value: 'new-arrival', label: 'New Arrival', icon: FaBox, color: 'text-blue-500' },
   ];
 
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -100,9 +102,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
     description: '',
     color: [''],
     inStock: true,
-    rating: '0',
     item_weight: '',
     store_id: store.id || '',
+    product_type: 'regular',
   });
 
   const discountPercentage = data.regular_price && data.sale_price
@@ -235,9 +237,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('description', data.description);
     formData.append('color', JSON.stringify(data.color));
     formData.append('inStock', data.inStock.toString());
-    formData.append('rating', data.rating);
     formData.append('store_id', data.store_id);
     formData.append('item_weight', data.item_weight);
+    formData.append('product_type', data.product_type);
 
     data.images.forEach((image, index) => {
       formData.append(`images[${index}]`, image);
@@ -254,6 +256,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setImagePreviews([]);
         setShowCategoryDropdown(false);
         setShowSubcategoryDropdown(false);
+        setShowProductTypeDropdown(false);
         setAvailablesubcategory([]);
         setColorInputs(['']);
       },
@@ -514,13 +517,76 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     </div>
                   </div>
 
-                  {/* Row 3: Quantity and Colors */}
+                  {/* Row 3: Product Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-ink mb-2">
+                      Product Type <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowProductTypeDropdown(!showProductTypeDropdown)}
+                        className="w-full rounded-xl border border-line px-4 py-3 text-left flex justify-between items-center hover:border-marigold transition-colors bg-white"
+                      >
+                        <div className="flex items-center gap-2">
+                          {data.product_type && (() => {
+                            const selected = productTypes.find(p => p.value === data.product_type);
+                            const Icon = selected?.icon || FaTag;
+                            return <Icon className={`h-4 w-4 ${selected?.color || 'text-gray-500'}`} />;
+                          })()}
+                          <span className={data.product_type ? 'text-ink' : 'text-text-soft'}>
+                            {data.product_type ? productTypes.find(p => p.value === data.product_type)?.label : 'Select product type'}
+                          </span>
+                        </div>
+                        <FaChevronDown
+                          className={`h-5 w-5 text-text-soft transition-transform ${showProductTypeDropdown ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {showProductTypeDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
+                          {productTypes.map((type) => {
+                            const Icon = type.icon;
+                            return (
+                              <button
+                                key={type.value}
+                                type="button"
+                                onClick={() => {
+                                  setData('product_type', type.value);
+                                  setShowProductTypeDropdown(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                  data.product_type === type.value ? 'bg-marigold/10 text-marigold' : 'text-ink'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Icon className={`h-4 w-4 ${type.color}`} />
+                                  <span>{type.label}</span>
+                                </div>
+                                {data.product_type === type.value && <HiCheck className="h-5 w-5 text-marigold" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-text-soft mt-1">
+                      Select how this product should be displayed (Featured, Trending, Top Selling, New Arrival, or Regular)
+                    </p>
+                    {errors.product_type && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                        <HiOutlineExclamationCircle className="h-4 w-4" />
+                        {errors.product_type}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Row 4: Quantity and Colors */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Quantity */}
                     <div>
                       <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
                         <FaHashtag className="h-4 w-4 text-marigold" />
-                        Quantity
+                        Quantity <span className="text-red-500 ml-1">*</span>
                       </label>
                       <div className="relative">
                         <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
@@ -621,7 +687,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     </div>
                   </div>
 
-                  {/* Row 4: Item Weight */}
+                  {/* Row 5: Item Weight */}
                   <div>
                     <label className="text-sm font-medium text-ink mb-2 flex items-center gap-1">
                       <FaWeightHanging className="h-4 w-4 text-marigold" />
@@ -795,8 +861,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
 
                 <div>
-                  <input
-                    ref={imagesInputRef}
+                  <input                    ref={imagesInputRef}
                     type="file"
                     accept="image/*"
                     multiple
