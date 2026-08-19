@@ -154,17 +154,10 @@ const ProductCard = ({
           </div>
         )}
 
-        {/* Badge */}
+        {/* Badge - Custom badge from props */}
         {badge && (
           <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#111013] text-white font-mono text-[10px] uppercase shadow-lg z-10">
             {badge}
-          </span>
-        )}
-
-        {/* Discount Badge */}
-        {hasDiscount && !badge && (
-          <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-red-500 text-white font-mono text-[10px] font-bold uppercase shadow-lg z-10">
-            -{discount}%
           </span>
         )}
 

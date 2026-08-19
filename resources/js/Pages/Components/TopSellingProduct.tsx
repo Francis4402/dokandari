@@ -39,17 +39,17 @@ const formatRank = (index: number) => String(index + 1).padStart(2, "0");
 const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
   const scope = useRef<HTMLElement>(null);
 
-  // Filter products with more than 20 sales and sort by quantity (highest first)
+
   const topProducts = useMemo(() => {
     return products
       .filter(product => (product.quantity || 0) >= 20)
       .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
-      .slice(0, 10); // Show up to 10 products
+      .slice(0, 10);
   }, [products]);
 
   const maxSold = Math.max(...topProducts.map((p) => p.quantity || 0), 1);
 
-  // If no products with 20+ sales, show message
+
   if (topProducts.length === 0) {
     return (
       <section id="topselling" ref={scope} className="py-16 md:py-20 bg-paper-dim">

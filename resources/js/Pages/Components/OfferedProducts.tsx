@@ -55,7 +55,7 @@ const OfferedProducts = ({ product, user }: OfferedProductsProps) => {
                         <p className="text-gray-500 mt-2">Don't miss out on these exclusive deals!</p>
                     </div>
                     <Link
-                        href="/offers"
+                        href="/products"
                         className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:text-primary transition-colors"
                     >
                         View all →
