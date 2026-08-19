@@ -1,6 +1,6 @@
-// Products.tsx
+
 import { useState, useMemo, Fragment } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Product } from '@/types';
 import {
@@ -64,8 +64,7 @@ interface FilterPanelProps {
     onClear: () => void;
 }
 
-// Shared between the desktop sidebar and the mobile drawer — one place to
-// edit filter UI instead of two copies drifting apart.
+
 function FilterPanel({
     categories,
     products,
@@ -193,6 +192,9 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
     const [sortBy, setSortBy] = useState('default');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [productType, setProductType] = useState<string>('all');
+
+    // Ensure user is properly passed - convert undefined to null
+    const user = auth?.user || null;
 
     const categories = useMemo(() => {
         const uniqueCategories = new Set(products.map(p => p.category).filter(Boolean));
@@ -600,9 +602,10 @@ const Products = ({ products, auth, wishlist, productRatings = {} }: ProductsPag
                                                 <ProductCard
                                                     key={product.id}
                                                     product={product}
-                                                    user={auth?.user}
+                                                    user={user}
                                                     variant={product.product_type === 'trending' ? 'trending' : 'default'}
-                                                    showQuickView
+                                                    showQuickView={true}
+                                                    initialAverageRating={avgRating}
                                                 />
                                             );
                                         } else {
