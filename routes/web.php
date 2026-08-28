@@ -89,6 +89,7 @@ Route::middleware(['auth', 'role:superadmin, admin'])->group(function () {
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
 
+
     Route::delete('/orders/{order}', [OrdersController::class, 'destroy'])
         ->name('orders.destroy');
 

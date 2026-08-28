@@ -1,7 +1,7 @@
 // Categories.tsx
 import { useState } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
   FaTrash,
   FaPlus,
@@ -12,22 +12,20 @@ import {
   FaChartBar,
   FaBoxes,
   FaTimes,
-  FaExclamationCircle,
-  FaUpload,
-  FaMinus,
   FaEdit,
 } from 'react-icons/fa';
 import { categoryType, PageProps } from '@/types';
 import { toast } from 'sonner';
 import Eyebrow from '@/Pages/Components/Eyebrow';
 import DeleteConfirmationDialog from '@/Pages/buttons/DeleteConfirmationDialog';
+import CategoryModal from '@/Pages/dialogpopups/CetegoryDialog';
 
-
-interface FormData {
-  categories: string;
-  subcategory: string[];
-  image: File | null;
-  remove_image?: boolean;
+interface FormErrors {
+    categories?: string;
+    brand?: string;
+    subcategory?: string;
+    image?: string;
+    error?: string;
 }
 
 const Categories = ({ auth, categories: initialCategories }: PageProps<{ categories: categoryType[] }>) => {
@@ -41,36 +39,15 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     const [showEditModal, setShowEditModal] = useState(false);
     const [categoryToEdit, setCategoryToEdit] = useState<categoryType | null>(null);
 
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm<FormData>({
-        categories: '',
-        subcategory: [''],
-        image: null,
-    });
 
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
-
-    const addSubcategoryField = () => {
-        setData('subcategory', [...data.subcategory, '']);
-    };
-
-    const removeSubcategoryField = (index: number) => {
-        const newsubcategory = [...data.subcategory];
-        newsubcategory.splice(index, 1);
-        setData('subcategory', newsubcategory.length > 0 ? newsubcategory : ['']);
-    };
-
-    const updateSubcategory = (index: number, value: string) => {
-        const newsubcategory = [...data.subcategory];
-        newsubcategory[index] = value;
-        setData('subcategory', newsubcategory);
-    };
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState<FormErrors>({});
 
     const stats = {
         totalCategories: categories.length,
     };
 
-    const parsesubcategory = (subcategoryString: string | null): string[] => {
+    const parseSubcategory = (subcategoryString: string | null): string[] => {
         if (!subcategoryString) return [];
         try {
             return JSON.parse(subcategoryString);
@@ -79,156 +56,94 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
         }
     };
 
-    const filteredCategories = categories
-        .filter(category =>
-            category.categories.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-        switch (sortBy) {
-        case 'name-asc':
-            return a.categories.localeCompare(b.categories);
-        case 'name-desc':
-            return b.categories.localeCompare(a.categories);
-        case 'newest':
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        default:
-            return a.categories.localeCompare(b.categories);
+    const parseBrands = (brandString: string | null): string[] => {
+        if (!brandString) return [];
+        try {
+            const parsed = JSON.parse(brandString);
+            return Array.isArray(parsed) ? parsed : [brandString];
+        } catch (e) {
+            return brandString ? [brandString] : [];
         }
-    });
+    };
+
+    const filteredCategories = categories
+        .filter(category => {
+            const brands = parseBrands(category.brand);
+            const matchesCategory = category.categories.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesBrand = brands.some(brand => brand.toLowerCase().includes(searchTerm.toLowerCase()));
+            return matchesCategory || matchesBrand;
+        })
+        .sort((a, b) => {
+            switch (sortBy) {
+            case 'name-asc':
+                return a.categories.localeCompare(b.categories);
+            case 'name-desc':
+                return b.categories.localeCompare(a.categories);
+            case 'newest':
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            case 'oldest':
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            default:
+                return a.categories.localeCompare(b.categories);
+            }
+        });
 
     const getCategoryColor = () => {
         return 'from-marigold to-marigold-dark';
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setData('image', file);
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+    const extractErrorMessage = (errs: FormErrors, fallback: string) => {
+        return errs.categories || errs.brand || errs.image || errs.subcategory || errs.error || fallback;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAddCategory = (formData: FormData) => {
+        setProcessing(true);
+        setErrors({});
 
-        if (!data.categories.trim()) {
-            toast.error('Category name is required');
-            return;
-        }
-
-        const filteredsubcategory = data.subcategory.filter(subcat => subcat.trim() !== '');
-
-        const formData = new FormData();
-        formData.append('categories', data.categories.trim());
-
-        if (filteredsubcategory.length > 0) {
-            formData.append('subcategory', JSON.stringify(filteredsubcategory));
-        } else {
-            formData.append('subcategory', '[]');
-        }
-
-        if (data.image) {
-            formData.append('image', data.image);
-        }
-
-        post(route('dashboard.storecategory'), {
-            data: formData,
+        router.post(route('dashboard.storecategory'), formData, {
             forceFormData: true,
+            preserveScroll: true,
             onSuccess: () => {
                 setShowAddModal(false);
-                reset();
-                setImagePreview(null);
-                clearErrors();
+                setErrors({});
                 toast.success('Category added successfully!');
             },
-            onError: (errors) => {
-                console.error('Form errors:', errors);
-                let errorMessage = 'Failed to add category. Please check the form.';
-
-                if (errors.categories) {
-                    errorMessage = errors.categories;
-                } else if (errors.image) {
-                    errorMessage = errors.image;
-                } else if (errors.subcategory) {
-                    errorMessage = errors.subcategory;
-                }
-
-                toast.error(errorMessage);
+            onError: (errs) => {
+                console.error('Form errors:', errs);
+                setErrors(errs as FormErrors);
+                toast.error(extractErrorMessage(errs as FormErrors, 'Failed to add category. Please check the form.'));
             },
-            preserveScroll: true,
+            onFinish: () => setProcessing(false),
         });
     };
 
     const handleEdit = (category: categoryType) => {
         setCategoryToEdit(category);
-
-        const parsed = parsesubcategory(category.subcategory);
-        setData({
-            categories: category.categories,
-            subcategory: parsed.length > 0 ? parsed : [''],
-            image: null,
-        });
-
-        if (category.image) {
-            setCurrentImagePath(`/storage/${category.image}`);
-        } else {
-            setCurrentImagePath(null);
-        }
-
-        setImagePreview(null);
+        setErrors({});
         setShowEditModal(true);
     };
 
-    const handleUpdate = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const handleUpdateCategory = (formData: FormData) => {
         if (!categoryToEdit) return;
 
-        if (!data.categories.trim()) {
-            toast.error('Category name is required');
-            return;
-        }
+        setProcessing(true);
+        setErrors({});
 
-        const filteredsubcategory = data.subcategory
-            .map(s => s.trim())
-            .filter(s => s !== '');
-
-        if (filteredsubcategory.length === 0) {
-            toast.error('At least one subcategory is required');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        formData.append('categories', data.categories.trim());
-        formData.append('subcategory', JSON.stringify(filteredsubcategory));
-
-        if (data.image) {
-            formData.append('image', data.image);
-        }
-
-        router.post(route('dashboard.updatecategory', categoryToEdit.id), formData, {
+        router.put(route('dashboard.updatecategory', categoryToEdit.id), formData, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Category updated successfully!');
                 setShowEditModal(false);
                 setCategoryToEdit(null);
-                reset();
-                setImagePreview(null);
-                setCurrentImagePath(null);
-                clearErrors();
+                setErrors({});
             },
-            onError: (errors) => {
-                toast.error(errors.subcategory || 'Failed to update category.');
+            onError: (errs) => {
+                console.error('Update errors:', errs);
+                setErrors(errs as FormErrors);
+                toast.error(extractErrorMessage(errs as FormErrors, 'Failed to update category.'));
             },
+            onFinish: () => setProcessing(false),
         });
     };
 
@@ -256,27 +171,14 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
     };
 
     const resetAddForm = () => {
-        reset();
-        setImagePreview(null);
-        clearErrors();
+        setErrors({});
         setShowAddModal(false);
     };
 
     const resetEditForm = () => {
-        reset();
-        setImagePreview(null);
-        setCurrentImagePath(null);
         setCategoryToEdit(null);
-        clearErrors();
+        setErrors({});
         setShowEditModal(false);
-    };
-
-    const removeImage = () => {
-        setData('image', null);
-        setImagePreview(null);
-        if (categoryToEdit) {
-            setCurrentImagePath(null);
-        }
     };
 
     return (
@@ -321,7 +223,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                                 <div>
                                     <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Subcategories</p>
                                     <p className="text-2xl font-bold text-ink mt-1">
-                                        {categories.reduce((total, cat) => total + parsesubcategory(cat.subcategory).length, 0)}
+                                        {categories.reduce((total, cat) => total + parseSubcategory(cat.subcategory).length, 0)}
                                     </p>
                                 </div>
                                 <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
@@ -366,7 +268,7 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
                                 <input
                                     type="text"
-                                    placeholder="Search categories..."
+                                    placeholder="Search categories or brands..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2 border border-line rounded-lg focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
@@ -432,75 +334,95 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {filteredCategories.map(category => (
-                                            <div key={category.id} className="border border-line rounded-xl p-4 hover:shadow-hard-sm transition-all duration-300 hover:-translate-y-0.5">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex items-start space-x-3">
-                                                        {category.image && (
-                                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-line">
-                                                                <img
-                                                                    src={`/storage/${category.image}`}
-                                                                    alt={category.categories}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48';
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <h3
-                                                                className="text-lg font-semibold text-ink cursor-pointer hover:text-marigold transition-colors"
-                                                                onClick={() => setSelectedCategory(category)}
-                                                            >
-                                                                {category.categories}
-                                                            </h3>
-                                                            {parsesubcategory(category.subcategory).length > 0 && (
-                                                                <div className="flex flex-wrap gap-1 mt-2">
-                                                                    {parsesubcategory(category.subcategory).slice(0, 2).map((subcat, index) => (
-                                                                        <span
-                                                                            key={index}
-                                                                            className="px-2 py-0.5 bg-paper-dim text-text-soft text-xs rounded-full"
-                                                                        >
-                                                                            {subcat}
-                                                                        </span>
-                                                                    ))}
-                                                                    {parsesubcategory(category.subcategory).length > 2 && (
-                                                                        <span className="px-2 py-0.5 bg-paper-dim text-text-soft text-xs rounded-full">
-                                                                            +{parsesubcategory(category.subcategory).length - 2} more
-                                                                        </span>
-                                                                    )}
+                                        {filteredCategories.map(category => {
+                                            const brands = parseBrands(category.brand);
+                                            return (
+                                                <div key={category.id} className="border border-line rounded-xl p-4 hover:shadow-hard-sm transition-all duration-300 hover:-translate-y-0.5">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex items-start space-x-3">
+                                                            {category.image && (
+                                                                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-line">
+                                                                    <img
+                                                                        src={`/storage/${category.image}`}
+                                                                        alt={category.categories}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48';
+                                                                        }}
+                                                                    />
                                                                 </div>
                                                             )}
+                                                            <div>
+                                                                <h3
+                                                                    className="text-lg font-semibold text-ink cursor-pointer hover:text-marigold transition-colors"
+                                                                    onClick={() => setSelectedCategory(category)}
+                                                                >
+                                                                    {category.categories}
+                                                                </h3>
+                                                                {brands.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                                        {brands.slice(0, 2).map((brand, index) => (
+                                                                            <span
+                                                                                key={index}
+                                                                                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full"
+                                                                            >
+                                                                                {brand}
+                                                                            </span>
+                                                                        ))}
+                                                                        {brands.length > 2 && (
+                                                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full">
+                                                                                +{brands.length - 2} more
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                {parseSubcategory(category.subcategory).length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1 mt-2">
+                                                                        {parseSubcategory(category.subcategory).slice(0, 2).map((subcat, index) => (
+                                                                            <span
+                                                                                key={index}
+                                                                                className="px-2 py-0.5 bg-paper-dim text-text-soft text-xs rounded-full"
+                                                                            >
+                                                                                {subcat}
+                                                                            </span>
+                                                                        ))}
+                                                                        {parseSubcategory(category.subcategory).length > 2 && (
+                                                                            <span className="px-2 py-0.5 bg-paper-dim text-text-soft text-xs rounded-full">
+                                                                                +{parseSubcategory(category.subcategory).length - 2} more
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex space-x-1">
+                                                            <button
+                                                                onClick={() => handleEdit(category)}
+                                                                className="p-2 text-text-soft hover:text-marigold hover:bg-paper-dim rounded-lg transition-colors"
+                                                                title="Edit category"
+                                                            >
+                                                                <FaEdit className="h-4 w-4" />
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => handleDelete(category.id)}
+                                                                className="p-2 text-text-soft hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Delete category"
+                                                            >
+                                                                <FaTrash className="h-4 w-4" />
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div className="flex space-x-1">
-                                                        <button
-                                                            onClick={() => handleEdit(category)}
-                                                            className="p-2 text-text-soft hover:text-marigold hover:bg-paper-dim rounded-lg transition-colors"
-                                                            title="Edit category"
-                                                        >
-                                                            <FaEdit className="h-4 w-4" />
-                                                        </button>
 
-                                                        <button
-                                                            onClick={() => handleDelete(category.id)}
-                                                            className="p-2 text-text-soft hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Delete category"
-                                                        >
-                                                            <FaTrash className="h-4 w-4" />
-                                                        </button>
+                                                    <div className="mt-4 pt-3 border-t border-line">
+                                                        <div className="flex items-center justify-between text-xs text-text-soft font-mono">
+                                                            <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
+                                                            <span>Updated: {new Date(category.updated_at).toLocaleDateString()}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="mt-4 pt-3 border-t border-line">
-                                                    <div className="flex items-center justify-between text-xs text-text-soft font-mono">
-                                                        <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
-                                                        <span>Updated: {new Date(category.updated_at).toLocaleDateString()}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -540,11 +462,28 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
                                             </h4>
                                         </div>
 
-                                        {parsesubcategory(selectedCategory.subcategory).length > 0 && (
+                                        {/* Display Brands */}
+                                        {parseBrands(selectedCategory.brand).length > 0 && (
+                                            <div className="mb-6">
+                                                <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Brands</h5>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {parseBrands(selectedCategory.brand).map((brand, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-full border border-blue-200"
+                                                        >
+                                                            {brand}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {parseSubcategory(selectedCategory.subcategory).length > 0 && (
                                             <div className="mb-6">
                                                 <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-3">Subcategories</h5>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {parsesubcategory(selectedCategory.subcategory).map((subcat, index) => (
+                                                    {parseSubcategory(selectedCategory.subcategory).map((subcat, index) => (
                                                         <span
                                                             key={index}
                                                             className="px-3 py-1 bg-paper-dim text-ink text-sm rounded-full border border-line"
@@ -616,322 +555,31 @@ const Categories = ({ auth, categories: initialCategories }: PageProps<{ categor
             </div>
 
             {/* Add Category Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl shadow-hard-sm border border-line w-full max-w-lg overflow-y-auto max-h-[90vh]">
-                        <form onSubmit={handleSubmit}>
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Add New Category</h3>
-                                    <button
-                                        type="button"
-                                        onClick={resetAddForm}
-                                        className="p-1 text-text-soft hover:text-ink rounded-lg hover:bg-paper-dim transition-colors"
-                                    >
-                                        <FaTimes className="h-5 w-5" />
-                                    </button>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-ink mb-2">
-                                        Category Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.categories}
-                                        onChange={(e) => setData('categories', e.target.value)}
-                                        placeholder="Enter category name"
-                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft ${
-                                            errors.categories ? 'border-red-500' : 'border-line'
-                                        }`}
-                                        autoFocus
-                                        required
-                                    />
-                                    {errors.categories && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.categories}</p>
-                                    )}
-                                </div>
-
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="block text-sm font-medium text-ink">
-                                            Subcategories
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={addSubcategoryField}
-                                            className="inline-flex items-center px-3 py-1 text-sm bg-marigold/10 text-marigold rounded-lg hover:bg-marigold/20 transition-colors font-medium"
-                                        >
-                                            <FaPlus className="h-3 w-3 mr-1" />
-                                            Add Subcategory
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {data.subcategory.map((subcategory, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
-                                                <div className="flex-1">
-                                                    <input
-                                                        type="text"
-                                                        value={subcategory}
-                                                        onChange={(e) => updateSubcategory(index, e.target.value)}
-                                                        placeholder={`Subcategory ${index + 1}`}
-                                                        className="w-full px-4 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
-                                                    />
-                                                </div>
-                                                {data.subcategory.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSubcategoryField(index)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Remove subcategory"
-                                                    >
-                                                        <FaMinus className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {errors.subcategory && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>
-                                    )}
-                                    <p className="mt-2 text-sm text-text-soft">
-                                        Add subcategories for better product organization
-                                    </p>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-ink mb-2">
-                                        Category Image (Optional)
-                                    </label>
-
-                                    {imagePreview ? (
-                                        <div className="mb-4 relative">
-                                            <div className="w-full h-48 rounded-xl overflow-hidden border border-line">
-                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={removeImage}
-                                                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                            >
-                                                <FaTimes className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="border-2 border-dashed border-line rounded-xl p-6 text-center hover:border-marigold transition-colors">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <div className="w-12 h-12 rounded-full bg-paper-dim flex items-center justify-center mb-3">
-                                                    <FaUpload className="h-6 w-6 text-text-soft" />
-                                                </div>
-                                                <p className="text-text-soft mb-2">Click to upload image</p>
-                                                <p className="text-sm text-text-soft">PNG, JPG, WEBP up to 2MB</p>
-                                                <label className="cursor-pointer mt-5">
-                                                    <span className="px-4 py-2 bg-gray-900 hover:bg-marigold text-white rounded-xl transition-all duration-300 hover:shadow-lg">
-                                                        Choose File
-                                                    </span>
-                                                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                                </label>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {errors.image && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-4 border-t border-line">
-                                    <button type="button" onClick={resetAddForm} className="px-6 py-2 text-text-soft hover:text-ink font-medium rounded-xl hover:bg-paper-dim transition-colors">
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className={`px-6 py-2 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg ${
-                                            processing ? 'opacity-50 cursor-not-allowed' : ''
-                                        }`}
-                                    >
-                                        {processing ? 'Saving...' : 'Add Category'}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <CategoryModal
+                isOpen={showAddModal}
+                onClose={resetAddForm}
+                onSave={handleAddCategory}
+                isEditing={false}
+                isProcessing={processing}
+                errors={errors}
+            />
 
             {/* Edit Category Modal */}
-            {showEditModal && categoryToEdit && (
-                <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl shadow-hard-sm border border-line w-full max-w-lg overflow-y-auto max-h-[90vh]">
-                        <form onSubmit={handleUpdate}>
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-display font-extrabold uppercase tracking-[-0.01em] text-ink">Edit Category</h3>
-                                    <button type="button" onClick={resetEditForm} className="p-1 text-text-soft hover:text-ink rounded-lg hover:bg-paper-dim transition-colors">
-                                        <FaTimes className="h-5 w-5" />
-                                    </button>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-ink mb-2">
-                                        Category Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.categories}
-                                        onChange={(e) => setData('categories', e.target.value)}
-                                        placeholder="Enter category name"
-                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft ${
-                                            errors.categories ? 'border-red-500' : 'border-line'
-                                        }`}
-                                        autoFocus
-                                        required
-                                    />
-                                    {errors.categories && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.categories}</p>
-                                    )}
-                                </div>
-
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="block text-sm font-medium text-ink">
-                                            Subcategories
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={addSubcategoryField}
-                                            className="inline-flex items-center px-3 py-1 text-sm bg-marigold/10 text-marigold rounded-lg hover:bg-marigold/20 transition-colors font-medium"
-                                        >
-                                            <FaPlus className="h-3 w-3 mr-1" />
-                                            Add Subcategory
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {data.subcategory.map((subcategory, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
-                                                <div className="flex-1">
-                                                    <input
-                                                        type="text"
-                                                        value={subcategory}
-                                                        onChange={(e) => updateSubcategory(index, e.target.value)}
-                                                        placeholder={`Subcategory ${index + 1}`}
-                                                        className="w-full px-4 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent bg-white text-ink placeholder:text-text-soft"
-                                                    />
-                                                </div>
-                                                {data.subcategory.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSubcategoryField(index)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Remove subcategory"
-                                                    >
-                                                        <FaMinus className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {errors.subcategory && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>
-                                    )}
-                                    <p className="mt-2 text-sm text-text-soft">
-                                        Add subcategories for better product organization
-                                    </p>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-ink mb-2">
-                                        Category Image
-                                    </label>
-
-                                    {imagePreview ? (
-                                        <div className="mb-4 relative">
-                                            <div className="w-full h-48 rounded-xl overflow-hidden border border-line">
-                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={removeImage}
-                                                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                            >
-                                                <FaTimes className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    ) : currentImagePath ? (
-                                        <div className="mb-4 relative">
-                                            <div className="w-full h-48 rounded-xl overflow-hidden border border-line">
-                                                <img
-                                                    src={currentImagePath}
-                                                    alt="Current"
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200';
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="flex justify-center items-center space-x-2 mt-3">
-                                                <label className="cursor-pointer">
-                                                    <span className="px-4 py-2 bg-gray-900 hover:bg-marigold text-white rounded-xl transition-all duration-300 text-sm">
-                                                        Change Image
-                                                    </span>
-                                                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    onClick={removeImage}
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-300 text-sm"
-                                                >
-                                                    Remove Image
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="border-2 border-dashed border-line rounded-xl p-6 text-center hover:border-marigold transition-colors">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <div className="w-12 h-12 rounded-full bg-paper-dim flex items-center justify-center mb-3">
-                                                    <FaUpload className="h-6 w-6 text-text-soft" />
-                                                </div>
-                                                <p className="text-text-soft mb-2">Click to upload image</p>
-                                                <p className="text-sm text-text-soft">PNG, JPG, WEBP up to 2MB</p>
-                                                <label className="cursor-pointer mt-5">
-                                                    <span className="px-4 py-2 bg-gray-900 hover:bg-marigold text-white rounded-xl transition-all duration-300">
-                                                        Choose File
-                                                    </span>
-                                                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                                </label>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {errors.image && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-4 border-t border-line">
-                                    <button type="button" onClick={resetEditForm} className="px-6 py-2 text-text-soft hover:text-ink font-medium rounded-xl hover:bg-paper-dim transition-colors">
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className={`px-6 py-2 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg ${
-                                            processing ? 'opacity-50 cursor-not-allowed' : ''
-                                        }`}
-                                    >
-                                        {processing ? 'Updating...' : 'Update Category'}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <CategoryModal
+                isOpen={showEditModal}
+                onClose={resetEditForm}
+                onSave={handleUpdateCategory}
+                isEditing={true}
+                initialData={categoryToEdit ? {
+                    id: categoryToEdit.id,
+                    categories: categoryToEdit.categories,
+                    brand: categoryToEdit.brand,
+                    subcategory: categoryToEdit.subcategory,
+                    image: categoryToEdit.image,
+                } : undefined}
+                isProcessing={processing}
+                errors={errors}
+            />
 
             {/* Delete Confirmation Modal */}
             <DeleteConfirmationDialog

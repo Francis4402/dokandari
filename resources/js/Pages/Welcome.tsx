@@ -6,10 +6,10 @@ import Categories from './Components/Categories';
 import Footer from './Components/Footer';
 import TrendingProducts from './Components/TrandingProducts';
 import DailyDiscover from './Components/DailyDiscover';
-import CategorySection from './Components/CategorySection';
 import OfferedProducts from './Components/OfferedProducts';
 import TopSellingProduct from './Components/TopSellingProduct';
 import VendorCTA from './Components/VendorCTA';
+import AllProducts from './Components/AllProducts';
 
 interface PaginatedProducts {
     data: Product[];
@@ -105,6 +105,8 @@ export default function Welcome({
                 {dailyDiscoverProduct.length > 0 && (
                     <DailyDiscover discoverProduct={dailyDiscoverProduct} user={auth.user} reviews={reviews} />
                 )}
+
+                <AllProducts product={productsWithRatings} user={auth.user} />
             </div>
             <VendorCTA />
             <Footer/>

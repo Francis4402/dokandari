@@ -59,8 +59,9 @@ export interface storeType {
 export interface categoryType {
     id: string;
     categories: string;
-    subcategory: string;
-    image: string;
+    brand: string;
+    subcategory: string | null;
+    image: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -74,6 +75,7 @@ export interface Product {
     slug: string;
     category: string;
     subcategory: string;
+    brand: string;
     quantity: number;
     regular_price: number;
     sale_price: number;

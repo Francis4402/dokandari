@@ -161,8 +161,15 @@ const ProductCard = ({
           </span>
         )}
 
+        {/* Brand Badge - Show brand on image if no custom badge */}
+        {!badge && product.brand && (
+          <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#FF5A1F] text-white font-mono text-[10px] font-bold uppercase shadow-lg z-10">
+            {product.brand}
+          </span>
+        )}
+
         {/* Trending Badge */}
-        {variant === "trending" && !badge && (
+        {variant === "trending" && !badge && !product.brand && (
           <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#E7F4EF] text-[#0E6E5B] font-mono text-[10px] font-bold uppercase shadow-lg z-10 flex items-center gap-1">
             <FiZap className="w-3 h-3" />
             Trending
@@ -190,10 +197,18 @@ const ProductCard = ({
 
       {/* Content */}
       <div className="p-4">
-        {/* Vendor/Category */}
+        {/* Vendor/Category & Brand */}
         <div className="font-mono text-[10.5px] text-[#6B6A66] uppercase tracking-wide mb-1.5 flex items-center justify-between">
-          <span>{vendor}</span>
-          {variant === "trending" && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>{vendor}</span>
+            {product.brand && (
+              <>
+                <span className="text-[#DAD5C7]">•</span>
+                <span className="text-[#FF5A1F] font-semibold">{product.brand}</span>
+              </>
+            )}
+          </div>
+          {variant === "trending" && !badge && !product.brand && (
             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-[#E7F4EF] text-[#0E6E5B] font-mono text-[9px] font-bold">
               <FiZap className="w-3 h-3" />
               Trending

@@ -38,19 +38,37 @@ class CategoriesController extends Controller
     {
         try {
             $validated = $request->validate([
-                'categories' => 'required|string|max:255',
-                'subcategory'   => 'required|array|min:1',
-                'subcategory.*' => 'required|string|max:255',
-                'image' => 'image|mimes:jpeg,png,jpg,webp',
+                'categories' => 'required|string|max:255|unique:categories,categories',
+                'brand' => 'required|json',
+                'subcategory' => 'json',
+                'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
+
+            // Decode JSON strings to arrays
+            $brands = json_decode($request->input('brand'), true);
+            $subcategories = json_decode($request->input('subcategory'), true);
+
+            // Validate arrays
+            if (!is_array($brands) || empty($brands)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['brand' => 'At least one brand is required.']);
+            }
+
+            if (!is_array($subcategories) || empty($subcategories)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['subcategory' => 'At least one subcategory is required.']);
+            }
 
             $category = new Categories();
             $category->categories = $validated['categories'];
-            $category->subcategory = json_encode($validated['subcategory'] ?? []);
+            $category->brand = json_encode($brands);
+            $category->subcategory = json_encode($subcategories);
 
+            // Handle image upload
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-
                 $manager = new ImageManager(new Driver());
                 $img = $manager->read($image->getRealPath());
                 $img->scaleDown(width: 800);
@@ -60,7 +78,6 @@ class CategoriesController extends Controller
                 $filePath = $directory . '/' . $filename;
 
                 $encodedImage = (string) $img->toWebp(85);
-
                 Storage::disk('public')->put($filePath, $encodedImage);
 
                 $category->image = $filePath;
@@ -68,7 +85,8 @@ class CategoriesController extends Controller
 
             $category->save();
 
-        } catch (\Exception) {
+            return redirect()->back()->with('success', 'Category created successfully!');
+        } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to create category. Please try again.']);
@@ -96,51 +114,77 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, $store)
     {
-        $category = Categories::findOrFail($store);
+        try {
+            $category = Categories::findOrFail($store);
 
-        $validated = $request->validate([
-            'categories' => 'required|string|max:255',
-            'subcategory' => 'required|string',
-            'image' => 'image|mimes:jpeg,png,jpg,webp',
-            'remove_image' => 'nullable|boolean',
-        ]);
+            $validated = $request->validate([
+                'categories' => 'required|string|max:255|unique:categories,categories,' . $store,
+                'brand' => 'required|json',
+                'subcategory' => 'json',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+                'remove_image' => 'nullable|boolean',
+            ]);
 
-        $category->categories = $validated['categories'];
+            // Decode JSON strings to arrays
+            $brands = json_decode($request->input('brand'), true);
+            $subcategories = json_decode($request->input('subcategory'), true);
 
-
-        $category->subcategory = $validated['subcategory'] ?? json_encode([]);
-
-        // Handle image removal
-        if ($request->has('remove_image') && $request->remove_image) {
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-                $category->image = null;
-            }
-        }
-
-        // Handle new image upload
-        if ($request->hasFile('image')) {
-
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+            // Validate arrays
+            if (!is_array($brands) || empty($brands)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['brand' => 'At least one brand is required.']);
             }
 
-            $image = $request->file('image');
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($image->getRealPath());
-            $img->scaleDown(width: 800);
+            if (!is_array($subcategories) || empty($subcategories)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['subcategory' => 'At least one subcategory is required.']);
+            }
 
-            $filename = 'category_' . time() . '_' . uniqid() . '.webp';
-            $directory = 'category_images';
-            $filePath = $directory . '/' . $filename;
+            // Update basic fields
+            $category->categories = $validated['categories'];
+            $category->brand = json_encode($brands);
+            $category->subcategory = json_encode($subcategories);
 
-            $encodedImage = (string) $img->toWebp(85);
-            Storage::disk('public')->put($filePath, $encodedImage);
+            // Handle image removal
+            if ($request->has('remove_image') && $request->remove_image) {
+                if ($category->image) {
+                    Storage::disk('public')->delete($category->image);
+                    $category->image = null;
+                }
+            }
 
-            $category->image = $filePath;
+            // Handle new image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($category->image) {
+                    Storage::disk('public')->delete($category->image);
+                }
+
+                $image = $request->file('image');
+                $manager = new ImageManager(new Driver());
+                $img = $manager->read($image->getRealPath());
+                $img->scaleDown(width: 800);
+
+                $filename = 'category_' . time() . '_' . uniqid() . '.webp';
+                $directory = 'category_images';
+                $filePath = $directory . '/' . $filename;
+
+                $encodedImage = (string) $img->toWebp(85);
+                Storage::disk('public')->put($filePath, $encodedImage);
+
+                $category->image = $filePath;
+            }
+
+            $category->save();
+
+            return redirect()->back()->with('success', 'Category updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update category. Please try again.']);
         }
-
-        $category->save();
     }
 
     /**

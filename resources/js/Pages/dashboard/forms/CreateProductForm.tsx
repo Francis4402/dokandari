@@ -39,7 +39,6 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import Eyebrow from '@/Pages/Components/Eyebrow';
 
-
 interface productFormType {
     auth: {
         user: any;
@@ -78,8 +77,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const [showSalePrice, setShowSalePrice] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [showProductTypeDropdown, setShowProductTypeDropdown] = useState(false);
-  const [availablesubcategory, setAvailablesubcategory] = useState<string[]>([]);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [colorInputs, setColorInputs] = useState<string[]>(['']);
 
   const productTypes = [
@@ -96,6 +97,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     slug: '',
     category: '',
     subcategory: '',
+    brand: '',
     quantity: '1',
     regular_price: '',
     sale_price: '',
@@ -110,12 +112,22 @@ export default function CreateProductForm({auth, store, categories}: productForm
   const discountPercentage = data.regular_price && data.sale_price
     ? Math.round((1 - parseFloat(data.sale_price) / parseFloat(data.regular_price)) * 100) : 0;
 
-  const parsesubcategory = (subcategoryString: string | null): string[] => {
+  const parseSubcategory = (subcategoryString: string | null): string[] => {
     if (!subcategoryString) return [];
     try {
       return JSON.parse(subcategoryString);
     } catch (e) {
       return [];
+    }
+  };
+
+  const parseBrands = (brandString: string | null): string[] => {
+    if (!brandString) return [];
+    try {
+      const parsed = JSON.parse(brandString);
+      return Array.isArray(parsed) ? parsed : [brandString];
+    } catch (e) {
+      return brandString ? [brandString] : [];
     }
   };
 
@@ -141,22 +153,40 @@ export default function CreateProductForm({auth, store, categories}: productForm
     setData('color', validColors);
   }, [colorInputs]);
 
+  // Update subcategories and brands when category changes
   useEffect(() => {
     if (data.category) {
       const selectedCat = categories.find(cat => cat.categories === data.category);
-      if (selectedCat && selectedCat.subcategory) {
-        const subcategory = parsesubcategory(selectedCat.subcategory);
-        setAvailablesubcategory(subcategory);
-        if (data.subcategory && !subcategory.includes(data.subcategory)) {
+      if (selectedCat) {
+        // Update subcategories
+        if (selectedCat.subcategory) {
+          const subcategories = parseSubcategory(selectedCat.subcategory);
+          setAvailableSubcategories(subcategories);
+          if (data.subcategory && !subcategories.includes(data.subcategory)) {
+            setData('subcategory', '');
+          }
+        } else {
+          setAvailableSubcategories([]);
           setData('subcategory', '');
         }
-      } else {
-        setAvailablesubcategory([]);
-        setData('subcategory', '');
+
+        // Update brands
+        if (selectedCat.brand) {
+          const brands = parseBrands(selectedCat.brand);
+          setAvailableBrands(brands);
+          if (data.brand && !brands.includes(data.brand)) {
+            setData('brand', '');
+          }
+        } else {
+          setAvailableBrands([]);
+          setData('brand', '');
+        }
       }
     } else {
-      setAvailablesubcategory([]);
+      setAvailableSubcategories([]);
+      setAvailableBrands([]);
       setData('subcategory', '');
+      setData('brand', '');
     }
   }, [data.category, categories]);
 
@@ -231,6 +261,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
     formData.append('slug', data.slug);
     formData.append('category', data.category);
     formData.append('subcategory', data.subcategory);
+    formData.append('brand', data.brand);
     formData.append('quantity', data.quantity);
     formData.append('regular_price', data.regular_price);
     formData.append('sale_price', data.sale_price || '');
@@ -256,8 +287,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
         setImagePreviews([]);
         setShowCategoryDropdown(false);
         setShowSubcategoryDropdown(false);
+        setShowBrandDropdown(false);
         setShowProductTypeDropdown(false);
-        setAvailablesubcategory([]);
+        setAvailableSubcategories([]);
+        setAvailableBrands([]);
         setColorInputs(['']);
       },
       onError: () => {
@@ -406,8 +439,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     </div>
                   </div>
 
-                  {/* Row 2: Categories */}
-                  <div className="grid md:grid-cols-2 gap-4">
+                  {/* Row 2: Categories, Subcategories, and Brands */}
+                  <div className="grid md:grid-cols-3 gap-4">
                     {/* Main Category */}
                     <div>
                       <label className="block text-sm font-medium text-ink mb-2">
@@ -464,17 +497,17 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         <button
                           type="button"
                           onClick={() => data.category && setShowSubcategoryDropdown(!showSubcategoryDropdown)}
-                          disabled={!data.category}
+                          disabled={!data.category || availableSubcategories.length === 0}
                           className={`w-full rounded-xl border px-4 py-3 text-left flex justify-between items-center transition-colors ${
-                            !data.category
+                            !data.category || availableSubcategories.length === 0
                               ? 'border-line bg-paper-dim text-text-soft cursor-not-allowed'
                               : 'border-line hover:border-marigold bg-white'
                           }`}
                         >
                           <span className={data.subcategory ? 'text-ink' : 'text-text-soft'}>
-                            {data.subcategory || (data.category ? 'Select subcategory' : 'Select main category first')}
+                            {data.subcategory || (data.category ? (availableSubcategories.length > 0 ? 'Select subcategory' : 'No subcategories available') : 'Select main category first')}
                           </span>
-                          {data.category && (
+                          {data.category && availableSubcategories.length > 0 && (
                             <FaChevronDown
                               className={`h-5 w-5 text-text-soft transition-transform ${showSubcategoryDropdown ? 'rotate-180' : ''}`}
                             />
@@ -483,8 +516,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
 
                         {data.category && showSubcategoryDropdown && (
                           <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
-                            {availablesubcategory.length > 0 ? (
-                              availablesubcategory.map((subcat, index) => (
+                            {availableSubcategories.length > 0 ? (
+                              availableSubcategories.map((subcat, index) => (
                                 <button
                                   key={index}
                                   type="button"
@@ -512,6 +545,67 @@ export default function CreateProductForm({auth, store, categories}: productForm
                         <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                           <HiOutlineExclamationCircle className="h-4 w-4" />
                           {errors.subcategory}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Brand */}
+                    <div>
+                      <label className="block text-sm font-medium text-ink mb-2">
+                        Brand <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => data.category && availableBrands.length > 0 && setShowBrandDropdown(!showBrandDropdown)}
+                          disabled={!data.category || availableBrands.length === 0}
+                          className={`w-full rounded-xl border px-4 py-3 text-left flex justify-between items-center transition-colors ${
+                            !data.category || availableBrands.length === 0
+                              ? 'border-line bg-paper-dim text-text-soft cursor-not-allowed'
+                              : 'border-line hover:border-marigold bg-white'
+                          }`}
+                        >
+                          <span className={data.brand ? 'text-ink' : 'text-text-soft'}>
+                            {data.brand || (data.category ? (availableBrands.length > 0 ? 'Select brand' : 'No brands available') : 'Select main category first')}
+                          </span>
+                          {data.category && availableBrands.length > 0 && (
+                            <FaChevronDown
+                              className={`h-5 w-5 text-text-soft transition-transform ${showBrandDropdown ? 'rotate-180' : ''}`}
+                            />
+                          )}
+                        </button>
+
+                        {data.category && showBrandDropdown && (
+                          <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-hard-sm border border-line max-h-60 overflow-auto">
+                            {availableBrands.length > 0 ? (
+                              availableBrands.map((brand, index) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => {
+                                    setData('brand', brand);
+                                    setShowBrandDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-3 hover:bg-paper-dim transition-colors flex items-center justify-between ${
+                                    data.brand === brand ? 'bg-marigold/10 text-marigold' : 'text-ink'
+                                  }`}
+                                >
+                                  {brand}
+                                  {data.brand === brand && <HiCheck className="h-5 w-5 text-marigold" />}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-sm text-text-soft text-center">
+                                No brands available for this category
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {errors.brand && (
+                        <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                          <HiOutlineExclamationCircle className="h-4 w-4" />
+                          {errors.brand}
                         </p>
                       )}
                     </div>
@@ -861,7 +955,8 @@ export default function CreateProductForm({auth, store, categories}: productForm
                 </div>
 
                 <div>
-                  <input                    ref={imagesInputRef}
+                  <input
+                    ref={imagesInputRef}
                     type="file"
                     accept="image/*"
                     multiple
@@ -1003,6 +1098,11 @@ export default function CreateProductForm({auth, store, categories}: productForm
                               {data.subcategory}
                             </span>
                           )}
+                          {data.brand && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {data.brand}
+                            </span>
+                          )}
                         </div>
 
                         {/* Colors */}
@@ -1094,6 +1194,9 @@ export default function CreateProductForm({auth, store, categories}: productForm
                           {data.subcategory && (
                             <div className="text-xs text-text-soft">{data.subcategory}</div>
                           )}
+                          {data.brand && (
+                            <div className="text-xs text-text-soft">Brand: {data.brand}</div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1105,7 +1208,7 @@ export default function CreateProductForm({auth, store, categories}: productForm
               <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6">
                 <button
                   type="submit"
-                  disabled={processing || !data.name || !data.category || !data.regular_price || !data.description || !data.item_weight}
+                  disabled={processing || !data.name || !data.category || !data.brand || !data.regular_price || !data.description || !data.item_weight}
                   className="w-full bg-gray-900 hover:bg-marigold text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {processing ? (
@@ -1146,6 +1249,10 @@ export default function CreateProductForm({auth, store, categories}: productForm
                     <p className="flex items-center gap-2">
                       <FaBookOpen className="h-3 w-3 text-marigold" />
                       <span>Rich text editor allows formatted product descriptions</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <FaTag className="h-3 w-3 text-marigold" />
+                      <span>Brand is required - select from available brands in the category</span>
                     </p>
                   </div>
                 </div>

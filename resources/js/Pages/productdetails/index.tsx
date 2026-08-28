@@ -326,6 +326,15 @@ const ProductDetailsPage = ({
                     </div>
                   )}
 
+                  {/* Brand Badge on Image */}
+                  {product.brand && (
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-[#FF5A1F] text-white shadow-hard-sm">
+                        {product.brand}
+                      </span>
+                    </div>
+                  )}
+
                   {currentCartQuantity > 0 && (
                     <div className="absolute bottom-4 right-4">
                       <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-marigold/10 text-marigold text-sm font-medium">
@@ -369,6 +378,13 @@ const ProductDetailsPage = ({
 
                 {/* Product Tags */}
                 <div className="flex flex-wrap gap-2 pt-2">
+                  {/* Brand Tag */}
+                  {product.brand && (
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-mono uppercase tracking-wide border border-orange-200">
+                      <FaTag className="w-3 h-3 mr-1.5" />
+                      {product.brand}
+                    </span>
+                  )}
                   <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-marigold/10 text-marigold text-xs font-mono uppercase tracking-wide">
                     <FaTag className="w-3 h-3 mr-1.5" />
                     {product.product_type}
@@ -394,6 +410,14 @@ const ProductDetailsPage = ({
               <div className="space-y-6">
                 {/* Product Header */}
                 <div>
+                  {/* Brand - Displayed prominently above product name */}
+                  {product.brand && (
+                    <div className="mb-2">
+                      <span className="inline-flex items-center px-3 py-1 rounded-lg bg-orange-50 text-orange-700 text-sm font-semibold border border-orange-200">
+                        {product.brand}
+                      </span>
+                    </div>
+                  )}
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-ink mb-4 leading-tight">
                     {product.name}
                   </h1>
@@ -671,6 +695,11 @@ const ProductDetailsPage = ({
                               <span className="text-text-soft">Product Name</span>
                               <span className="font-medium text-ink">{product.name}</span>
                             </div>
+                            {/* Brand in Specifications */}
+                            <div className="flex justify-between pb-2 border-b border-line">
+                              <span className="text-text-soft">Brand</span>
+                              <span className="font-medium text-orange-600">{product.brand || 'N/A'}</span>
+                            </div>
                             <div className="flex justify-between pb-2 border-b border-line">
                               <span className="text-text-soft">Category</span>
                               <span className="font-medium text-ink">{product.category}</span>
@@ -804,8 +833,7 @@ const ProductDetailsPage = ({
                             </div>
                           </div>
                         ) : (
-                          <Link
-                            href="/login"
+                          <Link                            href="/login"
                             className="inline-block px-8 py-3 bg-paper-dim hover:bg-gray-200 text-ink font-medium rounded-xl transition-colors border border-line"
                           >
                             Login to Write a Review
