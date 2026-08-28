@@ -1,6 +1,7 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import { useRef, useState } from "react";
+import type { Swiper as SwiperType } from 'swiper';
 import { categoryType } from '@/types';
 import Eyebrow from './Eyebrow';
 
@@ -8,10 +9,10 @@ import Eyebrow from './Eyebrow';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 
-const Categories = ({categories}: {categories: categoryType[]}) => {
+const Categories = ({ categories }: { categories: categoryType[] }) => {
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-  const swiperRef = useRef(null);
+  const swiperRef = useRef<SwiperType | null>(null);
 
   return (
     <section id="categories">
@@ -22,7 +23,7 @@ const Categories = ({categories}: {categories: categoryType[]}) => {
             <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Shop by category</h2>
           </div>
 
-          {/* Optional: Navigation Buttons */}
+          {/* Navigation Buttons */}
           <div className="hidden md:flex gap-2">
             <button
               onClick={() => swiperRef.current?.slidePrev()}
@@ -102,7 +103,7 @@ const Categories = ({categories}: {categories: categoryType[]}) => {
           ))}
         </Swiper>
 
-        {/* Optional: Mobile Pagination Dots */}
+        {/* Mobile Pagination Dots */}
         <div className="flex justify-center mt-6 md:hidden">
           <div className="flex gap-2">
             {categories.map((_, index) => (
