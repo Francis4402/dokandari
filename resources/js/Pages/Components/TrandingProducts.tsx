@@ -44,7 +44,7 @@ const TrendingProducts = ({ trandingproduct, user }: TrendingProductsProps) => {
             <h2 className="text-[30px] sm:text-[36px] lg:text-[44px]">Trending products</h2>
           </div>
           <Link
-            href="/products"
+            href={route('products.index')}
             className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors"
           >
             View all →

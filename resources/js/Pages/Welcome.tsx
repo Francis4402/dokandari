@@ -103,7 +103,7 @@ export default function Welcome({
                 )}
 
                 {dailyDiscoverProduct.length > 0 && (
-                    <DailyDiscover discoverProduct={dailyDiscoverProduct} user={auth.user} reviews={reviews} />
+                    <DailyDiscover discoverProduct={dailyDiscoverProduct} user={auth.user} />
                 )}
 
                 <AllProducts product={productsWithRatings} user={auth.user} />

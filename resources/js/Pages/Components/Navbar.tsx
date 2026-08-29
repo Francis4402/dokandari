@@ -1,4 +1,4 @@
-// Navbar.tsx
+
 import { PropsWithChildren, useState, useRef, useEffect, Fragment } from "react"
 import { Link } from "@inertiajs/react"
 import React from "react"

@@ -1,4 +1,3 @@
-// TopSellingProduct.tsx
 import { useRef, useMemo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -39,7 +38,6 @@ const formatRank = (index: number) => String(index + 1).padStart(2, "0");
 const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
   const scope = useRef<HTMLElement>(null);
 
-
   const topProducts = useMemo(() => {
     return products
       .filter(product => (product.quantity || 0) >= 20)
@@ -49,27 +47,16 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
 
   const maxSold = Math.max(...topProducts.map((p) => p.quantity || 0), 1);
 
-
-  if (topProducts.length === 0) {
-    return (
-      <section id="topselling" ref={scope} className="py-16 md:py-20 bg-paper-dim">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-12 bg-white rounded-xl shadow-hard-sm border border-line">
-            <div className="w-20 h-20 mx-auto mb-4 bg-paper-dim rounded-full flex items-center justify-center">
-              <FaEye className="text-3xl text-text-soft" />
-            </div>
-            <h3 className="text-xl font-bold text-ink mb-2">No Top Selling Products</h3>
-            <p className="text-text-soft max-w-md mx-auto">
-              No products have reached 20+ sales yet. Check back soon!
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
+  // IMPORTANT: this hook must run on every render, in the same order,
+  // regardless of whether topProducts is empty. It was previously placed
+  // after the early "no products" return below, which violates the
+  // Rules of Hooks — React would throw if topProducts.length ever
+  // switched between 0 and non-zero across renders (e.g. after props
+  // update). Guard the animation logic *inside* the hook instead.
   useGSAP(
     () => {
+      if (!scope.current || topProducts.length === 0) return;
+
       const rows = gsap.utils.toArray(".board-row");
       gsap.set(rows, { opacity: 0, y: 24 });
       gsap.to(rows, {
@@ -96,14 +83,32 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
         );
       });
     },
-    { scope }
+    { scope, dependencies: [topProducts.length] }
   );
 
+  if (topProducts.length === 0) {
+    return (
+      <section id="topselling" ref={scope} className="py-16 md:py-20 bg-paper-dim">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12 bg-white rounded-xl shadow-hard-sm border border-line">
+            <div className="w-20 h-20 mx-auto mb-4 bg-paper-dim rounded-full flex items-center justify-center">
+              <FaEye className="text-3xl text-text-soft" />
+            </div>
+            <h3 className="text-xl font-bold text-ink mb-2">No Top Selling Products</h3>
+            <p className="text-text-soft max-w-md mx-auto">
+              No products have reached 20+ sales yet. Check back soon!
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section id="topselling" ref={scope} className="py-16 md:py-20 bg-paper-dim">
+    <section id="topselling" ref={scope} className="py-12 sm:py-16 md:py-20 bg-paper-dim">
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 md:mb-9">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 sm:mb-8 md:mb-9">
           <div>
             <Eyebrow>Best selling products with 20+ sales</Eyebrow>
             <h2 className="text-2xl sm:text-3xl md:text-[30px] lg:text-[36px] xl:text-[44px] font-bold text-ink">
@@ -114,7 +119,7 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
             </p>
           </div>
           <Link
-            href="/products"
+            href={route('products.index')}
             className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors whitespace-nowrap"
           >
             Full leaderboard →
@@ -122,26 +127,26 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-4">
-            <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Total Sales</p>
-            <p className="text-2xl font-bold text-ink mt-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs font-mono text-text-soft uppercase tracking-wide">Total Sales</p>
+            <p className="text-xl sm:text-2xl font-bold text-ink mt-1">
               {topProducts.reduce((sum, p) => sum + (p.quantity || 0), 0)}
             </p>
           </div>
-          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-4">
-            <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Top Products</p>
-            <p className="text-2xl font-bold text-ink mt-1">{topProducts.length}</p>
+          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs font-mono text-text-soft uppercase tracking-wide">Top Products</p>
+            <p className="text-xl sm:text-2xl font-bold text-ink mt-1">{topProducts.length}</p>
           </div>
-          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-4">
-            <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Best Seller</p>
-            <p className="text-sm font-semibold text-ink mt-1 truncate">
+          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs font-mono text-text-soft uppercase tracking-wide">Best Seller</p>
+            <p className="text-xs sm:text-sm font-semibold text-ink mt-1 truncate">
               {topProducts[0]?.name || 'N/A'}
             </p>
           </div>
-          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-4">
-            <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Top Sales</p>
-            <p className="text-2xl font-bold text-marigold mt-1">
+          <div className="bg-white rounded-xl shadow-hard-sm border border-line p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs font-mono text-text-soft uppercase tracking-wide">Top Sales</p>
+            <p className="text-xl sm:text-2xl font-bold text-marigold mt-1">
               {topProducts[0]?.quantity || 0}
             </p>
           </div>
@@ -149,8 +154,13 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
 
         {/* Leaderboard */}
         <div className="bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden">
+          {/* The 700px minimum only matters once the 5-column desktop
+              grid is active. On mobile the row is already a compact
+              3-column grid that fits the viewport, so forcing a 700px
+              min-width there just created unnecessary horizontal
+              scrolling for no benefit. */}
           <div className="overflow-x-auto">
-            <div className="min-w-[700px]">
+            <div className="min-w-full md:min-w-[700px]">
               {topProducts.map((product, index) => {
                 const rank = formatRank(index);
                 const isFirst = index === 0;
@@ -164,7 +174,6 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
                     ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)
                     : 0;
 
-                // Rank medal emoji
                 const getRankEmoji = (idx: number) => {
                   if (idx === 0) return '🥇';
                   if (idx === 1) return '🥈';
@@ -175,14 +184,14 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
                 return (
                   <div
                     key={product.id}
-                    className={`board-row group grid grid-cols-[40px_46px_1fr] md:grid-cols-[60px_70px_1fr_140px_200px] items-center gap-3 md:gap-4 py-4 md:py-5 border-b border-line transition-colors duration-200 hover:bg-marigold/[0.04] ${
+                    className={`board-row group grid grid-cols-[32px_40px_1fr] xs:grid-cols-[40px_46px_1fr] md:grid-cols-[60px_70px_1fr_140px_200px] items-center gap-2 sm:gap-3 md:gap-4 py-3 sm:py-4 md:py-5 px-3 sm:px-0 border-b border-line transition-colors duration-200 hover:bg-marigold/[0.04] ${
                       isFirst ? 'bg-marigold/[0.03]' : ''
                     }`}
                   >
                     {/* Rank */}
                     <div className="flex items-center gap-1">
                       <div
-                        className={`font-display font-black text-xl sm:text-2xl md:text-[30px] lg:text-[36px] ${
+                        className={`font-display font-black text-lg sm:text-xl md:text-[30px] lg:text-[36px] ${
                           isFirst ? "text-marigold" : "text-paper-dim"
                         }`}
                         style={!isFirst ? { WebkitTextStroke: "1.5px #111013" } : undefined}
@@ -198,7 +207,7 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
 
                     {/* Thumbnail */}
                     <div className="relative flex-shrink-0">
-                      <div className={`rounded w-9 h-9 sm:w-11 sm:h-11 md:w-[52px] md:h-[52px] flex items-center justify-center overflow-hidden ${
+                      <div className={`rounded w-8 h-8 sm:w-11 sm:h-11 md:w-[52px] md:h-[52px] flex items-center justify-center overflow-hidden ${
                         isFirst ? 'ring-2 ring-marigold' : ''
                       }`}>
                         <img
@@ -246,8 +255,16 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
                         <span className="text-[10px] font-mono text-text-soft whitespace-nowrap">
                           <strong className="text-ink">{soldCount}</strong> sold
                         </span>
-                        {user && <WishlistButton productId={product.id} />}
-                        <Link href={`/products/${product.slug}`} className="p-1 rounded-full hover:bg-paper-dim transition-colors">
+                        {user && (
+                          <div className="scale-90 origin-left">
+                            <WishlistButton productId={product.id} />
+                          </div>
+                        )}
+                        <Link
+                          href={`/products/${product.slug}`}
+                          className="p-1.5 -m-1.5 rounded-full hover:bg-paper-dim transition-colors"
+                          aria-label={`View ${product.name}`}
+                        >
                           <FaEye className="w-3.5 h-3.5 text-text-soft" />
                         </Link>
                       </div>
@@ -299,10 +316,10 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
         </div>
 
         {/* View All Button */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 sm:mt-8 text-center">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-marigold text-white rounded-lg font-medium transition-all duration-300 hover:shadow-xl hover:scale-105"
+            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-900 hover:bg-marigold text-white rounded-lg font-medium text-sm sm:text-base transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
             View All Products
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

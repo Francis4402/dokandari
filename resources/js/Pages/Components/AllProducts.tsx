@@ -84,7 +84,7 @@ const AllProducts = ({ product, user }: allproductsprops) => {
                         <p className="text-gray-500 mt-2">{headerCopy.subtext}</p>
                     </div>
                     <Link
-                        href="/products"
+                        href={route('products.index')}
                         className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:text-primary transition-colors"
                     >
                         View all →

@@ -1,5 +1,5 @@
 // DailyDiscover.tsx
-import { Product, ReviewType } from "@/types";
+import { Product } from "@/types";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState, useEffect } from "react";
@@ -18,11 +18,9 @@ interface DailyDiscoverProduct {
     rating?: number;
   })[];
   user: any;
-  reviews: ReviewType[];
 }
 
-const DailyDiscover = ({ discoverProduct, user, reviews }: DailyDiscoverProduct) => {
-  const [reviewCounts, setReviewCounts] = useState<Record<string, number>>({});
+const DailyDiscover = ({ discoverProduct, user }: DailyDiscoverProduct) => {
   const [isMounted, setIsMounted] = useState(false);
   const scope = useRef<HTMLElement>(null);
 
@@ -36,21 +34,6 @@ const DailyDiscover = ({ discoverProduct, user, reviews }: DailyDiscoverProduct)
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
   }, []);
-
-  // counts come from the `reviews` bulk prop already loaded with the page —
-  // no need for a per-product network round trip just to show a number
-  useEffect(() => {
-    const counts: Record<string, number> = {};
-    discoverProduct.forEach((product) => {
-      counts[product.id] = 0;
-    });
-    reviews.forEach((review) => {
-      if (review.product_id && counts.hasOwnProperty(review.product_id)) {
-        counts[review.product_id] = (counts[review.product_id] || 0) + 1;
-      }
-    });
-    setReviewCounts(counts);
-  }, [discoverProduct, reviews]);
 
   // GSAP animation with proper cleanup
   useGSAP(
@@ -114,7 +97,7 @@ const DailyDiscover = ({ discoverProduct, user, reviews }: DailyDiscoverProduct)
             </p>
           </div>
           <Link
-            href="/products"
+            href={route('products.index')}
             className="font-mono text-xs uppercase tracking-wide border-b-2 border-ink pb-0.5 hover:border-marigold transition-colors"
           >
             View all →
