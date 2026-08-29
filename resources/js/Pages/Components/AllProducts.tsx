@@ -89,9 +89,6 @@ const AllProducts = ({ product, user }: allproductsprops) => {
                     >
                         View all →
                     </Link>
-                    <Link href={route('products.index')}>
-                    New Route
-                    </Link>
                 </div>
 
                 {/* Products Grid */}
