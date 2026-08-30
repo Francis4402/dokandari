@@ -76,8 +76,8 @@ export default function Welcome({
         product.product_type?.toLowerCase() === 'trending'
     );
 
-    const pageTitle = 'HaatPoint - Bangladesh\'s Premier Multivendor Online Marketplace';
-    const pageDescription = 'Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods, and more at HaatPoint - your one-stop online shopping destination.';
+    const pageTitle = 'HaatPoint - Bangladesh&apos;s Premier Marketplace';
+    const pageDescription = 'Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods & more at HaatPoint.';
     const keyword = 'online shopping Bangladesh, multivendor marketplace, buy online, electronics, fashion, home goods, HaatPoint'
     const Url = 'https://haatpoint.com/';
     const currentYear = new Date().getFullYear();
@@ -104,10 +104,10 @@ export default function Welcome({
                 <meta property="og:image:height" content="630" />
                 <meta property="og:locale" content="en_US" />
 
-                <meta name="twitter:card" content="/twitter-card.jpg" />
+                <meta name="twitter:card" content="/summary_large_image.jpg" />
                 <meta name="twitter:title" content={pageTitle} />
                 <meta name="twitter:description" content={pageDescription} />
-                <meta name="twitter:image" content="/twitter-card.jpg" />
+                <meta name="twitter:image" content="/summary_large_image.jpg" />
                 <meta name="author" content="HaatPoint Team" />
                 <meta name="copyright" content={`HaatPoint ${currentYear}`} />
                 <meta name="revisit-after" content="7 days" />
