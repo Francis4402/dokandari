@@ -117,7 +117,9 @@ export default function Welcome({
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             </Head>
             <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
+
                 <HeroSection />
+
                 <Categories categories={categories} />
 
 

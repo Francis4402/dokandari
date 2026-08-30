@@ -1,18 +1,33 @@
 // Footer.tsx (simplified)
 import { Link } from '@inertiajs/react';
 
-const footerCols = [
+type FooterLink = { label: string; href: string };
+
+const footerCols: { heading: string; links: FooterLink[] }[] = [
   {
     heading: "Shop",
-    links: ["Categories", "Featured", "Trending", "Daily discover"]
+    links: [
+      { label: "Categories", href: "/products" },       // no dedicated /categories route — points to products for now
+      { label: "Featured", href: "#" },                  // TODO: no route yet
+      { label: "Trending", href: "/hotdeals" },           // products.hotdeals
+      { label: "Daily discover", href: "#" },             // TODO: no route yet
+    ]
   },
   {
     heading: "Vendors",
-    links: ["Start selling", "Vendor dashboard", "Payout schedule"]
+    links: [
+      { label: "Start selling", href: "/dashboard/stores/storeform" }, // dashboard.createstore (auth-protected)
+      { label: "Vendor dashboard", href: "/dashboard/stores" },        // dashboard.store (auth-protected)
+      { label: "Payout schedule", href: "#" },                        // TODO: no route yet
+    ]
   },
   {
     heading: "Support",
-    links: ["Track an order", "Returns", "Contact us"]
+    links: [
+      { label: "Track an order", href: "/track-order" },  // trackorder.index
+      { label: "Returns", href: "#" },                     // TODO: no route yet
+      { label: "Contact us", href: "/contactus" },         // contact.index
+    ]
   },
 ];
 
@@ -37,17 +52,32 @@ export default function Footer() {
               <h4 className="font-mono text-[11px] uppercase tracking-widest text-text-soft mb-3.5">
                 {col.heading}
               </h4>
-              {col.links.map((l) => (
-                <a key={l} href="#" className="block mb-2.5 text-sm text-text-soft hover:text-marigold transition-colors">
-                  {l}
-                </a>
-              ))}
+              {col.links.map((l) =>
+                l.href === "#" ? (
+                  <span
+                    key={l.label}
+                    className="block mb-2.5 text-sm text-text-soft/50 cursor-default"
+                    title="Coming soon"
+                  >
+                    {l.label}
+                  </span>
+                ) : (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    className="block mb-2.5 text-sm text-text-soft hover:text-marigold transition-colors"
+                  >
+                    {l.label}
+                  </Link>
+                )
+              )}
             </div>
           ))}
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between flex-wrap gap-2.5 pt-5 border-t border-line font-mono text-xs text-text-soft">
           <span>© {new Date().getFullYear()} Haatpoint. All rights reserved.</span>
+          <span>Website is in development</span>
           <div className="flex gap-4 flex-wrap">
             <Link href="/privacy-policy" className="hover:text-marigold transition-colors">
               Privacy Policy
