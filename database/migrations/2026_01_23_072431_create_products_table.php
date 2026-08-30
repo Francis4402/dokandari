@@ -18,7 +18,7 @@ return new class extends Migration
             $table->uuid('store_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('images');
-            $table->string('slug')->nullable();
+            $table->string('slug');
             $table->string('category');
             $table->string('subcategory');
             $table->string('brand');

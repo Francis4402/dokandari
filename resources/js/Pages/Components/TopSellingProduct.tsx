@@ -47,12 +47,6 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
 
   const maxSold = Math.max(...topProducts.map((p) => p.quantity || 0), 1);
 
-  // IMPORTANT: this hook must run on every render, in the same order,
-  // regardless of whether topProducts is empty. It was previously placed
-  // after the early "no products" return below, which violates the
-  // Rules of Hooks — React would throw if topProducts.length ever
-  // switched between 0 and non-zero across renders (e.g. after props
-  // update). Guard the animation logic *inside* the hook instead.
   useGSAP(
     () => {
       if (!scope.current || topProducts.length === 0) return;
@@ -154,11 +148,7 @@ const TopSellingProduct = ({ products, user }: TopSellingProductProps) => {
 
         {/* Leaderboard */}
         <div className="bg-white rounded-xl shadow-hard-sm border border-line overflow-hidden">
-          {/* The 700px minimum only matters once the 5-column desktop
-              grid is active. On mobile the row is already a compact
-              3-column grid that fits the viewport, so forcing a 700px
-              min-width there just created unnecessary horizontal
-              scrolling for no benefit. */}
+
           <div className="overflow-x-auto">
             <div className="min-w-full md:min-w-[700px]">
               {topProducts.map((product, index) => {

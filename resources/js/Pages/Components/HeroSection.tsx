@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaTruck, FaShieldAlt } from "react-icons/fa";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { Link } from "@inertiajs/react";
 
 const collage = [
-  { emoji: "🧵", c1: "#FF5A1F", c2: "#D6430E" },
+  { emoji: "👕", c1: "#FF5A1F", c2: "#D6430E" },
   { emoji: "📱", c1: "#0E6E5B", c2: "#0A5346" },
   { emoji: "🥭", c1: "#FFC53D", c2: "#E8A400" },
   { emoji: "👟", c1: "#2B2A2E", c2: "#111013" },
@@ -38,61 +39,63 @@ export default function Hero() {
   );
 
   return (
-    <section className="relative pt-16 overflow-hidden" ref={scope}>
-      <div className="grid md:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
-        <div className="hero-copy">
-          <div className="flex items-center gap-2.5 mb-3.5 font-mono text-xs tracking-[0.14em] uppercase text-marigold-dark">
-            <span className="w-[22px] h-[2px] bg-marigold inline-block" />
-            Bangladesh&apos;s Open-Air Marketplace, Online
-          </div>
+    <section className="relative pt-10 md:pt-16 overflow-hidden" ref={scope}>
+      <div className="grid md:grid-cols-[1.05fr_0.95fr] gap-8 md:gap-10 items-center">
+        <div className="hero-copy order-2 md:order-1">
+          <span className="inline-block font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-marigold mb-4">
+            Your neighborhood, online
+          </span>
 
-          <h1 className="text-[44px] sm:text-[60px] lg:text-[88px] leading-[0.95]">
-            Every stall
+          <h1 className="text-[36px] sm:text-[52px] lg:text-[76px] leading-[0.95]">
+            Shop local
             <br />
-            of the <span className="text-marigold">haat</span>,
+            <span className="text-marigold">products</span> from
             <br />
-            one address.
+            your <span className="underline decoration-marigold decoration-4">haat</span>
           </h1>
 
-          <p className="text-text-soft text-[17px] max-w-[440px] my-6 leading-relaxed">
-            Haatpoint gathers thousands of independent sellers — from neighbourhood tailors to
-            electronics stalls — under one roof. Compare, haggle-free, and get it delivered.
+          <p className="text-text-soft text-[15px] sm:text-[17px] max-w-[440px] my-5 sm:my-6 leading-relaxed">
+            Everything from fresh produce to electronics, sold directly by verified
+            local vendors — no middlemen, better prices, faster delivery.
           </p>
 
-          <div className="flex gap-3.5 items-center mb-8 flex-wrap">
-            <a
-              href="#featured"
-              className="inline-flex items-center gap-2 rounded-sm px-[26px] py-[15px] font-bold text-sm bg-marigold text-white shadow-hard transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard-lg"
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap gap-3 items-center mb-7 sm:mb-8">
+            <Link
+              href={route('products.index')}
+              className="inline-flex items-center gap-2 rounded-sm px-[22px] sm:px-[26px] py-[13px] sm:py-[15px] font-bold text-sm bg-marigold text-white shadow-hard transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard-lg"
             >
-              Start browsing <FaArrowRight size={14} />
-            </a>
+              Start shopping <FaArrowRight size={14} />
+            </Link>
             <a
               href="#sell"
-              className="rounded-sm px-[22px] py-3.5 font-bold text-sm border-[1.5px] border-ink transition-colors duration-150 hover:bg-ink hover:text-paper"
+              className="rounded-sm px-[18px] sm:px-[22px] py-[11px] sm:py-3.5 font-bold text-sm border-[1.5px] border-ink transition-colors duration-150 hover:bg-ink hover:text-paper"
             >
               Become a vendor
             </a>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
-            {["12,400+ vendors", "64 districts served", "Cash on delivery"].map((c) => (
-              <span
-                key={c}
-                className="rounded-full px-3.5 py-2 bg-white border border-line text-text-soft font-mono text-[11.5px] uppercase tracking-wide"
-              >
-                {c}
-              </span>
-            ))}
+          {/* Shopping Benefits */}
+          <div className="flex flex-wrap gap-4 sm:gap-6">
+            <span className="inline-flex items-center gap-1.5 text-text-soft font-mono text-[10px] sm:text-[11.5px] uppercase tracking-wide">
+              <FaTruck className="text-marigold text-sm" />
+              Fast delivery
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-text-soft font-mono text-[10px] sm:text-[11.5px] uppercase tracking-wide">
+              <FaShieldAlt className="text-marigold text-sm" />
+              Secure payments
+            </span>
           </div>
         </div>
 
-        <div className="hero-visual relative h-[360px] md:h-[480px] mt-5 md:mt-0">
+        {/* Visual */}
+        <div className="hero-visual relative h-[300px] sm:h-[360px] md:h-[480px] mt-4 md:mt-0 order-1 md:order-2">
           <div className="slash-mask clip-hero absolute inset-0 rounded-md overflow-hidden bg-ink">
             <div className="grid grid-cols-2 grid-rows-2 gap-0.5 absolute inset-0 bg-ink">
               {collage.map((c, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-center text-[52px]"
+                  className="flex items-center justify-center text-[40px] sm:text-[52px]"
                   style={{ background: `linear-gradient(135deg, ${c.c1}, ${c.c2})` }}
                 >
                   {c.emoji}
@@ -101,30 +104,24 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="float-card absolute bottom-8 -left-4 bg-white border-[1.5px] border-ink rounded px-4 py-3.5 shadow-hard-sm">
-            <div className="font-display font-extrabold text-[26px]">৳1,290</div>
-            <div className="font-mono text-[10px] text-text-soft uppercase">Today&apos;s best deal</div>
+          {/* Category Card */}
+          <div className="float-card absolute bottom-6 sm:bottom-8 -left-2 sm:-left-4 bg-white border-[1.5px] border-ink rounded px-3.5 sm:px-4 py-3 sm:py-3.5 shadow-hard-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl sm:text-3xl">🛍️</span>
+              <div>
+                <strong className="text-xs sm:text-sm block">All categories</strong>
+                <small className="font-mono text-[9px] sm:text-[10px] text-text-soft">One marketplace, every need</small>
+              </div>
+            </div>
           </div>
 
-          <div className="float-card absolute top-5 -right-3 flex items-center gap-2.5 bg-white border-[1.5px] border-ink rounded px-4 py-3.5 shadow-hard-sm">
-            <div className="flex">
-              {["#FF5A1F", "#0E6E5B", "#FFC53D"].map((c, i) => (
-                <span
-                  key={i}
-                  className="rounded-full flex items-center justify-center w-[26px] h-[26px] border-2 border-white text-white text-[10px] font-mono"
-                  style={{ background: c, marginLeft: i === 0 ? 0 : -8 }}
-                >
-                  {["R", "S", "T"][i]}
-                </span>
-              ))}
-            </div>
-            <div>
-              <strong className="text-sm block">+12.4k</strong>
-              <small className="font-mono text-[10px] text-text-soft">active vendors</small>
-            </div>
+          {/* Free Delivery Badge */}
+          <div className="float-card absolute top-2 left-2 bg-white/90 backdrop-blur-sm border border-line rounded-full px-3 py-1.5 shadow-hard-sm">
+            <span className="text-[10px] font-bold uppercase">🚚 Secure delivery</span>
           </div>
         </div>
       </div>
+
     </section>
   );
 }

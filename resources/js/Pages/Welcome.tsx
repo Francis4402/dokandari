@@ -33,7 +33,6 @@ export default function Welcome({
     products,
     wishlist,
     productRatings,
-    reviews,
 }: PageProps<{
     laravelVersion: string,
     phpVersion: string,
@@ -49,7 +48,7 @@ export default function Welcome({
 
 
     const productsWithRatings = productsData.map(product => {
-        const ratingData = productRatings[product.id];
+    const ratingData = productRatings[product.id];
 
         return {
             ...product,
@@ -77,13 +76,45 @@ export default function Welcome({
         product.product_type?.toLowerCase() === 'trending'
     );
 
+    const pageTitle = 'HaatPoint - Bangladesh\'s Premier Multivendor Online Marketplace';
+    const pageDescription = 'Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods, and more at HaatPoint - your one-stop online shopping destination.';
+    const keyword = 'online shopping Bangladesh, multivendor marketplace, buy online, electronics, fashion, home goods, HaatPoint'
+    const Url = 'https://haatpoint.com/';
+    const currentYear = new Date().getFullYear();
 
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
-            <Head title='HaatPoint'>
-                <meta name="description" content="Multivendor Store" />
-                <meta name="keywords" content={`shop, products, buy online, shopping`} />
+            <Head>
+                <title>{pageTitle}</title>
+                <meta name="description" content={pageDescription}/>
+                <meta name="keywords" content={keyword} />
                 <meta name="robots" content="index, follow" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+                <meta httpEquiv="Content-Language" content="en" />
+                <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+                <link rel="manifest" href="/site.webmanifest" />
+                <link rel="canonical" href= {Url} />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDescription} />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={Url} />
+                <meta property="og:site_name" content={'HaatPoint'} />
+                <meta property="og:image" content="/og-image.png" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:locale" content="en_US" />
+
+                <meta name="twitter:card" content="/twitter-card.jpg" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content={pageDescription} />
+                <meta name="twitter:image" content="/twitter-card.jpg" />
+                <meta name="author" content="HaatPoint Team" />
+                <meta name="copyright" content={`HaatPoint ${currentYear}`} />
+                <meta name="revisit-after" content="7 days" />
+                <meta name="rating" content="general" />
+                <meta name="distribution" content="global" />
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             </Head>
             <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
                 <HeroSection />
