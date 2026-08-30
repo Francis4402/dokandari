@@ -52,6 +52,7 @@ export interface storeType {
     rating: number;
     review_count: string;
     national_id: string;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
 }

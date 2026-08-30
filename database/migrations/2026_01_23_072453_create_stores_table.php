@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('license')->nullable();
             $table->decimal('rating')->default(0);
             $table->string('review_count')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

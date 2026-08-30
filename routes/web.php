@@ -90,6 +90,8 @@ Route::middleware(['auth', 'role:superadmin, admin'])->group(function () {
     Route::get('/dashboard/customers', [CustomersController::class, 'index'])->name('dashboard.customers');
     Route::put('/dashboard/categories/update/{id}', [CategoriesController::class, 'update'])->name('dashboard.updatecategory');
 
+    Route::patch('/dashboard/stores/{id}/toggle-active', [StoreController::class, 'toggleActive'])
+    ->name('dashboard.store.toggle-active');
 
     Route::delete('/orders/{order}', [OrdersController::class, 'destroy'])
         ->name('orders.destroy');

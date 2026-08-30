@@ -346,4 +346,15 @@ class StoreController extends Controller
 
         $store->delete();
     }
+
+    public function toggleActive($id)
+    {
+        $store = Store::findOrFail($id);
+        $store->is_active = !$store->is_active;
+        $store->save();
+
+        return redirect()->back()->with('success',
+            $store->is_active ? 'Store activated successfully' : 'Store deactivated successfully'
+        );
+    }
 }

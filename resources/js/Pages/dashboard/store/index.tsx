@@ -1,5 +1,5 @@
 // Store.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -25,6 +25,10 @@ import {
   FaEye,
   FaBuilding,
   FaEllipsisH,
+  FaToggleOn,
+  FaToggleOff,
+  FaBan,
+  FaCheckCircle,
 } from 'react-icons/fa';
 import { Orders, Product, storeType, User } from '@/types';
 import FormatPrice from '@/Pages/utils/FormatePrice';
@@ -40,18 +44,39 @@ interface storeDashboardProps {
     orders: Orders[];
 }
 
-const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
+const Store = ({ auth, stores: initialStores, products, orders }: storeDashboardProps) => {
 
+  const [stores, setStores] = useState<storeType[]>(initialStores);
   const [searchTerm, setSearchTerm] = useState('');
   const [storeTypeFilter, setStoreTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // New: 'all', 'active', 'inactive'
   const [sortBy, setSortBy] = useState('newest');
   const [selectedStore, setSelectedStore] = useState<storeType | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<string | null>(null);
   const [showMoreActions, setShowMoreActions] = useState<string | null>(null);
+  const [isToggling, setIsToggling] = useState<string | null>(null);
+
+  // Helper function to check if store is active (handles boolean, string, and null)
+  const isStoreActive = (store: storeType): boolean => {
+    if (store.is_active === undefined || store.is_active === null) {
+      return true; // Default to active if not set
+    }
+    // Convert to boolean if it's a string
+    if (typeof store.is_active === 'string') {
+      return store.is_active === 'true' || store.is_active === '1';
+    }
+    return Boolean(store.is_active);
+  };
+
+  useEffect(() => {
+    setStores(initialStores);
+  }, [initialStores]);
 
   const stats = {
     totalStores: stores.length,
+    activeStores: stores.filter(store => isStoreActive(store)).length,
+    inactiveStores: stores.filter(store => !isStoreActive(store)).length,
     totalProducts: stores.reduce((sum, store) => sum + ((store as any).stats?.totalProducts || 0), 0),
     totalOrders: stores.reduce((sum, store) => sum + ((store as any).stats?.totalOrders || 0), 0),
     totalRevenue: stores.reduce((sum, store) => sum + ((store as any).stats?.totalRevenue || 0), 0),
@@ -71,7 +96,15 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
 
       const matchesType = storeTypeFilter === 'all' || store.storetype === storeTypeFilter;
 
-      return matchesSearch && matchesType;
+      // New: Status filter
+      let matchesStatus = true;
+      if (statusFilter === 'active') {
+        matchesStatus = isStoreActive(store);
+      } else if (statusFilter === 'inactive') {
+        matchesStatus = !isStoreActive(store);
+      }
+
+      return matchesSearch && matchesType && matchesStatus;
     })
     .sort((a, b) => {
       const aStats = (a as any).stats || {};
@@ -142,6 +175,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
         onSuccess: () => {
           setShowDeleteModal(false);
           setStoreToDelete(null);
+          setStores(prev => prev.filter(store => store.id !== storeToDelete));
           if (selectedStore?.id === storeToDelete) {
             setSelectedStore(null);
           }
@@ -168,6 +202,47 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
     router.visit(route('dashboard.storeanalytics', id));
   };
 
+  const handleToggleActive = (storeId: string) => {
+    setIsToggling(storeId);
+
+    const currentStore = stores.find(s => s.id === storeId);
+    if (!currentStore) return;
+
+    const currentStatus = isStoreActive(currentStore);
+    const newStatus = !currentStatus;
+
+    setStores(prevStores =>
+      prevStores.map(store => {
+        if (store.id === storeId) {
+          return { ...store, is_active: newStatus };
+        }
+        return store;
+      })
+    );
+
+    if (selectedStore?.id === storeId) {
+      setSelectedStore(prev => prev ? { ...prev, is_active: newStatus } : null);
+    }
+
+    router.patch(route('dashboard.store.toggle-active', storeId), {}, {
+      onSuccess: () => {
+        setIsToggling(null);
+        router.reload({ only: ['stores'] });
+      },
+      onError: () => {
+        setIsToggling(null);
+        setStores(initialStores);
+        if (selectedStore?.id === storeId) {
+          const revertedStore = initialStores.find(s => s.id === storeId);
+          if (revertedStore) {
+            setSelectedStore(revertedStore);
+          }
+        }
+      },
+      preserveScroll: true,
+    });
+  };
+
   const formatCompactNumber = (num: number): string => {
     if (num >= 1000000) {
       return `$${(num / 1000000).toFixed(1)}M`;
@@ -177,6 +252,17 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
       return `$${num}`;
     }
   };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setStoreTypeFilter('all');
+    setStatusFilter('all');
+    setSortBy('newest');
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm || storeTypeFilter !== 'all' || statusFilter !== 'all';
 
   return (
     <DashboardLayout user={auth.user}>
@@ -202,7 +288,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
@@ -218,11 +304,23 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
             <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Total Products</p>
-                  <p className="text-2xl font-bold text-ink mt-1">{products.length}</p>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Active Stores</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{stats.activeStores}</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                  <FaShoppingCart className="h-6 w-6 text-green-600" />
+                  <FaCheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-mono text-text-soft uppercase tracking-wide">Inactive Stores</p>
+                  <p className="text-2xl font-bold text-red-600 mt-1">{stats.inactiveStores}</p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                  <FaBan className="h-6 w-6 text-red-600" />
                 </div>
               </div>
             </div>
@@ -256,7 +354,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
 
           {/* Filters and Search */}
           <div className="bg-white rounded-2xl shadow-hard-sm border border-line p-6 mb-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Search */}
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
@@ -284,6 +382,20 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                 </select>
               </div>
 
+              {/* Status Filter - NEW */}
+              <div className="relative">
+                <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-line rounded-xl focus:ring-2 focus:ring-marigold focus:border-transparent appearance-none bg-white text-ink"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">✅ Active</option>
+                  <option value="inactive">🚫 Inactive</option>
+                </select>
+              </div>
+
               {/* Sort */}
               <div className="relative">
                 <FaSortAmountDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-soft h-4 w-4" />
@@ -304,32 +416,68 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                 </select>
               </div>
 
-              {/* Advanced Filters Toggle */}
+              {/* Clear Filters Button */}
               <button
-                onClick={() => setShowMoreActions(null)}
-                className="inline-flex items-center justify-center px-4 py-2 border border-line rounded-xl hover:bg-paper-dim transition-colors text-text-soft hover:text-ink"
+                onClick={clearAllFilters}
+                className={`inline-flex items-center justify-center px-4 py-2 border rounded-xl transition-colors ${
+                  hasActiveFilters
+                    ? 'bg-marigold text-white border-marigold hover:bg-marigold-dark'
+                    : 'bg-paper-dim text-text-soft border-line hover:bg-paper-dim/80 cursor-not-allowed opacity-50'
+                }`}
+                disabled={!hasActiveFilters}
               >
-                <FaFilter className="h-4 w-4 mr-2" />
-                More Filters
+                <FaTimes className="h-4 w-4 mr-2" />
+                Clear Filters
               </button>
             </div>
 
-            {/* Results Info */}
-            <div className="mt-4 flex items-center justify-between">
+            {/* Results Info with Active Filters Badges */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm text-text-soft">
                 Showing <span className="font-semibold text-ink">{filteredStores.length}</span> of <span className="font-semibold text-ink">{stats.totalStores}</span> stores
               </p>
-              {(searchTerm || storeTypeFilter !== 'all') && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStoreTypeFilter('all');
-                  }}
-                  className="text-sm text-marigold hover:text-marigold-dark font-medium transition-colors"
-                >
-                  Clear Filters
-                </button>
-              )}
+
+              {/* Active Filters Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                {statusFilter !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    <span className="mr-1">
+                      {statusFilter === 'active' ? '✅' : '🚫'}
+                    </span>
+                    {statusFilter === 'active' ? 'Active' : 'Inactive'}
+                    <button
+                      onClick={() => setStatusFilter('all')}
+                      className="ml-1 hover:text-blue-600"
+                    >
+                      <FaTimes className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+
+                {storeTypeFilter !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                    {storeTypeFilter}
+                    <button
+                      onClick={() => setStoreTypeFilter('all')}
+                      className="ml-1 hover:text-purple-600"
+                    >
+                      <FaTimes className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+
+                {searchTerm && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                    "{searchTerm}"
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="ml-1 hover:text-gray-600"
+                    >
+                      <FaTimes className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -352,13 +500,23 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                     <p className="text-text-soft mb-6">
                       {searchTerm ? `No results for "${searchTerm}"` : 'No stores available'}
                     </p>
-                    <Link
-                      href={route('dashboard.createstore')}
-                      className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
-                    >
-                      <FaPlus className="h-4 w-4 mr-2" />
-                      Create Your First Store
-                    </Link>
+                    {hasActiveFilters ? (
+                      <button
+                        onClick={clearAllFilters}
+                        className="inline-flex items-center px-6 py-3 bg-marigold text-white font-semibold rounded-xl hover:bg-marigold-dark transition-all duration-300"
+                      >
+                        <FaTimes className="h-4 w-4 mr-2" />
+                        Clear All Filters
+                      </button>
+                    ) : (
+                      <Link
+                        href={route('dashboard.createstore')}
+                        className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-marigold text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+                      >
+                        <FaPlus className="h-4 w-4 mr-2" />
+                        Create Your First Store
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -366,19 +524,19 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                       const storeStats = (store as any).stats || {};
                       const storeCreatedAt = (store as any).created_at || new Date().toISOString();
                       const storeUser = (store as any).user || {};
+                      const isActive = isStoreActive(store);
 
                       return (
                         <div
                           key={store.id}
                           className={`border border-line rounded-xl p-4 hover:shadow-hard-sm transition-all duration-300 cursor-pointer ${
                             selectedStore?.id === store.id ? 'ring-2 ring-marigold bg-marigold/5' : ''
-                          }`}
+                          } ${!isActive ? 'bg-gray-50 opacity-75' : ''}`}
                           onClick={() => setSelectedStore(store)}
                         >
                           <div className="flex items-start gap-4">
-                            {/* Store Logo */}
                             <div className="flex-shrink-0">
-                              <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-line shadow-hard-sm">
+                              <div className={`w-16 h-16 rounded-xl overflow-hidden border-2 ${!isActive ? 'border-gray-300' : 'border-line'} shadow-hard-sm`}>
                                 <img
                                   src={store.logo ? `/storage/${store.logo}` : 'https://placehold.co/400x400/e2e8f0/64748b?text=Store'}
                                   alt={store.name}
@@ -390,11 +548,21 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                               </div>
                             </div>
 
-                            {/* Store Info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="font-bold text-ink text-lg truncate">{store.name}</h3>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h3 className={`font-bold text-lg truncate ${!isActive ? 'text-gray-500 line-through' : 'text-ink'}`}>
+                                      {store.name}
+                                    </h3>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      isActive
+                                        ? 'bg-green-100 text-green-800 border border-green-200'
+                                        : 'bg-red-100 text-red-800 border border-red-200'
+                                    }`}>
+                                      {isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                  </div>
                                   <div className="flex items-center flex-wrap gap-2 mt-1">
                                     <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium border ${getStoreTypeColor(store.storetype)}`}>
                                       <FaBuilding className="h-3 w-3 mr-1" />
@@ -409,8 +577,28 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                                   </div>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="flex space-x-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleActive(store.id);
+                                    }}
+                                    disabled={isToggling === store.id}
+                                    className={`p-2 rounded-xl transition-colors ${
+                                      isActive
+                                        ? 'text-green-600 hover:bg-green-50'
+                                        : 'text-red-600 hover:bg-red-50'
+                                    } ${isToggling === store.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    title={isActive ? 'Deactivate store' : 'Activate store'}
+                                  >
+                                    {isToggling === store.id ? (
+                                      <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
+                                    ) : isActive ? (
+                                      <FaToggleOn className="h-5 w-5" />
+                                    ) : (
+                                      <FaToggleOff className="h-5 w-5" />
+                                    )}
+                                  </button>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -434,7 +622,6 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                                 </div>
                               </div>
 
-                              {/* Store Stats */}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                                 <div className="text-center p-2 bg-paper-dim rounded-xl">
                                   <div className="flex items-center justify-center mb-1">
@@ -468,7 +655,6 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                                 </div>
                               </div>
 
-                              {/* Store Owner and Created Date */}
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 pt-3 border-t border-line gap-2">
                                 {storeUser.name && (
                                   <div className="flex items-center">
@@ -510,7 +696,6 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                     </button>
                   </div>
 
-                  {/* Store Logo and Name */}
                   <div className="text-center mb-6">
                     <div className="w-24 h-24 rounded-xl overflow-hidden border-4 border-line shadow-hard-sm mx-auto mb-4">
                       <img
@@ -522,7 +707,16 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                         }}
                       />
                     </div>
-                    <h4 className="text-xl font-bold text-ink mb-2">{selectedStore.name}</h4>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <h4 className="text-xl font-bold text-ink">{selectedStore.name}</h4>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        isStoreActive(selectedStore)
+                          ? 'bg-green-100 text-green-800 border border-green-200'
+                          : 'bg-red-100 text-red-800 border border-red-200'
+                      }`}>
+                        {isStoreActive(selectedStore) ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStoreTypeColor(selectedStore.storetype)}`}>
                         {selectedStore.storetype}
@@ -536,7 +730,6 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                     </div>
                   </div>
 
-                  {/* Store Information */}
                   <div className="space-y-4">
                     <div>
                       <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-2 flex items-center gap-2">
@@ -587,7 +780,6 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                       </div>
                     </div>
 
-                    {/* Timeline */}
                     <div>
                       <h5 className="text-xs font-mono text-text-soft uppercase tracking-wide mb-2 flex items-center gap-2">
                         <FaCalendarAlt className="h-4 w-4" />
@@ -605,9 +797,34 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="pt-4 border-t border-line">
                       <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => handleToggleActive(selectedStore.id)}
+                          disabled={isToggling === selectedStore.id}
+                          className={`flex items-center justify-center px-4 py-2.5 rounded-xl font-medium text-sm transition-colors ${
+                            isStoreActive(selectedStore)
+                              ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                              : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
+                          } ${isToggling === selectedStore.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {isToggling === selectedStore.id ? (
+                            <>
+                              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                              Updating...
+                            </>
+                          ) : isStoreActive(selectedStore) ? (
+                            <>
+                              <FaBan className="h-4 w-4 mr-2" />
+                              Deactivate Store
+                            </>
+                          ) : (
+                            <>
+                              <FaCheckCircle className="h-4 w-4 mr-2" />
+                              Activate Store
+                            </>
+                          )}
+                        </button>
                         <button
                           onClick={() => handleViewProducts(selectedStore.id)}
                           className="flex items-center justify-center px-4 py-2.5 bg-paper-dim text-ink rounded-xl hover:bg-marigold/10 hover:text-marigold transition-colors font-medium text-sm border border-line"
@@ -617,10 +834,10 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                         </button>
                         <button
                           onClick={() => handleViewAnalytics(selectedStore.id)}
-                          className="flex items-center justify-center px-4 py-2.5 bg-paper-dim text-ink rounded-xl hover:bg-marigold/10 hover:text-marigold transition-colors font-medium text-sm border border-line"
+                          className="flex items-center justify-center px-4 py-2.5 bg-paper-dim text-ink rounded-xl hover:bg-marigold/10 hover:text-marigold transition-colors font-medium text-sm border border-line col-span-2"
                         >
                           <FaChartLine className="h-4 w-4 mr-2" />
-                          Analytics
+                          View Analytics
                         </button>
                       </div>
                     </div>
@@ -687,6 +904,7 @@ const Store = ({ auth, stores, products, orders }: storeDashboardProps) => {
                 </h3>
                 <div className="space-y-3">
                   {stores
+                    .filter(store => isStoreActive(store))
                     .sort((a, b) => ((b as any).stats?.totalRevenue || 0) - ((a as any).stats?.totalRevenue || 0))
                     .slice(0, 3)
                     .map((store, index) => (
