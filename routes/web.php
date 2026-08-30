@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReplayMessagesController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackOrderController;
@@ -130,11 +131,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index'])->name('dashboard.analytics');
 
-
     Route::get('/dashboard/products/productform', [ProductsController::class, 'create'])->name('dashboard.createproduct');
+
     Route::get('/dashboard/stores/storeform', [StoreController::class, 'create'])->name('dashboard.createstore');
 
     Route::post('/dashboard/products/store', [ProductsController::class, 'store'])->name('products.store');
+
     Route::delete('/dashboard/products/{id}', [ProductsController::class, 'destroy'])->name('dashboard.deleteproduct');
 
     Route::post('/dashboard/stores/store', [StoreController::class, 'store'])->name('stores.store');
@@ -173,7 +175,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
-
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/stores/{id}', [StoreController::class, 'show'])->name('stores.show');
