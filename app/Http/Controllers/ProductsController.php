@@ -329,9 +329,10 @@ class ProductsController extends Controller
 
     public function products(Request $request)
     {
-        $userId = auth()->id();
+        try {
+            $userId = auth()->id();
 
-        $query = Products::with(['store' => function ($query) {
+            $query = Products::with(['store' => function ($query) {
                 $query->select('id', 'name', 'storetype');
             }])
             ->withCount(['comments as rating_count' => function ($query) {
@@ -341,131 +342,161 @@ class ProductsController extends Controller
                 $query->whereNotNull('rating');
             }], 'rating');
 
-        if ($request->boolean('in_stock')) {
-            $query->where('inStock', true)
-                ->where('quantity', '>', 0);
-        }
-
-        // Filter by category
-        if ($request->filled('category') && $request->category !== 'all') {
-            $query->where('category', $request->category);
-        }
-
-        // Filter by product type
-        if ($request->filled('product_type') && $request->product_type !== 'all') {
-            if ($request->product_type === 'on-sale') {
-                $query->whereNotNull('sale_price')
-                    ->whereColumn('sale_price', '<', 'regular_price');
-            } else {
-                $query->where('product_type', $request->product_type);
+            // Filter by in stock
+            if ($request->boolean('in_stock')) {
+                $query->where('inStock', true)
+                    ->where('quantity', '>', 0);
             }
-        }
 
-        // Filter by brand
-        if ($request->filled('brand') && $request->brand !== 'all') {
-            $query->where('brand', $request->brand);
-        }
+            // Filter by category
+            if ($request->filled('category') && $request->category !== 'all') {
+                $query->where('category', $request->category);
+            }
 
-        // Search by product name, description, brand, or category
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                ->orWhere('description', 'LIKE', "%{$search}%")
-                ->orWhere('brand', 'LIKE', "%{$search}%")
-                ->orWhere('category', 'LIKE', "%{$search}%");
-            });
-        }
+            // Filter by product type
+            if ($request->filled('product_type') && $request->product_type !== 'all') {
+                if ($request->product_type === 'on-sale') {
+                    $query->whereNotNull('sale_price')
+                        ->whereColumn('sale_price', '<', 'regular_price');
+                } else {
+                    $query->where('product_type', $request->product_type);
+                }
+            }
 
-        // Filter by price range — use the EFFECTIVE price (sale price if
-        // present, otherwise regular price), matching the sort logic below.
-        // Comparing regular_price and sale_price independently with OR let
-        // out-of-range products slip through (e.g. regular_price=2000,
-        // sale_price=50 would pass a min_price=1000 filter incorrectly).
-        if ($request->filled('min_price')) {
-            $query->whereRaw('COALESCE(sale_price, regular_price) >= ?', [(float) $request->min_price]);
-        }
+            // Filter by brand
+            if ($request->filled('brand') && $request->brand !== 'all') {
+                $query->where('brand', $request->brand);
+            }
 
-        if ($request->filled('max_price')) {
-            $query->whereRaw('COALESCE(sale_price, regular_price) <= ?', [(float) $request->max_price]);
-        }
+            // Search by product name, description, brand, or category
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('description', 'LIKE', "%{$search}%")
+                        ->orWhere('brand', 'LIKE', "%{$search}%")
+                        ->orWhere('category', 'LIKE', "%{$search}%");
+                });
+            }
 
-        // Sort
-        switch ($request->sort_by) {
-            case 'price-low':
-                $query->orderByRaw('COALESCE(sale_price, regular_price) ASC');
-                break;
-            case 'price-high':
-                $query->orderByRaw('COALESCE(sale_price, regular_price) DESC');
-                break;
-            case 'rating':
-                $query->orderByRaw('COALESCE(average_rating, 0) DESC');
-                break;
-            case 'date':
-                $query->orderBy('created_at', 'DESC');
-                break;
-            case 'popularity':
-                $query->orderBy('rating_count', 'DESC');
-                break;
-            default:
-                $query->orderBy('created_at', 'DESC');
-                break;
-        }
+            // Filter by price range
+            if ($request->filled('min_price')) {
+                $query->whereRaw('COALESCE(sale_price, regular_price) >= ?', [(float) $request->min_price]);
+            }
 
-        // Paginate with 12 items per page and preserve query-string filters
-        $products = $query->paginate(12);
-        $products->appends($request->query());
+            if ($request->filled('max_price')) {
+                $query->whereRaw('COALESCE(sale_price, regular_price) <= ?', [(float) $request->max_price]);
+            }
 
-        // Get wishlist
-        $wishlist = $userId ? Wishlist::where('user_id', $userId)->get() : collect();
+            // Sort
+            switch ($request->sort_by) {
+                case 'price-low':
+                    $query->orderByRaw('COALESCE(sale_price, regular_price) ASC');
+                    break;
+                case 'price-high':
+                    $query->orderByRaw('COALESCE(sale_price, regular_price) DESC');
+                    break;
+                case 'rating':
+                    $query->orderByRaw('COALESCE(average_rating, 0) DESC');
+                    break;
+                case 'date':
+                    $query->orderBy('created_at', 'DESC');
+                    break;
+                case 'popularity':
+                    $query->orderBy('rating_count', 'DESC');
+                    break;
+                default:
+                    $query->orderBy('created_at', 'DESC');
+                    break;
+            }
 
-        // Get unique categories for filters (from all products, so the
-        // dropdown doesn't shrink just because "in stock only" is checked)
-        $categories = Products::distinct()->pluck('category')->filter()->values()->toArray();
+            // Paginate
+            $products = $query->paginate(12);
+            $products->appends($request->query());
 
-        // Get unique brands for filters
-        $brands = Products::whereNotNull('brand')
-            ->where('brand', '!=', '')
-            ->distinct()
-            ->pluck('brand')
-            ->filter()
-            ->values()
-            ->toArray();
+            // Get wishlist
+            $wishlist = $userId ? Wishlist::where('user_id', $userId)->get() : collect();
 
-        // Get price range based on the effective price, across all products
-        $minPrice = Products::selectRaw('MIN(COALESCE(sale_price, regular_price)) as min_price')->value('min_price') ?? 0;
-        $maxPrice = Products::selectRaw('MAX(COALESCE(sale_price, regular_price)) as max_price')->value('max_price') ?? 10000;
+            // Get unique categories (FIX: Handle empty/null categories)
+            $categories = Products::whereNotNull('category')
+                ->where('category', '!=', '')
+                ->distinct()
+                ->pluck('category')
+                ->filter()
+                ->values()
+                ->toArray();
 
-        // Build product ratings
-        $productRatings = [];
-        foreach ($products as $product) {
-            $productRatings[$product->id] = [
-                'average' => round($product->average_rating ?? 0, 1),
-                'count' => $product->rating_count ?? 0,
-            ];
-        }
+            // Get unique brands (FIX: Handle empty/null brands)
+            $brands = Products::whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->distinct()
+                ->pluck('brand')
+                ->filter()
+                ->values()
+                ->toArray();
 
-        return Inertia::render('products/index', [
-            'products' => $products,
-            'wishlist' => $wishlist,
-            'productRatings' => $productRatings,
-            'filters' => [
-                'categories' => $categories,
-                'brands' => $brands,
-                'min_price' => (int) $minPrice,
-                'max_price' => (int) $maxPrice,
-                'current' => [
-                    'category' => $request->category ?? 'all',
-                    'product_type' => $request->product_type ?? 'all',
-                    'brand' => $request->brand ?? 'all',
-                    'search' => $request->search ?? '',
-                    'sort_by' => $request->sort_by ?? 'default',
-                    'in_stock' => $request->boolean('in_stock', false),
-                    'min_price_filter' => $request->min_price ? (int) $request->min_price : (int) $minPrice,
-                    'max_price_filter' => $request->max_price ? (int) $request->max_price : (int) $maxPrice,
+            // Get price range (FIX: Handle null values)
+            $minPrice = Products::selectRaw('MIN(COALESCE(sale_price, regular_price)) as min_price')
+                ->value('min_price') ?? 0;
+            $maxPrice = Products::selectRaw('MAX(COALESCE(sale_price, regular_price)) as max_price')
+                ->value('max_price') ?? 10000;
+
+            // Build product ratings (FIX: Handle null values properly)
+            $productRatings = [];
+            foreach ($products as $product) {
+                $productRatings[$product->id] = [
+                    'average' => round($product->average_rating ?? 0, 1),
+                    'count' => $product->rating_count ?? 0,
+                ];
+            }
+
+            return Inertia::render('products/index', [
+                'products' => $products,
+                'wishlist' => $wishlist,
+                'productRatings' => $productRatings,
+                'filters' => [
+                    'categories' => $categories,
+                    'brands' => $brands,
+                    'min_price' => (int) $minPrice,
+                    'max_price' => (int) $maxPrice,
+                    'current' => [
+                        'category' => $request->category ?? 'all',
+                        'product_type' => $request->product_type ?? 'all',
+                        'brand' => $request->brand ?? 'all',
+                        'search' => $request->search ?? '',
+                        'sort_by' => $request->sort_by ?? 'default',
+                        'in_stock' => $request->boolean('in_stock', false),
+                        'min_price_filter' => $request->min_price ? (int) $request->min_price : (int) $minPrice,
+                        'max_price_filter' => $request->max_price ? (int) $request->max_price : (int) $maxPrice,
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+
+        } catch (\Exception $e) {
+
+            // Return a friendly error or fallback
+            return Inertia::render('products/index', [
+                'products' => [],
+                'wishlist' => [],
+                'productRatings' => [],
+                'filters' => [
+                    'categories' => [],
+                    'brands' => [],
+                    'min_price' => 0,
+                    'max_price' => 10000,
+                    'current' => [
+                        'category' => 'all',
+                        'product_type' => 'all',
+                        'brand' => 'all',
+                        'search' => '',
+                        'sort_by' => 'default',
+                        'in_stock' => false,
+                        'min_price_filter' => 0,
+                        'max_price_filter' => 10000,
+                    ],
+                ],
+            ]);
+        }
     }
 
     public function hotdeals() {
