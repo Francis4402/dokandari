@@ -129,7 +129,7 @@ class StoreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Store $store)
+    public function show($store)
     {
 
         $products = Products::where('store_id', $store->id)
@@ -212,7 +212,7 @@ class StoreController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Store $store)
+    public function update(Request $request, $store)
     {
         $validated = $request->validate([
             'name' => [
@@ -307,9 +307,9 @@ class StoreController extends Controller
         }
     }
 
-    public function destroy(Store $store)
+    public function destroy($id)
     {
-        $store = Store::findOrFail($store);
+        $store = Store::findOrFail($id);
 
 
         if ($store->logo && Storage::disk('public')->exists($store->logo)) {
