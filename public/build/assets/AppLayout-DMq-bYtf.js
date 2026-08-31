@@ -1,1 +1,0 @@
-import{j as r}from"./react-Dw7Tzedg.js";import t from"./Navbar-UXeHATT3.js";function x({user:s,children:a,wishlist:o}){return r.jsxs("div",{children:[r.jsx(t,{user:s,wishlist:o}),r.jsx("main",{className:"flex-1",children:a})]})}export{x as A};

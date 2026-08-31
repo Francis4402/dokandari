@@ -1,697 +1,554 @@
 {
-  "_AppLayout-DMq-bYtf.js": {
-    "file": "assets/AppLayout-DMq-bYtf.js",
+  "_AppLayout-BB84VsFb.js": {
+    "file": "assets/AppLayout-BB84VsFb.js",
     "name": "AppLayout",
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "resources/js/Pages/Components/Navbar.tsx"
     ]
   },
-  "_DashboardLayout-eYn4SfZW.js": {
-    "file": "assets/DashboardLayout-eYn4SfZW.js",
+  "_DashboardLayout-ayV6Jv5r.js": {
+    "file": "assets/DashboardLayout-ayV6Jv5r.js",
     "name": "DashboardLayout",
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_vendor-Dqo4SKs3.js"
+      "resources/js/app.tsx",
+      "_index-CSO4-iy_.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
-  "_InputLabel-B8fR0Y6w.js": {
-    "file": "assets/InputLabel-B8fR0Y6w.js",
+  "_InputLabel-DTxejZr-.js": {
+    "file": "assets/InputLabel-DTxejZr-.js",
     "name": "InputLabel",
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_PrimaryButton-CI2RPApz.js": {
-    "file": "assets/PrimaryButton-CI2RPApz.js",
+  "_PrimaryButton-CSwYNIhL.js": {
+    "file": "assets/PrimaryButton-CSwYNIhL.js",
     "name": "PrimaryButton",
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_ProductCard-CTAZSPtu.js": {
-    "file": "assets/ProductCard-CTAZSPtu.js",
+  "_ProductCard-DHtoBUc0.js": {
+    "file": "assets/ProductCard-DHtoBUc0.js",
     "name": "ProductCard",
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-fi-CfK7c7ab.js",
-      "_axios-B9ygI19o.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "resources/js/Pages/utils/FormatePrice.tsx"
+      "resources/js/Pages/utils/FormatePrice.tsx",
+      "_index-C4vN_GF0.js"
     ]
   },
-  "_TextInput-DSwZ2rdQ.js": {
-    "file": "assets/TextInput-DSwZ2rdQ.js",
+  "_ScrollTrigger-D1XJUMov.js": {
+    "file": "assets/ScrollTrigger-D1XJUMov.js",
+    "name": "ScrollTrigger"
+  },
+  "_TextInput-BcOdEsZu.js": {
+    "file": "assets/TextInput-BcOdEsZu.js",
     "name": "TextInput",
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_axios-B9ygI19o.js": {
-    "file": "assets/axios-B9ygI19o.js",
-    "name": "axios"
-  },
-  "_cartStore-DANx-3fe.js": {
-    "file": "assets/cartStore-DANx-3fe.js",
+  "_cartStore-DV5Bdm6m.js": {
+    "file": "assets/cartStore-DV5Bdm6m.js",
     "name": "cartStore",
     "imports": [
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_gsap-DWJDVg0h.js": {
-    "file": "assets/gsap-DWJDVg0h.js",
-    "name": "gsap",
-    "isDynamicEntry": true
-  },
-  "_icons-CTJsAhbH.js": {
-    "file": "assets/icons-CTJsAhbH.js",
-    "name": "icons",
+  "_iconBase-CNHCaRYi.js": {
+    "file": "assets/iconBase-CNHCaRYi.js",
+    "name": "iconBase",
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_icons-ai-DD_0Ho_u.js": {
-    "file": "assets/icons-ai-DD_0Ho_u.js",
-    "name": "icons-ai",
+  "_index-BHdxeDFs.js": {
+    "file": "assets/index-BHdxeDFs.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-bi-iYVUs043.js": {
-    "file": "assets/icons-bi-iYVUs043.js",
-    "name": "icons-bi",
+  "_index-BM7jedCM.js": {
+    "file": "assets/index-BM7jedCM.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-bs-DaNJEp52.js": {
-    "file": "assets/icons-bs-DaNJEp52.js",
-    "name": "icons-bs",
+  "_index-Bq85oX3r.js": {
+    "file": "assets/index-Bq85oX3r.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-ci-HYFjsq9h.js": {
-    "file": "assets/icons-ci-HYFjsq9h.js",
-    "name": "icons-ci",
+  "_index-C4vN_GF0.js": {
+    "file": "assets/index-C4vN_GF0.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_icons-fa6-C73qWJf4.js": {
-    "file": "assets/icons-fa6-C73qWJf4.js",
-    "name": "icons-fa6",
+  "_index-C7EKcDe3.js": {
+    "file": "assets/index-C7EKcDe3.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-fi-CfK7c7ab.js": {
-    "file": "assets/icons-fi-CfK7c7ab.js",
-    "name": "icons-fi",
+  "_index-CSO4-iy_.js": {
+    "file": "assets/index-CSO4-iy_.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-hi-B3CvmtKO.js": {
-    "file": "assets/icons-hi-B3CvmtKO.js",
-    "name": "icons-hi",
+  "_index-DABxd3NV.js": {
+    "file": "assets/index-DABxd3NV.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-hi2-ChW-6bhK.js": {
-    "file": "assets/icons-hi2-ChW-6bhK.js",
-    "name": "icons-hi2",
+  "_index-DYPjghw3.js": {
+    "file": "assets/index-DYPjghw3.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "resources/js/app.tsx",
+      "node_modules/gsap/index.js"
     ]
   },
-  "_icons-io-io6OFAl7.js": {
-    "file": "assets/icons-io-io6OFAl7.js",
-    "name": "icons-io",
+  "_index-FeCkrA21.js": {
+    "file": "assets/index-FeCkrA21.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-io5-BT-8zg3L.js": {
-    "file": "assets/icons-io5-BT-8zg3L.js",
-    "name": "icons-io5",
+  "_index-wj6NZtWc.js": {
+    "file": "assets/index-wj6NZtWc.js",
+    "name": "index",
     "imports": [
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
-  "_icons-md-BqV4TcX3.js": {
-    "file": "assets/icons-md-BqV4TcX3.js",
-    "name": "icons-md",
+  "_quill.snow-!~{01q}~.js": {
+    "file": "assets/quill-DZrYvFpI.css",
+    "src": "_quill.snow-!~{01q}~.js"
+  },
+  "_quill.snow-5fsjsp9W.js": {
+    "file": "assets/quill.snow-5fsjsp9W.js",
+    "name": "quill.snow",
     "imports": [
-      "_icons-CTJsAhbH.js"
-    ]
-  },
-  "_icons-ri-B1mIWRlb.js": {
-    "file": "assets/icons-ri-B1mIWRlb.js",
-    "name": "icons-ri",
-    "imports": [
-      "_icons-CTJsAhbH.js"
-    ]
-  },
-  "_query-DnbvK9nW.js": {
-    "file": "assets/query-DnbvK9nW.js",
-    "name": "query",
-    "imports": [
-      "_react-Dw7Tzedg.js",
-      "_react-dom-BuCt-jrN.js"
-    ]
-  },
-  "_react-Dw7Tzedg.js": {
-    "file": "assets/react-Dw7Tzedg.js",
-    "name": "react"
-  },
-  "_react-dom-BuCt-jrN.js": {
-    "file": "assets/react-dom-BuCt-jrN.js",
-    "name": "react-dom",
-    "imports": [
-      "_react-Dw7Tzedg.js"
-    ]
-  },
-  "_state-CR8VHD-1.js": {
-    "file": "assets/state-CR8VHD-1.js",
-    "name": "state",
-    "imports": [
-      "_react-Dw7Tzedg.js"
-    ]
-  },
-  "_swiper-!~{00f}~.js": {
-    "file": "assets/swiper-vL0Q9Dr-.css",
-    "src": "_swiper-!~{00f}~.js"
-  },
-  "_swiper-Ad__EBDz.js": {
-    "file": "assets/swiper-Ad__EBDz.js",
-    "name": "swiper",
-    "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ],
     "css": [
-      "assets/swiper-vL0Q9Dr-.css"
+      "assets/quill-DZrYvFpI.css"
     ]
   },
-  "_toast-CgSQS3WA.js": {
-    "file": "assets/toast-CgSQS3WA.js",
-    "name": "toast",
+  "_transition-Bsj-C70m.js": {
+    "file": "assets/transition-Bsj-C70m.js",
+    "name": "transition",
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_react-dom-BuCt-jrN.js"
+      "resources/js/app.tsx"
     ]
   },
-  "_useRevealChildren-DYOa0jqX.js": {
-    "file": "assets/useRevealChildren-DYOa0jqX.js",
+  "_useRevealChildren-Bp4muJ5R.js": {
+    "file": "assets/useRevealChildren-Bp4muJ5R.js",
     "name": "useRevealChildren",
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_gsap-DWJDVg0h.js",
-      "_vendor-Dqo4SKs3.js"
+      "resources/js/app.tsx",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_index-DYPjghw3.js"
     ]
   },
-  "_vendor-!~{004}~.js": {
-    "file": "assets/vendor-DHOfW5Ew.css",
-    "src": "_vendor-!~{004}~.js"
-  },
-  "_vendor-Dqo4SKs3.js": {
-    "file": "assets/vendor-Dqo4SKs3.js",
-    "name": "vendor",
-    "imports": [
-      "_axios-B9ygI19o.js",
-      "_react-Dw7Tzedg.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
-    ],
-    "css": [
-      "assets/vendor-DHOfW5Ew.css"
-    ]
+  "node_modules/gsap/index.js": {
+    "file": "assets/index-CL_bl1i1.js",
+    "name": "index",
+    "src": "node_modules/gsap/index.js",
+    "isDynamicEntry": true
   },
   "node_modules/react-icons/fa/index.mjs": {
-    "file": "assets/icons-fa-9DTzeejo.js",
-    "name": "icons-fa",
+    "file": "assets/index-CKMVUKj1.js",
+    "name": "index",
     "src": "node_modules/react-icons/fa/index.mjs",
     "isDynamicEntry": true,
     "imports": [
-      "_icons-CTJsAhbH.js",
-      "_react-Dw7Tzedg.js"
+      "_iconBase-CNHCaRYi.js",
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/Auth/ConfirmPassword.tsx": {
-    "file": "assets/ConfirmPassword-DJgWHvgh.js",
+    "file": "assets/ConfirmPassword-V0Z4LOim.js",
     "name": "ConfirmPassword",
     "src": "resources/js/Pages/Auth/ConfirmPassword.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_TextInput-DSwZ2rdQ.js",
-      "_InputLabel-B8fR0Y6w.js",
-      "_PrimaryButton-CI2RPApz.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "resources/js/app.tsx",
+      "_TextInput-BcOdEsZu.js",
+      "_InputLabel-DTxejZr-.js",
+      "_PrimaryButton-CSwYNIhL.js"
     ]
   },
   "resources/js/Pages/Auth/ForgotPassword.tsx": {
-    "file": "assets/ForgotPassword-BBb8R7JA.js",
+    "file": "assets/ForgotPassword-Dt1Dase5.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_TextInput-DSwZ2rdQ.js",
-      "_PrimaryButton-CI2RPApz.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_TextInput-BcOdEsZu.js",
+      "_PrimaryButton-CSwYNIhL.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Auth/Login.tsx": {
-    "file": "assets/Login-vDtk9bah.js",
+    "file": "assets/Login-DsI7CIMY.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Auth/Register.tsx": {
-    "file": "assets/Register-CEfJReC0.js",
+    "file": "assets/Register-CheYiPX6.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Auth/ResetPassword.tsx": {
-    "file": "assets/ResetPassword-DkrnMq4L.js",
+    "file": "assets/ResetPassword-DmqV30yU.js",
     "name": "ResetPassword",
     "src": "resources/js/Pages/Auth/ResetPassword.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_TextInput-DSwZ2rdQ.js",
-      "_InputLabel-B8fR0Y6w.js",
-      "_PrimaryButton-CI2RPApz.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_TextInput-BcOdEsZu.js",
+      "_InputLabel-DTxejZr-.js",
+      "_PrimaryButton-CSwYNIhL.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Auth/VerifyEmail.tsx": {
-    "file": "assets/VerifyEmail-CC0cVUQW.js",
+    "file": "assets/VerifyEmail-BOvyfS_x.js",
     "name": "VerifyEmail",
     "src": "resources/js/Pages/Auth/VerifyEmail.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_PrimaryButton-CI2RPApz.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_PrimaryButton-CSwYNIhL.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Components/AboutUs.tsx": {
-    "file": "assets/AboutUs-DXwqt-nF.js",
+    "file": "assets/AboutUs-DN5QltPL.js",
     "name": "AboutUs",
     "src": "resources/js/Pages/Components/AboutUs.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_AppLayout-BB84VsFb.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-ri-B1mIWRlb.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
+      "_index-CSO4-iy_.js",
+      "_index-BHdxeDFs.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_icons-CTJsAhbH.js"
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Components/AllProducts.tsx": {
-    "file": "assets/AllProducts-Dqwb1zLB.js",
+    "file": "assets/AllProducts-Dmnd53Lz.js",
     "name": "AllProducts",
     "src": "resources/js/Pages/Components/AllProducts.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-ci-HYFjsq9h.js",
+      "resources/js/app.tsx",
+      "_index-wj6NZtWc.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_ProductCard-DHtoBUc0.js",
+      "_iconBase-CNHCaRYi.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-fi-CfK7c7ab.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/utils/FormatePrice.tsx"
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/utils/FormatePrice.tsx",
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/Components/Categories.tsx": {
-    "file": "assets/Categories-g7j0T9cf.js",
+    "file": "assets/Categories-BlWxjlrY.js",
     "name": "Categories",
     "src": "resources/js/Pages/Components/Categories.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_swiper-Ad__EBDz.js",
+      "resources/js/app.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-C4vN_GF0.js"
+    ],
+    "css": [
+      "assets/Categories-vL0Q9Dr-.css"
     ]
   },
   "resources/js/Pages/Components/CategorySection.tsx": {
-    "file": "assets/CategorySection-WZpQRaNQ.js",
+    "file": "assets/CategorySection-B3w3OWky.js",
     "name": "CategorySection",
     "src": "resources/js/Pages/Components/CategorySection.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/Components/DailyDiscover.tsx": {
-    "file": "assets/DailyDiscover-BquCEGUz.js",
+    "file": "assets/DailyDiscover-CUL48tUx.js",
     "name": "DailyDiscover",
     "src": "resources/js/Pages/Components/DailyDiscover.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_gsap-DWJDVg0h.js",
+      "resources/js/app.tsx",
+      "_index-DYPjghw3.js",
+      "node_modules/gsap/index.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_icons-CTJsAhbH.js",
-      "_icons-fi-CfK7c7ab.js",
+      "_ProductCard-DHtoBUc0.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_iconBase-CNHCaRYi.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/utils/FormatePrice.tsx"
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/utils/FormatePrice.tsx",
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/Components/Eyebrow.tsx": {
-    "file": "assets/Eyebrow-EjsXCB7M.js",
+    "file": "assets/Eyebrow-DxHPdREd.js",
     "name": "Eyebrow",
     "src": "resources/js/Pages/Components/Eyebrow.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/Components/Footer.tsx": {
-    "file": "assets/Footer-DOJmqsBA.js",
+    "file": "assets/Footer-DnSigwC1.js",
     "name": "Footer",
     "src": "resources/js/Pages/Components/Footer.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/Components/Header.tsx": {
-    "file": "assets/Header-D_sudEuT.js",
+    "file": "assets/Header-D6tbA-9s.js",
     "name": "Header",
     "src": "resources/js/Pages/Components/Header.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_icons-io-io6OFAl7.js",
-      "_icons-md-BqV4TcX3.js",
-      "_icons-CTJsAhbH.js"
+      "resources/js/app.tsx",
+      "_iconBase-CNHCaRYi.js",
+      "_index-BM7jedCM.js"
     ]
   },
   "resources/js/Pages/Components/HeroSection.tsx": {
-    "file": "assets/HeroSection-QRR6Ndg6.js",
+    "file": "assets/HeroSection-CCGQ6EHE.js",
     "name": "HeroSection",
     "src": "resources/js/Pages/Components/HeroSection.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_toast-CgSQS3WA.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-C4vN_GF0.js"
     ],
     "dynamicImports": [
       "node_modules/react-icons/fa/index.mjs",
       "node_modules/react-icons/fa/index.mjs",
       "node_modules/react-icons/fa/index.mjs",
-      "_gsap-DWJDVg0h.js"
+      "node_modules/gsap/index.js"
     ]
   },
   "resources/js/Pages/Components/NavRoutes.tsx": {
-    "file": "assets/NavRoutes-B5pDLE3r.js",
+    "file": "assets/NavRoutes-DJmh6GE0.js",
     "name": "NavRoutes",
     "src": "resources/js/Pages/Components/NavRoutes.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/Components/Navbar.tsx": {
-    "file": "assets/Navbar-UXeHATT3.js",
+    "file": "assets/Navbar-DzXYtKGR.js",
     "name": "Navbar",
     "src": "resources/js/Pages/Components/Navbar.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
+      "resources/js/app.tsx",
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js"
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Components/OfferedProducts.tsx": {
-    "file": "assets/OfferedProducts-NJVnW089.js",
+    "file": "assets/OfferedProducts-I4-_pfHR.js",
     "name": "OfferedProducts",
     "src": "resources/js/Pages/Components/OfferedProducts.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-ci-HYFjsq9h.js",
+      "resources/js/app.tsx",
+      "_index-wj6NZtWc.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_ProductCard-DHtoBUc0.js",
+      "_iconBase-CNHCaRYi.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-fi-CfK7c7ab.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/utils/FormatePrice.tsx"
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/utils/FormatePrice.tsx",
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/Components/TopSellingProduct.tsx": {
-    "file": "assets/TopSellingProduct-DpVZ8TP7.js",
+    "file": "assets/TopSellingProduct-DXid3e3-.js",
     "name": "TopSellingProduct",
     "src": "resources/js/Pages/Components/TopSellingProduct.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_gsap-DWJDVg0h.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_index-DYPjghw3.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_icons-CTJsAhbH.js",
-      "_toast-CgSQS3WA.js",
-      "_cartStore-DANx-3fe.js",
-      "_state-CR8VHD-1.js"
+      "_iconBase-CNHCaRYi.js",
+      "_cartStore-DV5Bdm6m.js"
     ]
   },
   "resources/js/Pages/Components/TrandingProducts.tsx": {
-    "file": "assets/TrandingProducts-Dh7UlcRR.js",
+    "file": "assets/TrandingProducts-BMtzgReY.js",
     "name": "TrandingProducts",
     "src": "resources/js/Pages/Components/TrandingProducts.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-fi-CfK7c7ab.js",
+      "resources/js/app.tsx",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_useRevealChildren-DYOa0jqX.js",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_useRevealChildren-Bp4muJ5R.js",
+      "_ProductCard-DHtoBUc0.js",
+      "_iconBase-CNHCaRYi.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_index-DYPjghw3.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/utils/FormatePrice.tsx"
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/utils/FormatePrice.tsx",
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/Components/VendorCTA.tsx": {
-    "file": "assets/VendorCTA-R49UMGLf.js",
+    "file": "assets/VendorCTA-JDQ2LAgk.js",
     "name": "VendorCTA",
     "src": "resources/js/Pages/Components/VendorCTA.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_useRevealChildren-DYOa0jqX.js",
-      "_icons-CTJsAhbH.js",
-      "_gsap-DWJDVg0h.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js"
+      "_useRevealChildren-Bp4muJ5R.js",
+      "_iconBase-CNHCaRYi.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_index-DYPjghw3.js"
     ]
   },
   "resources/js/Pages/Profile/Edit.tsx": {
-    "file": "assets/Edit-EKIzAWQa.js",
+    "file": "assets/Edit-BveXq8LD.js",
     "name": "Edit",
     "src": "resources/js/Pages/Profile/Edit.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_DashboardLayout-eYn4SfZW.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "resources/js/Pages/Profile/Partials/UpdatePasswordForm.tsx",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js"
+      "_transition-Bsj-C70m.js",
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Profile/Partials/DeleteUserForm.tsx": {
-    "file": "assets/DeleteUserForm-DgoUzF-l.js",
+    "file": "assets/DeleteUserForm-D7yadJ8V.js",
     "name": "DeleteUserForm",
     "src": "resources/js/Pages/Profile/Partials/DeleteUserForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Profile/Partials/UpdatePasswordForm.tsx": {
-    "file": "assets/UpdatePasswordForm-Cu-K48Pj.js",
+    "file": "assets/UpdatePasswordForm-C6fngKkq.js",
     "name": "UpdatePasswordForm",
     "src": "resources/js/Pages/Profile/Partials/UpdatePasswordForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.tsx": {
-    "file": "assets/UpdateProfileInformationForm-Cv9PweI9.js",
+    "file": "assets/UpdateProfileInformationForm-B0YRyb5F.js",
     "name": "UpdateProfileInformationForm",
     "src": "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/Welcome.tsx": {
-    "file": "assets/Welcome-CSpJoHcD.js",
+    "file": "assets/Welcome-JybGv29c.js",
     "name": "Welcome",
     "src": "resources/js/Pages/Welcome.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/Components/HeroSection.tsx",
       "resources/js/Pages/Components/Categories.tsx",
       "resources/js/Pages/Components/Footer.tsx",
@@ -701,840 +558,690 @@
       "resources/js/Pages/Components/TopSellingProduct.tsx",
       "resources/js/Pages/Components/VendorCTA.tsx",
       "resources/js/Pages/Components/AllProducts.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "resources/js/app.tsx",
-      "_swiper-Ad__EBDz.js",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_useRevealChildren-DYOa0jqX.js",
-      "_ProductCard-CTAZSPtu.js",
+      "_useRevealChildren-Bp4muJ5R.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_index-DYPjghw3.js",
+      "_ProductCard-DHtoBUc0.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
-      "_icons-ci-HYFjsq9h.js"
+      "_index-wj6NZtWc.js"
     ]
   },
   "resources/js/Pages/buttons/AddtoCartButton.tsx": {
-    "file": "assets/AddtoCartButton-SC6X6gcm.js",
+    "file": "assets/AddtoCartButton-DD-8oOIy.js",
     "name": "AddtoCartButton",
     "src": "resources/js/Pages/buttons/AddtoCartButton.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
-      "_cartStore-DANx-3fe.js",
-      "_icons-CTJsAhbH.js",
-      "_react-dom-BuCt-jrN.js",
-      "_vendor-Dqo4SKs3.js",
-      "_axios-B9ygI19o.js",
-      "_gsap-DWJDVg0h.js",
-      "_state-CR8VHD-1.js"
+      "_cartStore-DV5Bdm6m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/buttons/Addtocartactionbutton.tsx": {
-    "file": "assets/Addtocartactionbutton-t1mQO19c.js",
+    "file": "assets/Addtocartactionbutton-B6NcZqKN.js",
     "name": "Addtocartactionbutton",
     "src": "resources/js/Pages/buttons/Addtocartactionbutton.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-CTJsAhbH.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx": {
-    "file": "assets/DeleteConfirmationDialog-B3QyVDAI.js",
+    "file": "assets/DeleteConfirmationDialog-B522rilX.js",
     "name": "DeleteConfirmationDialog",
     "src": "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/buttons/WishListCountButton.tsx": {
-    "file": "assets/WishListCountButton-D662zNyK.js",
+    "file": "assets/WishListCountButton-aio8Xscs.js",
     "name": "WishListCountButton",
     "src": "resources/js/Pages/buttons/WishListCountButton.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "resources/js/app.tsx",
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/buttons/WishlistButton.tsx": {
-    "file": "assets/WishlistButton-8OkNY6Kv.js",
+    "file": "assets/WishlistButton-CPkWRimV.js",
     "name": "WishlistButton",
     "src": "resources/js/Pages/buttons/WishlistButton.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/cartpage/index.tsx": {
-    "file": "assets/index-DQaTbrEp.js",
+    "file": "assets/index-C3JDPu0n.js",
     "name": "index",
     "src": "resources/js/Pages/cartpage/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-DMq-bYtf.js",
-      "_axios-B9ygI19o.js",
-      "_toast-CgSQS3WA.js",
-      "_cartStore-DANx-3fe.js",
+      "_AppLayout-BB84VsFb.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/dialogpopups/ClearCartDialog.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_state-CR8VHD-1.js"
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/contactus/index.tsx": {
-    "file": "assets/index-DPMxPAH0.js",
+    "file": "assets/index-CAjAVWFQ.js",
     "name": "index",
     "src": "resources/js/Pages/contactus/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_gsap-DWJDVg0h.js",
-      "_AppLayout-DMq-bYtf.js",
-      "_vendor-Dqo4SKs3.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-CTJsAhbH.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_react-dom-BuCt-jrN.js",
-      "_state-CR8VHD-1.js",
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_axios-B9ygI19o.js"
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/dashboard/DashboardHome.tsx": {
-    "file": "assets/DashboardHome-CTbULoRY.js",
+    "file": "assets/DashboardHome-BSHmN4m2.js",
     "name": "DashboardHome",
     "src": "resources/js/Pages/dashboard/DashboardHome.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-fi-CfK7c7ab.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
-      "_icons-bs-DaNJEp52.js",
+      "_index-Bq85oX3r.js",
       "resources/js/Pages/dashboard/recentOrders/RecentOrders.tsx",
-      "_icons-ai-DD_0Ho_u.js",
+      "_iconBase-CNHCaRYi.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js"
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/adminorders/index.tsx": {
-    "file": "assets/index-C6mY7O5E.js",
+    "file": "assets/index-C3MJzriT.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/adminorders/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-io5-BT-8zg3L.js",
-      "_icons-md-BqV4TcX3.js",
+      "resources/js/app.tsx",
+      "_iconBase-CNHCaRYi.js",
+      "_index-BM7jedCM.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-hi-B3CvmtKO.js",
-      "_icons-bi-iYVUs043.js",
-      "_DashboardLayout-eYn4SfZW.js",
+      "_index-DABxd3NV.js",
+      "_DashboardLayout-ayV6Jv5r.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
-      "_icons-fi-CfK7c7ab.js"
+      "_transition-Bsj-C70m.js",
+      "_index-CSO4-iy_.js"
     ]
   },
   "resources/js/Pages/dashboard/analytics/index.tsx": {
-    "file": "assets/index-DsufYVNG.js",
+    "file": "assets/index-h7XQDS1p.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/analytics/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/categories/index.tsx": {
-    "file": "assets/index-ChJ_gqJp.js",
+    "file": "assets/index-Dhwu-fV8.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/categories/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
       "resources/js/Pages/dialogpopups/CetegoryDialog.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/customers/index.tsx": {
-    "file": "assets/index-CsevKNbA.js",
+    "file": "assets/index-CRR4Jddm.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/customers/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/CommentForm.tsx": {
-    "file": "assets/CommentForm-CxnIHjUE.js",
+    "file": "assets/CommentForm-BcQWQ_bw.js",
     "name": "CommentForm",
     "src": "resources/js/Pages/dashboard/forms/CommentForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/CommentItem.tsx": {
-    "file": "assets/CommentItem-DC-T5jOW.js",
+    "file": "assets/CommentItem-DOFQ0j27.js",
     "name": "CommentItem",
     "src": "resources/js/Pages/dashboard/forms/CommentItem.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/CommentsList.tsx": {
-    "file": "assets/CommentsList-C_iymGS2.js",
+    "file": "assets/CommentsList-C30__-jE.js",
     "name": "CommentsList",
     "src": "resources/js/Pages/dashboard/forms/CommentsList.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/dashboard/forms/CommentForm.tsx",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/CreateProductForm.tsx": {
-    "file": "assets/CreateProductForm-Bf009XcE.js",
+    "file": "assets/CreateProductForm-fyHwNaSK.js",
     "name": "CreateProductForm",
     "src": "resources/js/Pages/dashboard/forms/CreateProductForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-hi2-ChW-6bhK.js",
-      "_toast-CgSQS3WA.js",
+      "_index-C7EKcDe3.js",
+      "_quill.snow-5fsjsp9W.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/CreateStoreForm.tsx": {
-    "file": "assets/CreateStoreForm-DduLPaTV.js",
+    "file": "assets/CreateStoreForm-Bw-oaf4R.js",
     "name": "CreateStoreForm",
     "src": "resources/js/Pages/dashboard/forms/CreateStoreForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-hi2-ChW-6bhK.js",
-      "_icons-fa6-C73qWJf4.js",
-      "_toast-CgSQS3WA.js",
+      "_index-C7EKcDe3.js",
+      "_index-FeCkrA21.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/ProductUpdateForm.tsx": {
-    "file": "assets/ProductUpdateForm-BFglxIj9.js",
+    "file": "assets/ProductUpdateForm-CzA4TX_Y.js",
     "name": "ProductUpdateForm",
     "src": "resources/js/Pages/dashboard/forms/ProductUpdateForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-hi2-ChW-6bhK.js",
-      "_toast-CgSQS3WA.js",
+      "_index-C7EKcDe3.js",
+      "_quill.snow-5fsjsp9W.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/forms/StoreUpdateForm.tsx": {
-    "file": "assets/StoreUpdateForm-C1taLBuG.js",
+    "file": "assets/StoreUpdateForm-BMdus5-l.js",
     "name": "StoreUpdateForm",
     "src": "resources/js/Pages/dashboard/forms/StoreUpdateForm.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-hi2-ChW-6bhK.js",
-      "_icons-fa6-C73qWJf4.js",
-      "_toast-CgSQS3WA.js",
+      "_index-C7EKcDe3.js",
+      "_index-FeCkrA21.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/messages/index.tsx": {
-    "file": "assets/index-TPaUs-Dw.js",
+    "file": "assets/index-B-UkSsUq.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/messages/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
-      "_axios-B9ygI19o.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/orders/index.tsx": {
-    "file": "assets/index-CM9OipOh.js",
+    "file": "assets/index-k0rTNPoR.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/orders/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/payments/index.tsx": {
-    "file": "assets/index-DZ5-aMno.js",
+    "file": "assets/index-CZd0IrcF.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/payments/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/products/index.tsx": {
-    "file": "assets/index-C2IHS-vC.js",
+    "file": "assets/index-DnDsD1X9.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/products/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/recentOrders/RecentOrders.tsx": {
-    "file": "assets/RecentOrders-D_jt-WAN.js",
+    "file": "assets/RecentOrders-Dt7g0I1k.js",
     "name": "RecentOrders",
     "src": "resources/js/Pages/dashboard/recentOrders/RecentOrders.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "resources/js/Pages/utils/FormatePrice.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "resources/js/app.tsx",
+      "resources/js/Pages/utils/FormatePrice.tsx"
     ]
   },
   "resources/js/Pages/dashboard/shipping/index.tsx": {
-    "file": "assets/index-BRulEjpI.js",
+    "file": "assets/index-CBTF4ErI.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/shipping/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dashboard/store/index.tsx": {
-    "file": "assets/index-BYUWJZhT.js",
+    "file": "assets/index-9kH8Dfrp.js",
     "name": "index",
     "src": "resources/js/Pages/dashboard/store/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_DashboardLayout-eYn4SfZW.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
+      "_DashboardLayout-ayV6Jv5r.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/buttons/DeleteConfirmationDialog.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/dialogpopups/CetegoryDialog.tsx": {
-    "file": "assets/CetegoryDialog-2apZUr2V.js",
+    "file": "assets/CetegoryDialog-C3tta7WM.js",
     "name": "CetegoryDialog",
     "src": "resources/js/Pages/dialogpopups/CetegoryDialog.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_toast-CgSQS3WA.js",
-      "_icons-CTJsAhbH.js",
-      "_react-dom-BuCt-jrN.js"
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/dialogpopups/ClearCartDialog.tsx": {
-    "file": "assets/ClearCartDialog-CntUiBlx.js",
+    "file": "assets/ClearCartDialog-CaVnb1ZD.js",
     "name": "ClearCartDialog",
     "src": "resources/js/Pages/dialogpopups/ClearCartDialog.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-CTJsAhbH.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js"
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js"
     ]
   },
   "resources/js/Pages/hotdeals/index.tsx": {
-    "file": "assets/index-CPO8atNR.js",
+    "file": "assets/index-B7VtE7c-.js",
     "name": "index",
     "src": "resources/js/Pages/hotdeals/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-bs-DaNJEp52.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-ri-B1mIWRlb.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_index-Bq85oX3r.js",
+      "_index-CSO4-iy_.js",
+      "_index-BHdxeDFs.js",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
-      "_ProductCard-CTAZSPtu.js",
+      "_ProductCard-DHtoBUc0.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/buttons/WishlistButton.tsx"
     ]
   },
   "resources/js/Pages/orders/Checkout.tsx": {
-    "file": "assets/Checkout-ztoEt11r.js",
+    "file": "assets/Checkout-CILB3fl7.js",
     "name": "Checkout",
     "src": "resources/js/Pages/orders/Checkout.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-DMq-bYtf.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
+      "_AppLayout-BB84VsFb.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_state-CR8VHD-1.js"
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/orders/Confirmation.tsx": {
-    "file": "assets/Confirmation-CcnA7oPk.js",
+    "file": "assets/Confirmation-DxI3LLyN.js",
     "name": "Confirmation",
     "src": "resources/js/Pages/orders/Confirmation.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-DMq-bYtf.js",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/buttons/WishListCountButton.tsx"
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/privacypolicy/index.tsx": {
-    "file": "assets/index-CsDCY5E4.js",
+    "file": "assets/index-BDbnAeg2.js",
     "name": "index",
     "src": "resources/js/Pages/privacypolicy/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_AppLayout-BB84VsFb.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/buttons/WishListCountButton.tsx"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/productdetails/index.tsx": {
-    "file": "assets/index-Dj3u50J-.js",
+    "file": "assets/index-0qjaxk0h.js",
     "name": "index",
     "src": "resources/js/Pages/productdetails/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-DMq-bYtf.js",
-      "_vendor-Dqo4SKs3.js",
-      "_toast-CgSQS3WA.js",
-      "_cartStore-DANx-3fe.js",
+      "_AppLayout-BB84VsFb.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/dashboard/forms/CommentsList.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/buttons/WishlistButton.tsx",
-      "_axios-B9ygI19o.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
+      "_index-CSO4-iy_.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_state-CR8VHD-1.js",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
       "resources/js/Pages/dashboard/forms/CommentForm.tsx"
     ]
   },
   "resources/js/Pages/products/index.tsx": {
-    "file": "assets/index-DEHqpIqf.js",
+    "file": "assets/index-DCHVef4N.js",
     "name": "index",
     "src": "resources/js/Pages/products/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-bs-DaNJEp52.js",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-ri-B1mIWRlb.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_index-Bq85oX3r.js",
+      "_index-CSO4-iy_.js",
+      "_index-BHdxeDFs.js",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_ProductCard-DHtoBUc0.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
       "node_modules/react-icons/fa/index.mjs"
     ]
   },
   "resources/js/Pages/storeproducts/index.tsx": {
-    "file": "assets/index-DEVGZ0VJ.js",
+    "file": "assets/index-Bo7SXkWf.js",
     "name": "index",
     "src": "resources/js/Pages/storeproducts/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-DMq-bYtf.js",
+      "_AppLayout-BB84VsFb.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
-      "_icons-CTJsAhbH.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/buttons/WishListCountButton.tsx"
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/stores/index.tsx": {
-    "file": "assets/index-Br32dret.js",
+    "file": "assets/index-opf4bV6z.js",
     "name": "index",
     "src": "resources/js/Pages/stores/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_gsap-DWJDVg0h.js",
-      "_AppLayout-DMq-bYtf.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-CTJsAhbH.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_AppLayout-BB84VsFb.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_react-dom-BuCt-jrN.js",
-      "_state-CR8VHD-1.js",
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_axios-B9ygI19o.js"
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/termscondition/index.tsx": {
-    "file": "assets/index-BjT1ExDd.js",
+    "file": "assets/index-jx5yUaoQ.js",
     "name": "index",
     "src": "resources/js/Pages/termscondition/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_AppLayout-BB84VsFb.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
-      "resources/js/Pages/buttons/WishListCountButton.tsx"
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_cartStore-DV5Bdm6m.js",
+      "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js"
     ]
   },
   "resources/js/Pages/trackorders/index.tsx": {
-    "file": "assets/index-DOD61PEz.js",
+    "file": "assets/index-CxMTs0h1.js",
     "name": "index",
     "src": "resources/js/Pages/trackorders/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
+      "resources/js/app.tsx",
       "node_modules/react-icons/fa/index.mjs",
-      "_gsap-DWJDVg0h.js",
-      "_AppLayout-DMq-bYtf.js",
-      "_vendor-Dqo4SKs3.js",
-      "_icons-CTJsAhbH.js",
+      "node_modules/gsap/index.js",
+      "_ScrollTrigger-D1XJUMov.js",
+      "_AppLayout-BB84VsFb.js",
+      "_transition-Bsj-C70m.js",
+      "_iconBase-CNHCaRYi.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_react-dom-BuCt-jrN.js",
-      "_state-CR8VHD-1.js",
+      "_index-CSO4-iy_.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
-      "_axios-B9ygI19o.js"
+      "_index-C4vN_GF0.js"
     ]
   },
   "resources/js/Pages/utils/FormatePrice.tsx": {
-    "file": "assets/FormatePrice-D1rn2aFh.js",
+    "file": "assets/FormatePrice-DZrsZ5mC.js",
     "name": "FormatePrice",
     "src": "resources/js/Pages/utils/FormatePrice.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js"
+      "resources/js/app.tsx"
     ]
   },
   "resources/js/Pages/wishlist/index.tsx": {
-    "file": "assets/index-ClFNt8VF.js",
+    "file": "assets/index-DI49Kcw3.js",
     "name": "index",
     "src": "resources/js/Pages/wishlist/index.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_react-Dw7Tzedg.js",
-      "_vendor-Dqo4SKs3.js",
-      "_AppLayout-DMq-bYtf.js",
+      "resources/js/app.tsx",
+      "_AppLayout-BB84VsFb.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_icons-bi-iYVUs043.js",
-      "_ProductCard-CTAZSPtu.js",
-      "_axios-B9ygI19o.js",
-      "_react-dom-BuCt-jrN.js",
-      "_gsap-DWJDVg0h.js",
+      "_index-DABxd3NV.js",
+      "_ProductCard-DHtoBUc0.js",
       "resources/js/Pages/Components/Navbar.tsx",
-      "_icons-fi-CfK7c7ab.js",
-      "_icons-CTJsAhbH.js",
-      "_cartStore-DANx-3fe.js",
-      "_toast-CgSQS3WA.js",
-      "_state-CR8VHD-1.js",
+      "_index-CSO4-iy_.js",
+      "_iconBase-CNHCaRYi.js",
+      "_cartStore-DV5Bdm6m.js",
       "resources/js/Pages/buttons/WishListCountButton.tsx",
+      "_index-C4vN_GF0.js",
+      "_transition-Bsj-C70m.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx"
     ]
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-qwtWuwy2.js",
+    "file": "assets/app-RAcf8vZa.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
-    "imports": [
-      "_react-Dw7Tzedg.js",
-      "_axios-B9ygI19o.js",
-      "_vendor-Dqo4SKs3.js",
-      "_react-dom-BuCt-jrN.js",
-      "_toast-CgSQS3WA.js",
-      "_gsap-DWJDVg0h.js"
-    ],
     "dynamicImports": [
       "resources/js/Pages/Auth/ConfirmPassword.tsx",
       "resources/js/Pages/Auth/ForgotPassword.tsx",
@@ -1604,7 +1311,7 @@
       "resources/js/Pages/wishlist/index.tsx"
     ],
     "css": [
-      "assets/app-CovaBdAD.css"
+      "assets/app-BvpSg2X7.css"
     ]
   }
 }
