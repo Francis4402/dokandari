@@ -1,0 +1,1 @@
+import{j as n}from"./react-Dw7Tzedg.js";const o=({price:r,currency:t="BDT"})=>{const i=m=>new Intl.NumberFormat("en-US",{style:"currency",currency:t,minimumFractionDigits:2,maximumFractionDigits:2}).format(m);return n.jsx("span",{children:i(r)})};export{o as default};
