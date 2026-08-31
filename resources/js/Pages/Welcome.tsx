@@ -104,7 +104,7 @@ export default function Welcome({
                 <meta property="og:image:height" content="630" />
                 <meta property="og:locale" content="en_US" />
 
-                <meta name="twitter:card" content="/summary_large_image.jpg" />
+                <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={pageTitle} />
                 <meta name="twitter:description" content={pageDescription} />
                 <meta name="twitter:image" content="/summary_large_image.jpg" />

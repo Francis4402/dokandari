@@ -8,6 +8,8 @@ import { Product, User } from "@/types";
 import WishlistButton from "@/Pages/buttons/WishlistButton";
 import AddtoCartButton from "@/Pages/buttons/AddtoCartButton";
 import FormatPrice from "@/Pages/utils/FormatePrice";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+
 
 interface ProductCardProps {
   product: Product;
@@ -84,6 +86,32 @@ const renderStars = (rating: number) => {
   );
 };
 
+// Lazy loaded product image component
+const LazyProductImage = ({
+  src,
+  alt,
+  className,
+  onError
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  onError?: () => void;
+}) => (
+  <LazyLoadImage
+    src={src}
+    alt={alt}
+    effect="blur"
+    wrapperClassName="w-full h-full"
+    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${className || ''}`}
+    placeholderSrc="/product-placeholder.jpg"
+    threshold={100}
+    visibleByDefault={false}
+    onError={onError}
+    loading="lazy"
+  />
+);
+
 const ProductCard = ({
   product,
   badge,
@@ -134,57 +162,82 @@ const ProductCard = ({
   // Determine if we should show the rating section
   const hasRating = averageRating > 0;
 
+  // Handle image error
+  const handleImageError = () => {
+    setImageFailed(true);
+  };
+
   return (
-    <div className="group bg-white border border-[#DAD5C7] rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[4px_4px_0_#111013]">
+    <div
+      className="group bg-white border border-[#DAD5C7] rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[4px_4px_0_#111013]"
+      role="article"
+      aria-label={`Product: ${product.name}`}
+    >
       {/* Image Container */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         {showImage ? (
-          <img
+          <LazyProductImage
             src={imageSrc}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={() => setImageFailed(true)}
+            alt={`${product.name} - Product image`}
+            onError={handleImageError}
           />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center text-6xl transition-transform duration-500 group-hover:scale-105"
             style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}
+            aria-hidden="true"
           >
-            {emoji}
+            <span role="img" aria-label={product.category || 'Product'}>
+              {emoji}
+            </span>
           </div>
         )}
 
         {/* Badge - Custom badge from props */}
         {badge && (
-          <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#111013] text-white font-mono text-[10px] uppercase shadow-lg z-10">
+          <span
+            className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#111013] text-white font-mono text-[10px] uppercase shadow-lg z-10"
+            aria-label={`${badge} badge`}
+          >
             {badge}
           </span>
         )}
 
         {/* Brand Badge - Show brand on image if no custom badge */}
         {!badge && product.brand && (
-          <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#FF5A1F] text-white font-mono text-[10px] font-bold uppercase shadow-lg z-10">
+          <span
+            className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#FF5A1F] text-white font-mono text-[10px] font-bold uppercase shadow-lg z-10"
+            aria-label={`Brand: ${product.brand}`}
+          >
             {product.brand}
           </span>
         )}
 
         {/* Trending Badge */}
         {variant === "trending" && !badge && !product.brand && (
-          <span className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#E7F4EF] text-[#0E6E5B] font-mono text-[10px] font-bold uppercase shadow-lg z-10 flex items-center gap-1">
-            <FiZap className="w-3 h-3" />
+          <span
+            className="absolute top-2.5 left-2.5 rounded-sm px-2.5 py-1 bg-[#E7F4EF] text-[#0E6E5B] font-mono text-[10px] font-bold uppercase shadow-lg z-10 flex items-center gap-1"
+            aria-label="Trending product"
+          >
+            <FiZap className="w-3 h-3" aria-hidden="true" />
             Trending
           </span>
         )}
 
         {/* Action Buttons */}
-        <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 z-20">
+        <div
+          className="absolute top-2.5 right-2.5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 z-20"
+          role="toolbar"
+          aria-label="Product actions"
+        >
           {user && <WishlistButton productId={product.id} />}
           {showQuickView && (
             <Link
               href={`/products/${product.slug}`}
               className="p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
+              aria-label={`Quick view ${product.name}`}
             >
-              <FaEye className="w-4 h-4 text-gray-600 hover:text-[#FF5A1F]" />
+              <FaEye className="w-4 h-4 text-gray-600 hover:text-[#FF5A1F]" aria-hidden="true" />
             </Link>
           )}
         </div>
@@ -203,14 +256,14 @@ const ProductCard = ({
             <span>{vendor}</span>
             {product.brand && (
               <>
-                <span className="text-[#DAD5C7]">•</span>
+                <span className="text-[#DAD5C7]" aria-hidden="true">•</span>
                 <span className="text-[#FF5A1F] font-semibold">{product.brand}</span>
               </>
             )}
           </div>
           {variant === "trending" && !badge && !product.brand && (
             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-[#E7F4EF] text-[#0E6E5B] font-mono text-[9px] font-bold">
-              <FiZap className="w-3 h-3" />
+              <FiZap className="w-3 h-3" aria-hidden="true" />
               Trending
             </span>
           )}
@@ -230,7 +283,7 @@ const ProductCard = ({
             </span>
           </div>
         ) : loading ? (
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2" aria-hidden="true">
             <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
           </div>
         ) : (
@@ -242,11 +295,11 @@ const ProductCard = ({
         {/* Price */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-xl">
+            <span className="font-display font-extrabold text-xl" aria-label={`Price: ${displayPrice}`}>
               <FormatPrice price={displayPrice} />
             </span>
             {hasSalePrice && (
-              <span className="text-sm text-[#6B6A66] line-through">
+              <span className="text-sm text-[#6B6A66] line-through" aria-label={`Original price: ${product.regular_price}`}>
                 <FormatPrice price={product.regular_price} />
               </span>
             )}
