@@ -10,11 +10,14 @@ Disallow: /login/
 Disallow: /register/
 Disallow: /password/reset
 Disallow: /_debugbar/
+Disallow: /checkout/
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /orders/
 
 # Allow important pages
 Allow: /products/
-Allow: /categories/
-Allow: /search/
+Allow: /stores/
 
 # Sitemap location
 Sitemap: https://haatpoint.com/sitemap.xml

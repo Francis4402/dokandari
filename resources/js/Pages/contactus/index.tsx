@@ -342,6 +342,18 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Contact Us">
         <meta name="description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
+        <link rel="canonical" href="https://haatpoint.com/contactus" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Contact Us | HaatPoint" />
+        <meta property="og:description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
+        <meta property="og:url" content="https://haatpoint.com/contactus" />
+        <meta property="og:site_name" content="HaatPoint" />
+        <meta property="og:image" content="https://haatpoint.com/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact Us | HaatPoint" />
+        <meta name="twitter:description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
+        <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
       </Head>
 
       <div className="min-h-screen bg-paper-dim py-20">

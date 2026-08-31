@@ -148,7 +148,11 @@ const PrivacyPolicy = ({ auth, wishlist }: PrivacyPolicyProps) => {
 
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
-            <Head title="Privacy Policy" />
+            <Head title="Privacy Policy">
+        <meta name="description" content="Read HaatPoint's privacy policy to understand how we collect, use, and protect your personal information when you shop on our marketplace." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://haatpoint.com/privacy-policy" />
+      </Head>
 
             <div className="min-h-screen bg-paper-dim py-20">
                 <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">

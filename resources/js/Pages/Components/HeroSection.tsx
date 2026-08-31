@@ -224,14 +224,14 @@ export default function Hero() {
                 <FaArrowRight size={14} aria-hidden="true" />
               </Suspense>
             </Link>
-            <a
-              href="#sell"
-              className="rounded-sm px-[18px] sm:px-[22px] py-[11px] sm:py-3.5 font-bold text-sm border-[1.5px] border-ink transition-colors duration-150 hover:bg-ink hover:text-paper"
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-sm px-[22px] sm:px-[26px] py-[13px] sm:py-[15px] border font-bold text-sm shadow-hard transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard-lg"
               style={{ color: '#111013', borderColor: '#111013' }}
               aria-label="Become a vendor on our marketplace"
             >
               Become a vendor
-            </a>
+            </Link>
           </div>
 
           {/* Shopping Benefits - Improved Contrast */}

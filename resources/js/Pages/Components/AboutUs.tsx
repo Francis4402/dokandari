@@ -161,7 +161,22 @@ const AboutUs = ({ auth, wishlist, stats = {
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
-            <Head title="About Us | Shop" />
+            <Head title="About Us | HaatPoint">
+                <meta name="description" content="Learn about HaatPoint, Bangladesh's premier multivendor marketplace. Discover how we connect local vendors with customers across Bangladesh." />
+                <meta name="robots" content="index, follow" />
+                <link rel="canonical" href="https://haatpoint.com/aboutus" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="About Us | HaatPoint" />
+                <meta property="og:description" content="Learn about HaatPoint, Bangladesh's premier multivendor marketplace. Discover how we connect local vendors with customers across Bangladesh." />
+                <meta property="og:url" content="https://haatpoint.com/aboutus" />
+                <meta property="og:site_name" content="HaatPoint" />
+                <meta property="og:image" content="https://haatpoint.com/og-image.png" />
+                <meta property="og:locale" content="en_US" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="About Us | HaatPoint" />
+                <meta name="twitter:description" content="Learn about HaatPoint, Bangladesh's premier multivendor marketplace." />
+                <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
+            </Head>
 
             {/* Hero Section */}
             <div className="relative bg-gradient-to-r from-marigold to-marigold-dark text-white overflow-hidden">

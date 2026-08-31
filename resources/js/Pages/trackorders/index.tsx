@@ -750,6 +750,18 @@ const TrackOrderPage = ({auth, wishlist}: PageProps) => {
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title="Track Order">
         <meta name="description" content="Track your order status and shipping updates" />
+        <link rel="canonical" href="https://haatpoint.com/track-order" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Track Order | HaatPoint" />
+        <meta property="og:description" content="Track your order status and shipping updates" />
+        <meta property="og:url" content="https://haatpoint.com/track-order" />
+        <meta property="og:site_name" content="HaatPoint" />
+        <meta property="og:image" content="https://haatpoint.com/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Track Order | HaatPoint" />
+        <meta name="twitter:description" content="Track your order status and shipping updates" />
+        <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
       </Head>
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">

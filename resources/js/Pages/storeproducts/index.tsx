@@ -141,7 +141,43 @@ export default function StoreShow({
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title={store.name}>
-        <meta name="description" content={`${store.name} store`} />
+        <meta name="description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://haatpoint.com/stores/${store.id}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${store.name} - Shop on HaatPoint`} />
+        <meta property="og:description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
+        <meta property="og:url" content={`https://haatpoint.com/stores/${store.id}`} />
+        <meta property="og:site_name" content="HaatPoint" />
+        <meta property="og:image" content={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'} />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${store.name} - Shop on HaatPoint`} />
+        <meta name="twitter:description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
+        <meta name="twitter:image" content={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Store',
+          name: store.name,
+          image: store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png',
+          url: `https://haatpoint.com/stores/${store.id}`,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: store.address,
+            addressCountry: 'BD',
+          },
+          telephone: store.mobile,
+          email: store.email,
+          ...(Number(storeRating.average || store.rating) > 0 ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: String(Number(storeRating.average || store.rating)),
+              reviewCount: String(Number(storeRating.count || store.review_count) || 0),
+              bestRating: '5',
+              worstRating: '1',
+            },
+          } : {}),
+        }) }} />
       </Head>
 
       <div className="bg-paper-dim min-h-screen py-12">

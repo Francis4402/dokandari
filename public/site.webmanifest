@@ -1,0 +1,26 @@
+{
+  "name": "HaatPoint - Bangladesh's Premier Marketplace",
+  "short_name": "HaatPoint",
+  "description": "Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods & more at HaatPoint.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#D6430E",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/summary_large_image.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

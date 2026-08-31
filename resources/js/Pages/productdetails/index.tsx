@@ -268,9 +268,62 @@ const ProductDetailsPage = ({
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
       <Head title={product.name}>
-        <meta name="description" content={product.description} />
-        <meta name="keywords" content={`shop, products, buy online, shopping`} />
+        <meta name="description" content={stripHtml(product.description).slice(0, 160)} />
+        <meta name="keywords" content={`${product.name}, ${product.category}, ${product.brand || ''}, buy online Bangladesh, HaatPoint`} />
         <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://haatpoint.com/products/${product.id}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={product.name} />
+        <meta property="og:description" content={stripHtml(product.description).slice(0, 200)} />
+        <meta property="og:url" content={`https://haatpoint.com/products/${product.id}`} />
+        <meta property="og:site_name" content="HaatPoint" />
+        <meta property="og:image" content={currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`} />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={product.name} />
+        <meta name="twitter:description" content={stripHtml(product.description).slice(0, 200)} />
+        <meta name="twitter:image" content={currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          image: currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`,
+          description: stripHtml(product.description).slice(0, 200),
+          brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+          sku: product.id,
+          category: product.category,
+          offers: {
+            '@type': 'Offer',
+            url: `https://haatpoint.com/products/${product.id}`,
+            priceCurrency: 'BDT',
+            price: String(Number(product.sale_price) || Number(product.regular_price) || 0),
+            priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+            availability: product.inStock && Number(product.quantity) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            seller: {
+              '@type': 'Organization',
+              name: store.name,
+            },
+          },
+          ...(getNumericRating(averageRating) > 0 ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: String(getNumericRating(averageRating)),
+              reviewCount: String(reviewCount || 0),
+              bestRating: '5',
+              worstRating: '1',
+            },
+          } : {})
+        }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://haatpoint.com/' },
+            { '@type': 'ListItem', position: 2, name: 'Products', item: 'https://haatpoint.com/products' },
+            { '@type': 'ListItem', position: 3, name: product.category, item: `https://haatpoint.com/products?category=${encodeURIComponent(product.category)}` },
+            { '@type': 'ListItem', position: 4, name: product.name, item: `https://haatpoint.com/products/${product.id}` },
+          ],
+        }) }} />
       </Head>
 
       <div className="min-h-screen bg-paper-dim py-20">

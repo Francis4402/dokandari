@@ -240,7 +240,7 @@ const CategorySection = () => {
         {
             categoryview.map((cate, index) => (
                 <div key={index} className="flex flex-col gap-2 items-start">
-                    <Link href={cate.url} className="hover:text-gray-600 duration-200"><h1 className="text-lg font-semibold">{cate.name}</h1></Link>
+                    <Link href={cate.url} className="hover:text-gray-600 duration-200"><h2 className="text-lg font-semibold">{cate.name}</h2></Link>
                     <div className="flex flex-wrap gap-4">{cate.branch.map((b, index) => (
                         <Link href={b.url} key={index} className="hover:underline duration-200">{b.name}</Link>
                     ))}</div>
