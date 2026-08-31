@@ -1,6 +1,6 @@
 {
-  "_AppLayout-PYPAhhos.js": {
-    "file": "assets/AppLayout-PYPAhhos.js",
+  "_AppLayout-DMq-bYtf.js": {
+    "file": "assets/AppLayout-DMq-bYtf.js",
     "name": "AppLayout",
     "imports": [
       "_react-Dw7Tzedg.js",
@@ -30,8 +30,8 @@
       "_react-Dw7Tzedg.js"
     ]
   },
-  "_ProductCard-CRP6FsP5.js": {
-    "file": "assets/ProductCard-CRP6FsP5.js",
+  "_ProductCard-CTAZSPtu.js": {
+    "file": "assets/ProductCard-CTAZSPtu.js",
     "name": "ProductCard",
     "imports": [
       "_react-Dw7Tzedg.js",
@@ -344,14 +344,14 @@
     ]
   },
   "resources/js/Pages/Components/AboutUs.tsx": {
-    "file": "assets/AboutUs-PzROrBdG.js",
+    "file": "assets/AboutUs-DXwqt-nF.js",
     "name": "AboutUs",
     "src": "resources/js/Pages/Components/AboutUs.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "node_modules/react-icons/fa/index.mjs",
       "_icons-fi-CfK7c7ab.js",
       "_icons-ri-B1mIWRlb.js",
@@ -367,7 +367,7 @@
     ]
   },
   "resources/js/Pages/Components/AllProducts.tsx": {
-    "file": "assets/AllProducts-BxZQVl4P.js",
+    "file": "assets/AllProducts-Dqwb1zLB.js",
     "name": "AllProducts",
     "src": "resources/js/Pages/Components/AllProducts.tsx",
     "isDynamicEntry": true,
@@ -376,7 +376,7 @@
       "_vendor-Dqo4SKs3.js",
       "_icons-ci-HYFjsq9h.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_gsap-DWJDVg0h.js",
@@ -420,7 +420,7 @@
     ]
   },
   "resources/js/Pages/Components/DailyDiscover.tsx": {
-    "file": "assets/DailyDiscover-jx18FCG5.js",
+    "file": "assets/DailyDiscover-BquCEGUz.js",
     "name": "DailyDiscover",
     "src": "resources/js/Pages/Components/DailyDiscover.tsx",
     "isDynamicEntry": true,
@@ -430,7 +430,7 @@
       "_gsap-DWJDVg0h.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_icons-CTJsAhbH.js",
@@ -478,7 +478,7 @@
     ]
   },
   "resources/js/Pages/Components/HeroSection.tsx": {
-    "file": "assets/HeroSection-CSrVfNvz.js",
+    "file": "assets/HeroSection-QRR6Ndg6.js",
     "name": "HeroSection",
     "src": "resources/js/Pages/Components/HeroSection.tsx",
     "isDynamicEntry": true,
@@ -512,7 +512,7 @@
     ]
   },
   "resources/js/Pages/Components/Navbar.tsx": {
-    "file": "assets/Navbar-iZhuuY0l.js",
+    "file": "assets/Navbar-UXeHATT3.js",
     "name": "Navbar",
     "src": "resources/js/Pages/Components/Navbar.tsx",
     "isDynamicEntry": true,
@@ -531,7 +531,7 @@
     ]
   },
   "resources/js/Pages/Components/OfferedProducts.tsx": {
-    "file": "assets/OfferedProducts-_WJhF_4u.js",
+    "file": "assets/OfferedProducts-NJVnW089.js",
     "name": "OfferedProducts",
     "src": "resources/js/Pages/Components/OfferedProducts.tsx",
     "isDynamicEntry": true,
@@ -540,7 +540,7 @@
       "_vendor-Dqo4SKs3.js",
       "_icons-ci-HYFjsq9h.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_gsap-DWJDVg0h.js",
@@ -578,7 +578,7 @@
     ]
   },
   "resources/js/Pages/Components/TrandingProducts.tsx": {
-    "file": "assets/TrandingProducts-Ch1mBul4.js",
+    "file": "assets/TrandingProducts-Dh7UlcRR.js",
     "name": "TrandingProducts",
     "src": "resources/js/Pages/Components/TrandingProducts.tsx",
     "isDynamicEntry": true,
@@ -588,7 +588,7 @@
       "_icons-fi-CfK7c7ab.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "_useRevealChildren-DYOa0jqX.js",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_gsap-DWJDVg0h.js",
@@ -684,14 +684,14 @@
     ]
   },
   "resources/js/Pages/Welcome.tsx": {
-    "file": "assets/Welcome-M8srqDtZ.js",
+    "file": "assets/Welcome-CSpJoHcD.js",
     "name": "Welcome",
     "src": "resources/js/Pages/Welcome.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "resources/js/Pages/Components/HeroSection.tsx",
       "resources/js/Pages/Components/Categories.tsx",
       "resources/js/Pages/Components/Footer.tsx",
@@ -715,7 +715,7 @@
       "_swiper-Ad__EBDz.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "_useRevealChildren-DYOa0jqX.js",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "node_modules/react-icons/fa/index.mjs",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
@@ -799,7 +799,7 @@
     ]
   },
   "resources/js/Pages/cartpage/index.tsx": {
-    "file": "assets/index-Xk2iS6QR.js",
+    "file": "assets/index-DQaTbrEp.js",
     "name": "index",
     "src": "resources/js/Pages/cartpage/index.tsx",
     "isDynamicEntry": true,
@@ -807,7 +807,7 @@
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_axios-B9ygI19o.js",
       "_toast-CgSQS3WA.js",
       "_cartStore-DANx-3fe.js",
@@ -824,7 +824,7 @@
     ]
   },
   "resources/js/Pages/contactus/index.tsx": {
-    "file": "assets/index-LD0U24u8.js",
+    "file": "assets/index-DPMxPAH0.js",
     "name": "index",
     "src": "resources/js/Pages/contactus/index.tsx",
     "isDynamicEntry": true,
@@ -832,7 +832,7 @@
       "_react-Dw7Tzedg.js",
       "node_modules/react-icons/fa/index.mjs",
       "_gsap-DWJDVg0h.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_vendor-Dqo4SKs3.js",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "_icons-CTJsAhbH.js",
@@ -1242,7 +1242,7 @@
     ]
   },
   "resources/js/Pages/hotdeals/index.tsx": {
-    "file": "assets/index-YnVNHeSr.js",
+    "file": "assets/index-CPO8atNR.js",
     "name": "index",
     "src": "resources/js/Pages/hotdeals/index.tsx",
     "isDynamicEntry": true,
@@ -1252,9 +1252,9 @@
       "_icons-bs-DaNJEp52.js",
       "_icons-fi-CfK7c7ab.js",
       "_icons-ri-B1mIWRlb.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
@@ -1270,7 +1270,7 @@
     ]
   },
   "resources/js/Pages/orders/Checkout.tsx": {
-    "file": "assets/Checkout-BTuNB8O9.js",
+    "file": "assets/Checkout-ztoEt11r.js",
     "name": "Checkout",
     "src": "resources/js/Pages/orders/Checkout.tsx",
     "isDynamicEntry": true,
@@ -1278,7 +1278,7 @@
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_cartStore-DANx-3fe.js",
       "_toast-CgSQS3WA.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
@@ -1294,7 +1294,7 @@
     ]
   },
   "resources/js/Pages/orders/Confirmation.tsx": {
-    "file": "assets/Confirmation-B3JWAt13.js",
+    "file": "assets/Confirmation-CcnA7oPk.js",
     "name": "Confirmation",
     "src": "resources/js/Pages/orders/Confirmation.tsx",
     "isDynamicEntry": true,
@@ -1302,7 +1302,7 @@
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
       "_axios-B9ygI19o.js",
@@ -1318,14 +1318,14 @@
     ]
   },
   "resources/js/Pages/privacypolicy/index.tsx": {
-    "file": "assets/index-C2hhA-hZ.js",
+    "file": "assets/index-CsDCY5E4.js",
     "name": "index",
     "src": "resources/js/Pages/privacypolicy/index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "node_modules/react-icons/fa/index.mjs",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
@@ -1340,14 +1340,14 @@
     ]
   },
   "resources/js/Pages/productdetails/index.tsx": {
-    "file": "assets/index-ISNGc_3-.js",
+    "file": "assets/index-Dj3u50J-.js",
     "name": "index",
     "src": "resources/js/Pages/productdetails/index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_vendor-Dqo4SKs3.js",
       "_toast-CgSQS3WA.js",
       "_cartStore-DANx-3fe.js",
@@ -1366,7 +1366,7 @@
     ]
   },
   "resources/js/Pages/products/index.tsx": {
-    "file": "assets/index-BC2d7Kta.js",
+    "file": "assets/index-DEHqpIqf.js",
     "name": "index",
     "src": "resources/js/Pages/products/index.tsx",
     "isDynamicEntry": true,
@@ -1376,12 +1376,12 @@
       "_icons-bs-DaNJEp52.js",
       "_icons-fi-CfK7c7ab.js",
       "_icons-ri-B1mIWRlb.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
       "resources/js/Pages/Components/Eyebrow.tsx",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_gsap-DWJDVg0h.js",
@@ -1395,7 +1395,7 @@
     ]
   },
   "resources/js/Pages/storeproducts/index.tsx": {
-    "file": "assets/index-DGiNrjS8.js",
+    "file": "assets/index-DEVGZ0VJ.js",
     "name": "index",
     "src": "resources/js/Pages/storeproducts/index.tsx",
     "isDynamicEntry": true,
@@ -1403,7 +1403,7 @@
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
       "node_modules/react-icons/fa/index.mjs",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "resources/js/Pages/buttons/WishlistButton.tsx",
       "resources/js/Pages/buttons/AddtoCartButton.tsx",
       "resources/js/Pages/utils/FormatePrice.tsx",
@@ -1421,7 +1421,7 @@
     ]
   },
   "resources/js/Pages/stores/index.tsx": {
-    "file": "assets/index-CqDOumHd.js",
+    "file": "assets/index-Br32dret.js",
     "name": "index",
     "src": "resources/js/Pages/stores/index.tsx",
     "isDynamicEntry": true,
@@ -1429,7 +1429,7 @@
       "_react-Dw7Tzedg.js",
       "node_modules/react-icons/fa/index.mjs",
       "_gsap-DWJDVg0h.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_vendor-Dqo4SKs3.js",
       "_icons-CTJsAhbH.js",
       "resources/js/Pages/Components/Navbar.tsx",
@@ -1443,14 +1443,14 @@
     ]
   },
   "resources/js/Pages/termscondition/index.tsx": {
-    "file": "assets/index-CObjLLhx.js",
+    "file": "assets/index-BjT1ExDd.js",
     "name": "index",
     "src": "resources/js/Pages/termscondition/index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "node_modules/react-icons/fa/index.mjs",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
@@ -1465,7 +1465,7 @@
     ]
   },
   "resources/js/Pages/trackorders/index.tsx": {
-    "file": "assets/index-AZU9MkeO.js",
+    "file": "assets/index-DOD61PEz.js",
     "name": "index",
     "src": "resources/js/Pages/trackorders/index.tsx",
     "isDynamicEntry": true,
@@ -1473,7 +1473,7 @@
       "_react-Dw7Tzedg.js",
       "node_modules/react-icons/fa/index.mjs",
       "_gsap-DWJDVg0h.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "_vendor-Dqo4SKs3.js",
       "_icons-CTJsAhbH.js",
       "resources/js/Pages/Components/Navbar.tsx",
@@ -1496,17 +1496,17 @@
     ]
   },
   "resources/js/Pages/wishlist/index.tsx": {
-    "file": "assets/index-DcE7GEXP.js",
+    "file": "assets/index-ClFNt8VF.js",
     "name": "index",
     "src": "resources/js/Pages/wishlist/index.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_react-Dw7Tzedg.js",
       "_vendor-Dqo4SKs3.js",
-      "_AppLayout-PYPAhhos.js",
+      "_AppLayout-DMq-bYtf.js",
       "node_modules/react-icons/fa/index.mjs",
       "_icons-bi-iYVUs043.js",
-      "_ProductCard-CRP6FsP5.js",
+      "_ProductCard-CTAZSPtu.js",
       "_axios-B9ygI19o.js",
       "_react-dom-BuCt-jrN.js",
       "_gsap-DWJDVg0h.js",
@@ -1523,7 +1523,7 @@
     ]
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-GtayS0Hm.js",
+    "file": "assets/app-qwtWuwy2.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,

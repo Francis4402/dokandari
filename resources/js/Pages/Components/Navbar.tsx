@@ -67,7 +67,7 @@ const LazyAvatar = ({
     effect="blur"
     wrapperClassName={className}
     className="h-full w-full object-cover"
-    placeholderSrc="/avatar-placeholder.png"
+    placeholderSrc="/placeholder.png"
     threshold={50}
     visibleByDefault={false}
     onError={(e) => {

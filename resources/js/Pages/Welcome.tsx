@@ -155,6 +155,7 @@ export default function Welcome({
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: organizationSchema }} />
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: websiteSchema }} />
             </Head>
+
             <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
 
                 <HeroSection />
