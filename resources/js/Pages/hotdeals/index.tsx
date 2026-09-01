@@ -1,6 +1,7 @@
 // HotDeals.tsx
 import { useState, useMemo } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
 import { Product } from '@/types';
 import {
   BsFilter,
@@ -301,22 +302,11 @@ const HotDeals = ({ products, auth, wishlist }: HotDealsPageProps) => {
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
-            <Head title="Hot Deals | Shop">
-                <meta name="description" content="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh." />
-                <meta name="robots" content="index, follow" />
-                <link rel="canonical" href="https://haatpoint.com/hotdeals" />
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content="Hot Deals | Shop at HaatPoint" />
-                <meta property="og:description" content="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh." />
-                <meta property="og:url" content="https://haatpoint.com/hotdeals" />
-                <meta property="og:site_name" content="HaatPoint" />
-                <meta property="og:image" content="https://haatpoint.com/og-image.png" />
-                <meta property="og:locale" content="en_US" />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Hot Deals | Shop at HaatPoint" />
-                <meta name="twitter:description" content="Discover today's hottest deals and discounts on HaatPoint." />
-                <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
-            </Head>
+            <SeoHead title="Hot Deals | Shop" description="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh."
+        canonical="https://haatpoint.com/hotdeals" ogTitle="Hot Deals | Shop at HaatPoint"
+        ogDescription="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh."
+        ogUrl="https://haatpoint.com/hotdeals"
+        twitterDescription="Discover today's hottest deals and discounts on HaatPoint." />
 
             <FilterDrawer />
 

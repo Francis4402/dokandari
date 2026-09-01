@@ -1,5 +1,6 @@
 
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
 import AppLayout from '@/Layouts/AppLayout';
 import {
     FaFileContract,
@@ -145,11 +146,7 @@ const TermsOfService = ({ auth, wishlist }: TermsOfServiceProps) => {
 
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
-            <Head title="Terms of Service">
-        <meta name="description" content="Read HaatPoint's terms and conditions governing your use of our marketplace, purchases, and interactions with vendors." />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://haatpoint.com/terms-and-conditions" />
-      </Head>
+            <SeoHead title="Terms of Service" description="Read HaatPoint's terms and conditions governing your use of our marketplace, purchases, and interactions with vendors." canonical="https://haatpoint.com/terms-and-conditions" />
 
             <div className="min-h-screen bg-paper-dim py-20">
                 <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">

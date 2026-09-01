@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Fragment } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
 import { Dialog, Transition } from '@headlessui/react';
 import { Product } from '@/types';
 import {
@@ -531,22 +532,12 @@ const Products = ({ products, auth, wishlist, productRatings = {}, filters }: Pr
 
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
-            <Head title="Products | Shop">
-                <meta name="description" content="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh." />
-                <meta name="robots" content="index, follow" />
-                <link rel="canonical" href="https://haatpoint.com/products" />
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content="Products | Shop at HaatPoint" />
-                <meta property="og:description" content="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh." />
-                <meta property="og:url" content="https://haatpoint.com/products" />
-                <meta property="og:site_name" content="HaatPoint" />
-                <meta property="og:image" content="https://haatpoint.com/og-image.png" />
-                <meta property="og:locale" content="en_US" />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Products | Shop at HaatPoint" />
-                <meta name="twitter:description" content="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh." />
-                <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
-                <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            <SeoHead title="Products | Shop"
+                description="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh."
+                canonical="https://haatpoint.com/products" ogTitle="Products | Shop at HaatPoint"
+                ogDescription="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh."
+                ogUrl="https://haatpoint.com/products"
+                jsonLd={{
                     '@context': 'https://schema.org',
                     '@type': 'ItemList',
                     name: 'All Products',
@@ -557,8 +548,7 @@ const Products = ({ products, auth, wishlist, productRatings = {}, filters }: Pr
                         name: p.name,
                         url: `https://haatpoint.com/products/${p.id}`,
                     })),
-                }) }} />
-            </Head>
+                }} />
 
             <div className="min-h-screen bg-[#EFECE3] py-20">
                 <div className="max-w-[1240px] mx-auto px-8">

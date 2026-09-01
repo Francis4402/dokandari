@@ -23,7 +23,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PageProps } from "@/types";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
+import SeoHead from '@/Components/SeoHead';
 import Eyebrow from "../Components/Eyebrow";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -340,21 +341,9 @@ const ContactUsPage = ({ auth, wishlist, flash }: Props) => {
 
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
-      <Head title="Contact Us">
-        <meta name="description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
-        <link rel="canonical" href="https://haatpoint.com/contactus" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Contact Us | HaatPoint" />
-        <meta property="og:description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
-        <meta property="og:url" content="https://haatpoint.com/contactus" />
-        <meta property="og:site_name" content="HaatPoint" />
-        <meta property="og:image" content="https://haatpoint.com/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Contact Us | HaatPoint" />
-        <meta name="twitter:description" content="Get in touch with our team. We're here to help you with any questions or concerns." />
-        <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
-      </Head>
+      <SeoHead title="Contact Us" description="Get in touch with our team. We're here to help you with any questions or concerns."
+        canonical="https://haatpoint.com/contactus" ogTitle="Contact Us | HaatPoint"
+        ogDescription="Get in touch with our team. We're here to help you with any questions or concerns." ogUrl="https://haatpoint.com/contactus" />
 
       <div className="min-h-screen bg-paper-dim py-20">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">

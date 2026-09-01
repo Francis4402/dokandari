@@ -1,6 +1,6 @@
-import { Head } from '@inertiajs/react';
 import { categoryType, PageProps, Product, ReviewType } from '@/types';
 import AppLayout from '@/Layouts/AppLayout';
+import SeoHead from '@/Components/SeoHead';
 import HeroSection from './Components/HeroSection';
 import Categories from './Components/Categories';
 import Footer from './Components/Footer';
@@ -84,67 +84,50 @@ export default function Welcome({
     const twitterImageUrl = `${Url}summary_large_image.jpg`;
     const currentYear = new Date().getFullYear();
 
-    const organizationSchema = JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        '@id': `${Url}#organization`,
-        name: 'HaatPoint',
-        url: Url,
-        logo: {
-            '@type': 'ImageObject',
-            url: imageUrl,
-        },
-        sameAs: [
-            'https://www.facebook.com/haatpoint',
-            'https://twitter.com/haatpoint',
-        ],
-    });
-
-    const websiteSchema = JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        '@id': `${Url}#website`,
-        url: Url,
-        name: 'HaatPoint',
-        publisher: {
-            '@id': `${Url}#organization`,
-        },
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: {
-                '@type': 'EntryPoint',
-                urlTemplate: `${Url}products?search={search_term_string}`,
-            },
-            'query-input': 'required name=search_term_string',
-        },
-    });
-
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
-            <Head>
-                <title>{pageTitle}</title>
-                <meta name="description" content={pageDescription}/>
-                <meta name="keywords" content={keyword} />
-                <meta name="robots" content="index, follow" />
+            <SeoHead title={pageTitle} description={pageDescription} keywords={keyword}
+                canonical={Url} ogTitle={pageTitle} ogDescription={pageDescription}
+                ogUrl={Url} ogImage={imageUrl} twitterTitle={pageTitle}
+                twitterDescription={pageDescription} twitterImage={twitterImageUrl}
+                jsonLd={[
+                    {
+                        '@context': 'https://schema.org',
+                        '@type': 'Organization',
+                        '@id': `${Url}#organization`,
+                        name: 'HaatPoint',
+                        url: Url,
+                        logo: {
+                            '@type': 'ImageObject',
+                            url: imageUrl,
+                        },
+                        sameAs: [
+                            'https://www.facebook.com/haatpoint',
+                            'https://twitter.com/haatpoint',
+                        ],
+                    },
+                    {
+                        '@context': 'https://schema.org',
+                        '@type': 'WebSite',
+                        '@id': `${Url}#website`,
+                        url: Url,
+                        name: 'HaatPoint',
+                        publisher: {
+                            '@id': `${Url}#organization`,
+                        },
+                        potentialAction: {
+                            '@type': 'SearchAction',
+                            target: {
+                                '@type': 'EntryPoint',
+                                urlTemplate: `${Url}products?search={search_term_string}`,
+                            },
+                            'query-input': 'required name=search_term_string',
+                        },
+                    },
+                ]}
+            >
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
                 <meta httpEquiv="Content-Language" content="en" />
-                <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-                <link rel="manifest" href="/site.webmanifest" />
-                <link rel="canonical" href= {Url} />
-                <meta property="og:title" content={pageTitle} />
-                <meta property="og:description" content={pageDescription} />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content={Url} />
-                <meta property="og:site_name" content={'HaatPoint'} />
-                <meta property="og:image" content={imageUrl} />
-                <meta property="og:image:width" content="1200" />
-                <meta property="og:image:height" content="630" />
-                <meta property="og:locale" content="en_US" />
-
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={pageTitle} />
-                <meta name="twitter:description" content={pageDescription} />
-                <meta name="twitter:image" content={twitterImageUrl} />
                 <meta name="author" content="HaatPoint Team" />
                 <meta name="copyright" content={`HaatPoint ${currentYear}`} />
                 <meta name="revisit-after" content="7 days" />
@@ -152,9 +135,7 @@ export default function Welcome({
                 <meta name="distribution" content="global" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: organizationSchema }} />
-                <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: websiteSchema }} />
-            </Head>
+            </SeoHead>
 
             <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
 

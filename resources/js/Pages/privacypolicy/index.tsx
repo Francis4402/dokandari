@@ -1,5 +1,6 @@
 
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import SeoHead from '@/Components/SeoHead';
 import AppLayout from '@/Layouts/AppLayout';
 import { FaShieldAlt, FaLock, FaUserSecret, FaCookie, FaEnvelope, FaDatabase, FaShareAlt, FaGlobe } from 'react-icons/fa';
 
@@ -148,11 +149,7 @@ const PrivacyPolicy = ({ auth, wishlist }: PrivacyPolicyProps) => {
 
     return (
         <AppLayout user={auth.user} wishlist={wishlist}>
-            <Head title="Privacy Policy">
-        <meta name="description" content="Read HaatPoint's privacy policy to understand how we collect, use, and protect your personal information when you shop on our marketplace." />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://haatpoint.com/privacy-policy" />
-      </Head>
+            <SeoHead title="Privacy Policy" description="Read HaatPoint's privacy policy to understand how we collect, use, and protect your personal information when you shop on our marketplace." canonical="https://haatpoint.com/privacy-policy" />
 
             <div className="min-h-screen bg-paper-dim py-20">
                 <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">

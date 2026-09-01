@@ -1,3 +1,4 @@
+import { Link } from "@inertiajs/react";
 import { IoIosSearch } from "react-icons/io";
 import { MdShoppingCartCheckout } from "react-icons/md";
 
@@ -41,12 +42,12 @@ export default function Header() {
 
         <div className="flex items-center gap-4 shrink-0">
           <MdShoppingCartCheckout size={20} className="text-ink cursor-pointer" />
-          <a
+          <Link
             href="#sell"
             className="whitespace-nowrap rounded-sm px-[18px] py-2.5 text-sm font-bold bg-ink text-paper"
           >
             Sell on Haatpoint
-          </a>
+          </Link>
         </div>
       </div>
     </header>

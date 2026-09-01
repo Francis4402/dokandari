@@ -1,6 +1,7 @@
 // StoreShow.tsx
 import { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
+import SeoHead from '@/Components/SeoHead';
 import {
   FaStore,
   FaMapMarkerAlt,
@@ -140,22 +141,15 @@ export default function StoreShow({
 
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
-      <Head title={store.name}>
-        <meta name="description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`https://haatpoint.com/stores/${store.id}`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={`${store.name} - Shop on HaatPoint`} />
-        <meta property="og:description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
-        <meta property="og:url" content={`https://haatpoint.com/stores/${store.id}`} />
-        <meta property="og:site_name" content="HaatPoint" />
-        <meta property="og:image" content={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'} />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${store.name} - Shop on HaatPoint`} />
-        <meta name="twitter:description" content={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`} />
-        <meta name="twitter:image" content={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      <SeoHead title={store.name}
+        description={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`}
+        canonical={`https://haatpoint.com/stores/${store.id}`}
+        ogTitle={`${store.name} - Shop on HaatPoint`}
+        ogDescription={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`}
+        ogUrl={`https://haatpoint.com/stores/${store.id}`}
+        ogImage={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'}
+        twitterImage={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'}
+        jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Store',
           name: store.name,
@@ -177,8 +171,7 @@ export default function StoreShow({
               worstRating: '1',
             },
           } : {}),
-        }) }} />
-      </Head>
+        }} />
 
       <div className="bg-paper-dim min-h-screen py-12">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">

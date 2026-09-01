@@ -5,10 +5,9 @@ import type { Swiper as SwiperType } from 'swiper';
 import { categoryType } from '@/types';
 import Eyebrow from './Eyebrow';
 
-// Import Swiper styles
+
 import 'swiper/css';
 import 'swiper/css/autoplay';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 const Categories = ({ categories }: { categories: categoryType[] }) => {
   const [isBeginning, setIsBeginning] = useState(true);
@@ -96,7 +95,7 @@ const Categories = ({ categories }: { categories: categoryType[] }) => {
                 className="clip-cat group flex flex-col items-center gap-2.5 text-center px-3.5 py-5 cursor-pointer bg-white border border-line transition-all duration-200 hover:border-marigold hover:-translate-y-1 hover:shadow-hard-sm h-full"
               >
                 <div className="text-xl transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3">
-                  <LazyLoadImage src={`/storage/${c.image}`} effect='blur' alt={c.categories} className="w-25 h-25 object-contain" />
+                  <img src={`/storage/${c.image}`} alt={c.categories} className="w-25 h-25 object-contain" />
                 </div>
                 <span className="text-xs font-bold leading-tight">{c.categories}</span>
               </div>

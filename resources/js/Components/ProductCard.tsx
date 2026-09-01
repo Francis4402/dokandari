@@ -86,7 +86,7 @@ const renderStars = (rating: number) => {
   );
 };
 
-// Lazy loaded product image component
+
 const LazyProductImage = ({
   src,
   alt,

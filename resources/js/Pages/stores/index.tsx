@@ -17,7 +17,8 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AppLayout from "@/Layouts/AppLayout";
-import { Head, Link, router } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
+import SeoHead from '@/Components/SeoHead';
 import { storeType } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -345,23 +346,12 @@ const StoreListPage = ({ auth, stores, wishlist }: StoreListPageProps) => {
 
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
-      <Head title="Stores">
-        <meta name="description" content="Explore hundreds of trusted stores on HaatPoint. Discover unique shops and quality products from vendors across Bangladesh." />
-        <meta name="keywords" content="online stores Bangladesh, multivendor marketplace, shop local, HaatPoint stores" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://haatpoint.com/stores" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Stores | Shop at HaatPoint" />
-        <meta property="og:description" content="Explore hundreds of trusted stores on HaatPoint. Discover unique shops and quality products from vendors across Bangladesh." />
-        <meta property="og:url" content="https://haatpoint.com/stores" />
-        <meta property="og:site_name" content="HaatPoint" />
-        <meta property="og:image" content="https://haatpoint.com/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Stores | Shop at HaatPoint" />
-        <meta name="twitter:description" content="Explore hundreds of trusted stores on HaatPoint. Discover unique shops and quality products from vendors across Bangladesh." />
-        <meta name="twitter:image" content="https://haatpoint.com/og-image.png" />
-      </Head>
+      <SeoHead title="Stores"
+        description="Explore hundreds of trusted stores on HaatPoint. Discover unique shops and quality products from vendors across Bangladesh."
+        keywords="online stores Bangladesh, multivendor marketplace, shop local, HaatPoint stores"
+        canonical="https://haatpoint.com/stores" ogTitle="Stores | Shop at HaatPoint"
+        ogDescription="Explore hundreds of trusted stores on HaatPoint. Discover unique shops and quality products from vendors across Bangladesh."
+        ogUrl="https://haatpoint.com/stores" />
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}

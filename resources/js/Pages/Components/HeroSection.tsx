@@ -1,7 +1,7 @@
 import { useEffect, useRef, lazy, Suspense, useState } from "react";
 import { Link } from "@inertiajs/react";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
+
 
 // Lazy load icons with fallback
 const FaArrowRight = lazy(() =>
