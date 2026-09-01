@@ -26,7 +26,7 @@ const IconFallback = ({ className, ariaHidden = true }: { className?: string; ar
   <span className={className} aria-hidden={ariaHidden}>✦</span>
 );
 
-
+// Lazy load logo with react-lazy-load-image-component
 const LazyLogo = () => (
   <LazyLoadImage
     src="/MyLogo.png"
@@ -34,8 +34,8 @@ const LazyLogo = () => (
     effect="blur"
     wrapperClassName="h-[34px] w-auto"
     className="h-[34px] w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-    placeholderSrc="/otherplaceholder.png"
-    threshold={100}
+    placeholderSrc="/MyLogo-placeholder.png" // Optional: add a placeholder image
+    threshold={100} // Start loading when within 100px of viewport
     visibleByDefault={false}
   />
 );
