@@ -178,10 +178,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
-Route::get('/sitemap.index.xml', [SitemapController::class, 'sitemapIndex'])->name('sitemap.index');
-Route::get('/sitemap-products-{page}.xml', [SitemapController::class, 'productSitemap'])->where('page', '[0-9]+')->name('sitemap.products');
-Route::get('/sitemap-stores-{page}.xml', [SitemapController::class, 'storeSitemap'])->where('page', '[0-9]+')->name('sitemap.stores');
-Route::get('/sitemap-images.xml', [SitemapController::class, 'imageSitemap'])->name('sitemap.images');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
 Route::get('/stores/{id}', [StoreController::class, 'show'])->name('stores.show');
