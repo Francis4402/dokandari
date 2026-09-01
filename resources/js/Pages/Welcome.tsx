@@ -79,7 +79,7 @@ export default function Welcome({
     const pageTitle = 'HaatPoint - Bangladesh&apos;s Premier Marketplace';
     const pageDescription = 'Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods & more at HaatPoint.';
     const keyword = 'online shopping Bangladesh, multivendor marketplace, buy online, electronics, fashion, home goods, HaatPoint'
-    const Url = 'https://haatpoint.com/';
+    const Url = 'https://haatpoint.com';
     const currentYear = new Date().getFullYear();
 
     return (
