@@ -1,0 +1,1 @@
+import{j as e}from"./app-Bccsunne.js";function r({children:s,dark:t=!1}){return e.jsxs("div",{className:`flex items-center gap-2.5 mb-3.5 font-mono text-xs tracking-[0.14em] uppercase ${t?"text-sun":"text-marigold-dark"}`,children:[e.jsx("span",{className:"w-[22px] h-[2px] bg-marigold inline-block"}),s]})}export{r as default};

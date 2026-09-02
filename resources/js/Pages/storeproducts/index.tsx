@@ -143,18 +143,18 @@ export default function StoreShow({
     <AppLayout user={auth.user} wishlist={wishlist}>
       <SeoHead title={store.name}
         description={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`}
-        canonical={`https://haatpoint.com/stores/${store.id}`}
+        canonical={`https://www.haatpoint.com/stores/${store.id}`}
         ogTitle={`${store.name} - Shop on HaatPoint`}
         ogDescription={`${store.name} is a trusted ${store.storetype} store on HaatPoint. Shop quality products from ${store.name} in Bangladesh.`}
-        ogUrl={`https://haatpoint.com/stores/${store.id}`}
-        ogImage={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'}
-        twitterImage={store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png'}
+        ogUrl={`https://www.haatpoint.com/stores/${store.id}`}
+        ogImage={store.logo ? `https://www.haatpoint.com/storage/${store.logo}` : 'https://www.haatpoint.com/og-image.png'}
+        twitterImage={store.logo ? `https://www.haatpoint.com/storage/${store.logo}` : 'https://www.haatpoint.com/og-image.png'}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Store',
           name: store.name,
-          image: store.logo ? `https://haatpoint.com/storage/${store.logo}` : 'https://haatpoint.com/og-image.png',
-          url: `https://haatpoint.com/stores/${store.id}`,
+          image: store.logo ? `https://www.haatpoint.com/storage/${store.logo}` : 'https://www.haatpoint.com/og-image.png',
+          url: `https://www.haatpoint.com/stores/${store.id}`,
           address: {
             '@type': 'PostalAddress',
             streetAddress: store.address,

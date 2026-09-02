@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
-const SITE_URL = 'https://haatpoint.com';
+const SITE_URL = 'https://www.haatpoint.com';
 const SITE_NAME = 'HaatPoint';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/summary_large_image.jpg`;

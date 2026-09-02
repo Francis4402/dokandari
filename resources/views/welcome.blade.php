@@ -17,13 +17,13 @@
     <link rel="manifest" href="/site.webmanifest">
 
     {{-- Canonical URL --}}
-    <link rel="canonical" href="https://haatpoint.com/">
+    <link rel="canonical" href="https://www.haatpoint.com/">
 
     {{-- Open Graph Meta Tags --}}
     <meta property="og:title" content="HaatPoint - Bangladesh's Premier Marketplace">
     <meta property="og:description" content="Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods & more at HaatPoint.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://haatpoint.com/">
+    <meta property="og:url" content="https://www.haatpoint.com/">
     <meta property="og:site_name" content="HaatPoint">
     <meta property="og:image" content="/og-image.png">
     <meta property="og:image:width" content="1200">

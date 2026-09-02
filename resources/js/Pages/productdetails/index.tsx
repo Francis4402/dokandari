@@ -271,28 +271,28 @@ const ProductDetailsPage = ({
       <SeoHead title={product.name}
         description={stripHtml(product.description).slice(0, 160)}
         keywords={`${product.name}, ${product.category}, ${product.brand || ''}, buy online Bangladesh, HaatPoint`}
-        canonical={`https://haatpoint.com/products/${product.id}`}
+        canonical={`https://www.haatpoint.com/products/${product.id}`}
         ogType="product"
         ogTitle={product.name}
         ogDescription={stripHtml(product.description).slice(0, 200)}
-        ogUrl={`https://haatpoint.com/products/${product.id}`}
-        ogImage={currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`}
+        ogUrl={`https://www.haatpoint.com/products/${product.id}`}
+        ogImage={currentImageUrl.startsWith('http') ? currentImageUrl : `https://www.haatpoint.com${currentImageUrl}`}
         twitterTitle={product.name}
         twitterDescription={stripHtml(product.description).slice(0, 200)}
-        twitterImage={currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`}
+        twitterImage={currentImageUrl.startsWith('http') ? currentImageUrl : `https://www.haatpoint.com${currentImageUrl}`}
         jsonLd={[
           {
             '@context': 'https://schema.org',
             '@type': 'Product',
             name: product.name,
-            image: currentImageUrl.startsWith('http') ? currentImageUrl : `https://haatpoint.com${currentImageUrl}`,
+            image: currentImageUrl.startsWith('http') ? currentImageUrl : `https://www.haatpoint.com${currentImageUrl}`,
             description: stripHtml(product.description).slice(0, 200),
             brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
             sku: product.id,
             category: product.category,
             offers: {
               '@type': 'Offer',
-              url: `https://haatpoint.com/products/${product.id}`,
+              url: `https://www.haatpoint.com/products/${product.id}`,
               priceCurrency: 'BDT',
               price: String(Number(product.sale_price) || Number(product.regular_price) || 0),
               priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
@@ -316,10 +316,10 @@ const ProductDetailsPage = ({
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://haatpoint.com/' },
-              { '@type': 'ListItem', position: 2, name: 'Products', item: 'https://haatpoint.com/products' },
-              { '@type': 'ListItem', position: 3, name: product.category, item: `https://haatpoint.com/products?category=${encodeURIComponent(product.category)}` },
-              { '@type': 'ListItem', position: 4, name: product.name, item: `https://haatpoint.com/products/${product.id}` },
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.haatpoint.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Products', item: 'https://www.haatpoint.com/products' },
+              { '@type': 'ListItem', position: 3, name: product.category, item: `https://www.haatpoint.com/products?category=${encodeURIComponent(product.category)}` },
+              { '@type': 'ListItem', position: 4, name: product.name, item: `https://www.haatpoint.com/products/${product.id}` },
             ],
           },
         ]} />

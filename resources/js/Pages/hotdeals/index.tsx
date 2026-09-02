@@ -303,9 +303,9 @@ const HotDeals = ({ products, auth, wishlist }: HotDealsPageProps) => {
     return (
         <AppLayout user={auth?.user} wishlist={wishlist}>
             <SeoHead title="Hot Deals | Shop" description="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh."
-        canonical="https://haatpoint.com/hotdeals" ogTitle="Hot Deals | Shop at HaatPoint"
+        canonical="https://www.haatpoint.com/hotdeals" ogTitle="Hot Deals | Shop at HaatPoint"
         ogDescription="Discover today's hottest deals and discounts on HaatPoint. Shop top-selling, trending, and featured products at unbeatable prices across Bangladesh."
-        ogUrl="https://haatpoint.com/hotdeals"
+        ogUrl="https://www.haatpoint.com/hotdeals"
         twitterDescription="Discover today's hottest deals and discounts on HaatPoint." />
 
             <FilterDrawer />

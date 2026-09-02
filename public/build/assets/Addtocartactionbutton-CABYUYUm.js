@@ -1,0 +1,1 @@
+import{j as t}from"./app-Bccsunne.js";import{I as a}from"./index-DwjshLDp.js";import"./iconBase-BMxmfV5C.js";const e=()=>t.jsx("button",{onClick:o=>o.stopPropagation(),className:"p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors","aria-label":"Add to cart",children:t.jsx(a,{className:"w-4 h-4 text-gray-600"})});export{e as default};

@@ -750,8 +750,8 @@ const TrackOrderPage = ({auth, wishlist}: PageProps) => {
   return (
     <AppLayout user={auth.user} wishlist={wishlist}>
       <SeoHead title="Track Order" description="Track your order status and shipping updates"
-        canonical="https://haatpoint.com/track-order" ogTitle="Track Order | HaatPoint"
-        ogDescription="Track your order status and shipping updates" ogUrl="https://haatpoint.com/track-order" />
+        canonical="https://www.haatpoint.com/track-order" ogTitle="Track Order | HaatPoint"
+        ogDescription="Track your order status and shipping updates" ogUrl="https://www.haatpoint.com/track-order" />
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}

@@ -534,9 +534,9 @@ const Products = ({ products, auth, wishlist, productRatings = {}, filters }: Pr
         <AppLayout user={auth?.user} wishlist={wishlist}>
             <SeoHead title="Products | Shop"
                 description="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh."
-                canonical="https://haatpoint.com/products" ogTitle="Products | Shop at HaatPoint"
+                canonical="https://www.haatpoint.com/products" ogTitle="Products | Shop at HaatPoint"
                 ogDescription="Browse our full collection of products on HaatPoint - electronics, fashion, home goods and more from trusted vendors across Bangladesh."
-                ogUrl="https://haatpoint.com/products"
+                ogUrl="https://www.haatpoint.com/products"
                 jsonLd={{
                     '@context': 'https://schema.org',
                     '@type': 'ItemList',
@@ -546,7 +546,7 @@ const Products = ({ products, auth, wishlist, productRatings = {}, filters }: Pr
                         '@type': 'ListItem',
                         position: i + 1,
                         name: p.name,
-                        url: `https://haatpoint.com/products/${p.id}`,
+                        url: `https://www.haatpoint.com/products/${p.id}`,
                     })),
                 }} />
 

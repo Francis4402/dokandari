@@ -1,0 +1,9 @@
+import{r as n,j as r,x as l}from"./app-Bccsunne.js";const d=()=>{const[s,a]=n.useState("discover products"),t=[{id:"discover products",name:"Products",icon:"🔍",url:"/products"},{id:"stores",name:"Stores",icon:"🏪",url:"/stores"},{id:"track order",name:"Track",icon:"📦",url:"/track-order"},{id:"contact us",name:"Contact",icon:"📞",url:"/contactus"}];return r.jsxs("div",{className:"w-full mt-6 md:mt-10",children:[r.jsx("div",{className:"hidden md:block",children:r.jsx("div",{className:"flex items-center justify-center",children:r.jsx("div",{className:"flex items-center bg-white rounded-full p-1 shadow-lg border border-gray-100",children:t.map(e=>r.jsxs(l,{href:e.url,onClick:()=>a(e.id),className:`flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-300 ${s===e.id?"bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 shadow-sm":"text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`,children:[r.jsx("span",{className:"text-lg",children:e.icon}),r.jsx("span",{className:"font-medium uppercase tracking-wide text-sm",children:e.name})]},e.id))})})}),r.jsx("div",{className:"md:hidden overflow-x-auto scrollbar-hide",children:r.jsx("div",{className:"flex items-center gap-1 min-w-max px-2",children:t.map(e=>r.jsxs(l,{href:e.url,onClick:()=>a(e.id),className:`flex flex-col items-center justify-center px-4 py-3 rounded-2xl transition-all duration-300 min-w-[80px] ${s===e.id?"bg-gradient-to-b from-blue-50 to-white text-blue-600 border border-blue-100":"text-gray-600 hover:text-gray-900"}`,children:[r.jsx("span",{className:"text-2xl mb-1",children:e.icon}),r.jsx("span",{className:"text-xs font-medium uppercase tracking-wide",children:e.name})]},e.id))})}),r.jsx("style",{children:`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `})]})};export{d as default};

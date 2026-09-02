@@ -1,0 +1,1 @@
+import{j as r}from"./app-Bccsunne.js";import t from"./Navbar-CHDCqcgc.js";function x({user:s,children:a,wishlist:o}){return r.jsxs("div",{children:[r.jsx(t,{user:s,wishlist:o}),r.jsx("main",{className:"flex-1",children:a})]})}export{x as A};
