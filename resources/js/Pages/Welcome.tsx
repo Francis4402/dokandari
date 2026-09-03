@@ -43,22 +43,16 @@ export default function Welcome({
     productRatings: Record<string, ProductRating>
 }>) {
 
-
     const productsData = products.data || [];
 
-
     const productsWithRatings = productsData.map(product => {
-    const ratingData = productRatings[product.id];
-
+        const ratingData = productRatings[product.id];
         return {
             ...product,
-
             rating: ratingData?.average || 0,
-
             review: ratingData?.count || 0
         };
     });
-
 
     const topSellingProduct = productsWithRatings.filter(product =>
         product.product_type?.toLowerCase() === 'top-selling'
@@ -78,7 +72,7 @@ export default function Welcome({
 
     const pageTitle = 'HaatPoint - Bangladesh&apos;s Premier Marketplace';
     const pageDescription = 'Shop thousands of products from trusted vendors across Bangladesh. Find electronics, fashion, home goods & more at HaatPoint.';
-    const keyword = 'online shopping Bangladesh, multivendor marketplace, buy online, electronics, fashion, home goods, HaatPoint'
+    const keyword = 'online shopping Bangladesh, multivendor marketplace, buy online, electronics, fashion, home goods, HaatPoint';
     const Url = 'https://www.haatpoint.com/';
     const currentYear = new Date().getFullYear();
 
@@ -92,7 +86,7 @@ export default function Welcome({
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
                 <meta httpEquiv="Content-Language" content="en" />
                 <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-                <link rel="canonical" href= {Url} />
+                <link rel="canonical" href={Url} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDescription} />
                 <meta property="og:type" content="website" />
@@ -102,7 +96,6 @@ export default function Welcome({
                 <meta property="og:image:width" content="1200" />
                 <meta property="og:image:height" content="630" />
                 <meta property="og:locale" content="en_US" />
-
                 <meta name="twitter:card" content="/summary_large_image.jpg" />
                 <meta name="twitter:title" content={pageTitle} />
                 <meta name="twitter:description" content={pageDescription} />
@@ -116,11 +109,12 @@ export default function Welcome({
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             </Head>
             <div className='max-w-[1240px] mx-auto px-8 space-y-20'>
-
                 <HeroSection />
 
-                <Categories categories={categories} />
-
+                {/* Only render Categories if categories exists and has data */}
+                {categories && categories.length > 0 && (
+                    <Categories categories={categories} />
+                )}
 
                 {featuredProducts.length > 0 && (
                     <OfferedProducts product={featuredProducts} user={auth.user} />
@@ -138,7 +132,10 @@ export default function Welcome({
                     <DailyDiscover discoverProduct={dailyDiscoverProduct} user={auth.user} />
                 )}
 
-                <AllProducts product={productsWithRatings} user={auth.user} />
+                {/* Only render AllProducts if productsWithRatings has data */}
+                {productsWithRatings.length > 0 && (
+                    <AllProducts product={productsWithRatings} user={auth.user} />
+                )}
             </div>
             <VendorCTA />
             <Footer/>
