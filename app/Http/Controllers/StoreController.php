@@ -129,8 +129,9 @@ class StoreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($store)
+    public function show($id)
     {
+        $store = Store::findOrFail($id);
 
         $products = Products::where('store_id', $store->id)
             ->orderBy('created_at', 'desc')

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Products;
 use App\Models\Store;
-use Illuminate\Http\Request;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 use Carbon\Carbon;
@@ -51,7 +50,7 @@ class SitemapController extends Controller
             ->chunk(200, function ($products) use ($sitemap) {
                 foreach ($products as $product) {
                     $sitemap->add(
-                        Url::create(route('products.details', $product->id))
+                        Url::create(route('products.details', $product->slug))
                             ->setLastModificationDate($product->updated_at ?? Carbon::now())
                             ->setPriority(0.8)
                             ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
@@ -61,7 +60,6 @@ class SitemapController extends Controller
 
         // Stores with proper SEO attributes
         Store::select('id', 'updated_at', 'name')
-            ->where('is_active', true) // Only active stores
             ->chunk(200, function ($stores) use ($sitemap) {
                 foreach ($stores as $store) {
                     $sitemap->add(
@@ -114,7 +112,7 @@ class SitemapController extends Controller
         }
 
         // Store sitemaps
-        $totalStores = Store::where('is_active', true)->count();
+        $totalStores = Store::count();
         $totalStorePages = ceil($totalStores / $perPage);
 
         for ($i = 1; $i <= $totalStorePages; $i++) {
@@ -144,7 +142,7 @@ class SitemapController extends Controller
 
         foreach ($products as $product) {
             $sitemap->add(
-                Url::create(route('products.details', $product->id))
+                Url::create(route('products.details', $product->slug))
                     ->setLastModificationDate($product->updated_at ?? Carbon::now())
                     ->setPriority(0.8)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
@@ -160,8 +158,7 @@ class SitemapController extends Controller
     public function storeSitemap($page = 1)
     {
         $perPage = 1000;
-        $stores = Store::where('is_active', true)
-            ->select('id', 'updated_at', 'name')
+        $stores = Store::select('id', 'updated_at', 'name')
             ->paginate($perPage, ['*'], 'page', $page);
 
         $sitemap = Sitemap::create();
@@ -202,7 +199,7 @@ class SitemapController extends Controller
                     }
 
                     $xml->startElement('url');
-                    $xml->writeElement('loc', route('products.details', $product->id));
+                    $xml->writeElement('loc', route('products.details', $product->slug));
                     $xml->writeElement('lastmod', $product->updated_at?->toDateString() ?? Carbon::now()->toDateString());
 
                     // Add each image

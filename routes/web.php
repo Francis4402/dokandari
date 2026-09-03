@@ -139,12 +139,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/dashboard/products/store', [ProductsController::class, 'store'])->name('products.store');
 
-    Route::delete('/dashboard/products/{id}', [ProductsController::class, 'destroy'])->name('dashboard.deleteproduct');
+    Route::delete('/dashboard/products/{slug}', [ProductsController::class, 'destroy'])->name('dashboard.deleteproduct');
 
     Route::post('/dashboard/stores/store', [StoreController::class, 'store'])->name('stores.store');
     Route::delete('/dashboard/store/{id}', [StoreController::class, 'destroy'])->name('dashboard.deletestore');
 
-    Route::get('/dashboard/products/{id}/edit', [ProductsController::class, 'edit'])->name('dashboard.productedit');
+    Route::get('/dashboard/products/{slug}/edit', [ProductsController::class, 'edit'])->name('dashboard.productedit');
     Route::put('/dashboard/products/update/{slug}', [ProductsController::class, 'update'])->name('dashboard.updateproduct');
 
     Route::get('/dashboard/store/{name}/edit', [StoreController::class, 'edit'])->name('dashboard.storeedit');
@@ -180,7 +180,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::get('/stores', [StoreController::class, 'storeroute'])->name('stores.index');
-Route::get('/stores/{id}', [StoreController::class, 'show'])->name('stores.show');
+Route::get('/stores/{store}', [StoreController::class, 'show'])->name('stores.show');
 
 Route::get('/track-order', [TrackOrderController::class, 'index'])->name('trackorder.index');
 Route::get('/contactus', [ContactController::class, 'index'])->name('contact.index');
@@ -188,7 +188,7 @@ Route::get('/products', [ProductsController::class, 'products'])->name('products
 
 Route::get('/aboutus', [Controller::class, 'aboutus'])->name('aboutus.index');
 
-Route::get('/products/{id}', [ProductsController::class, 'show'])->name('products.details');
+Route::get('/products/{slug}', [ProductsController::class, 'show'])->name('products.details');
 
 Route::get('/cart', [CustomersController::class, 'cartpage'])->name('cart.index');
 
@@ -207,7 +207,7 @@ Route::controller(Controller::class)->group(function () {
 });
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-Route::get('/products/{id}/reviews', [ReviewController::class, 'status'])->name('reviews.status');
+Route::get('/products/{slug}/reviews', [ReviewController::class, 'status'])->name('reviews.status');
 
 
 Route::middleware('auth')->group(function () {
